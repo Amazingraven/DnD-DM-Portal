@@ -274,7 +274,9 @@ const SHARED_CSS = `
 .hp-tracker-title{ font-family:'Cinzel',serif; font-weight:600; font-size:.8rem; color:var(--rust); text-transform:uppercase; letter-spacing:.1em; margin-bottom:.8rem; text-align:center; }
 .hp-row{ display:flex; align-items:center; gap:.8rem; margin-bottom:.6rem; flex-wrap:wrap; }
 .hp-label{ font-family:'Cinzel',serif; font-weight:600; font-size:.85rem; color:var(--ink); min-width:120px; }
-.hp-btn{ width:30px; height:30px; border:1px solid var(--gold); background:var(--parchment); color:var(--rust); font-family:'Cinzel',serif; font-weight:700; font-size:1rem; cursor:pointer; border-radius:3px; }
+.hp-btn{ width:30px; height:30px; border:1px solid var(--gold); background:var(--parchment); color:var(--rust); font-family:'Cinzel',serif; font-weight:700; font-size:1rem; cursor:pointer; border-radius:3px; display:flex; align-items:center; justify-content:center; }
+.hp-controls{ display:flex; align-items:center; gap:.4rem; }
+.hp-input{ width:52px; height:30px; text-align:center; border:1px solid var(--gold); background:var(--parchment); font-family:'IM Fell English',Georgia,serif; font-size:1rem; font-weight:700; border-radius:3px; color:var(--ink); }
 .hp-num{ font-family:'IM Fell English',Georgia,serif; font-weight:700; font-size:1rem; min-width:34px; text-align:center; color:var(--ink); }
 .hp-max{ color:var(--ash); font-size:.85rem; }
 .hp-bar-wrap{ flex:1; min-width:80px; height:8px; background:var(--parchment-dark); border-radius:4px; overflow:hidden; border:1px solid rgba(184,134,42,.3); }
@@ -566,18 +568,47 @@ function renderBlockContent(block, includeDM){
       </div></div>`;
     }
     case 'hptracker': {
-      const rows = (d.combatants||[]).map((c,i)=>{
+      const rows = (block.data.combatants||[]).map((c,i)=>{
         const max=Number(c.max)||1, cur=Math.max(0,Math.min(max,Number(c.cur)||0));
         const pct=(cur/max)*100;
-        return `<div class="hp-row"><span class="hp-label">${esc(c.name)}</span>
-          <span class="hp-num">${cur}</span><span class="hp-max">/ ${max}</span>
-          <div class="hp-bar-wrap"><div class="hp-bar ${hpClass(pct)}" style="width:${pct}%"></div></div></div>`;
+        const rid = `${block.id}_${i}`;
+        return `<div class="hp-row">
+          <span class="hp-label">${esc(c.name)}</span>
+          <div class="hp-controls">
+            <button class="hp-btn" onclick="window.__hpChange&&window.__hpChange('${rid}',${max},-1)">−</button>
+            <input type="number" class="hp-input" id="hp-${rid}" value="${cur}" min="0" max="${max}" onchange="window.__hpSet&&window.__hpSet('${rid}',${max})">
+            <button class="hp-btn" onclick="window.__hpChange&&window.__hpChange('${rid}',${max},1)">+</button>
+            <span class="hp-max">/ ${max}</span>
+          </div>
+          <div class="hp-bar-wrap"><div class="hp-bar ${hpClass(pct)}" id="bar-${rid}" style="width:${pct}%"></div></div>
+        </div>`;
       }).join('');
       return `<div class="scroll-panel"><div class="hp-tracker-section"><div class="hp-tracker-title">⚔ HP Tracker</div>${rows}</div></div>`;
     }
   }
   return '';
 }
+
+/* Shared HP-tracker interactivity — attached to window so it works identically in the
+   editor canvas, the present window, and static HTML exports (all render via renderBlockContent). */
+window.__hpUpdateBar = function(rid, max){
+  const input = document.getElementById('hp-'+rid);
+  const bar = document.getElementById('bar-'+rid);
+  if(!input || !bar) return;
+  let val = Math.max(0, Math.min(max, parseInt(input.value)||0));
+  input.value = val;
+  const pct = (val/max)*100;
+  bar.style.width = pct+'%';
+  bar.className = 'hp-bar ' + (pct>50?'healthy':(pct>25?'bloodied':'critical'));
+};
+window.__hpChange = function(rid, max, delta){
+  const input = document.getElementById('hp-'+rid);
+  if(!input) return;
+  let val = Math.max(0, Math.min(max, (parseInt(input.value)||0) + delta));
+  input.value = val;
+  window.__hpUpdateBar(rid, max);
+};
+window.__hpSet = function(rid, max){ window.__hpUpdateBar(rid, max); };
 
 function renderPageBlocks(session, includeDM){
   let activeTransition = 'fade';
@@ -882,6 +913,21 @@ function openPresent(){
     };
     window.__applyPages=function(){ window.__showPage(window.__cur, false); };
     window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
+    window.__hpUpdateBar=function(rid, max){
+      var input=document.getElementById('hp-'+rid), bar=document.getElementById('bar-'+rid);
+      if(!input||!bar) return;
+      var val=Math.max(0, Math.min(max, parseInt(input.value)||0));
+      input.value=val;
+      var pct=(val/max)*100;
+      bar.style.width=pct+'%';
+      bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
+    };
+    window.__hpChange=function(rid, max, delta){
+      var input=document.getElementById('hp-'+rid); if(!input) return;
+      input.value=Math.max(0, Math.min(max, (parseInt(input.value)||0)+delta));
+      window.__hpUpdateBar(rid, max);
+    };
+    window.__hpSet=function(rid, max){ window.__hpUpdateBar(rid, max); };
     <\/script>
     </body></html>`);
   doc.close();
@@ -953,13 +999,30 @@ document.getElementById('btnExportHtml').onclick = ()=>{
   const s=current();
   const body = `<div class="page-wrap">${renderPageBlocks(s,true)}</div>`;
   const revealScript = `<script>(function(){var els=document.querySelectorAll('.pblock');if(!('IntersectionObserver'in window)){els.forEach(function(el){el.classList.add('visible');});return;}var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:0.12});els.forEach(function(el){el.classList.add('reveal');io.observe(el);});})();<\/script>`;
+  const hpScript = `<script>
+    window.__hpUpdateBar=function(rid, max){
+      var input=document.getElementById('hp-'+rid), bar=document.getElementById('bar-'+rid);
+      if(!input||!bar) return;
+      var val=Math.max(0, Math.min(max, parseInt(input.value)||0));
+      input.value=val;
+      var pct=(val/max)*100;
+      bar.style.width=pct+'%';
+      bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
+    };
+    window.__hpChange=function(rid, max, delta){
+      var input=document.getElementById('hp-'+rid); if(!input) return;
+      input.value=Math.max(0, Math.min(max, (parseInt(input.value)||0)+delta));
+      window.__hpUpdateBar(rid, max);
+    };
+    window.__hpSet=function(rid, max){ window.__hpUpdateBar(rid, max); };
+  <\/script>`;
   const full = `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(s.name||'Session')}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>${SHARED_CSS}</style>
 <style>${themeVarsCSS(themeOf())}</style></head>
-<body class="present-body">${body}${state.effects?revealScript:''}</body></html>`;
+<body class="present-body">${body}${hpScript}${state.effects?revealScript:''}</body></html>`;
   download((s.name||'session').replace(/[^a-z0-9æøå_-]+/gi,'_').toLowerCase()+'.html', full, 'text/html');
 };
 
