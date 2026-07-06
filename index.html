@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icespire Session Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ===== EDITOR CHROME (quiet dark UI) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: #0d0a05;
+  color: #e8d9a8;
+  font-family: 'Cinzel', serif;
+  overflow: hidden;
+}
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  background: #16110a;
+  border-bottom: 1px solid #4a3a1a;
+  z-index: 50;
+  flex-wrap: wrap;
+}
+.brand {
+  font-family: 'Cinzel Decorative', serif; font-weight: 700;
+  color: #d4a843; font-size: 0.95rem; letter-spacing: 0.04em;
+  margin-right: 0.4rem; white-space: nowrap;
+}
+.meter {
+  font-family: 'Cinzel', serif; font-size: 0.66rem; color: #7a6a3a;
+  letter-spacing: 0.05em; white-space: nowrap; margin-right: 0.3rem;
+}
+.session-name {
+  background: #221a0e; border: 1px solid #4a3a1a; color: #f2e8c9;
+  font-family: 'Cinzel', serif; font-size: 0.85rem;
+  padding: 0.35rem 0.6rem; border-radius: 4px; min-width: 180px;
+}
+.topbar .spacer { flex: 1; }
+.btn {
+  background: #221a0e; border: 1px solid #6b551f; color: #d4a843;
+  font-family: 'Cinzel', serif; font-weight: 600; font-size: 0.72rem;
+  letter-spacing: 0.05em; padding: 0.4rem 0.7rem; border-radius: 4px;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s, border-color 0.15s;
+}
+.btn:hover { background: #2e2412; border-color: #b8862a; }
+.btn.primary { background: #8b2e0a; border-color: #c44a0a; color: #f2e8c9; }
+.btn.primary:hover { background: #a8380c; }
+.btn:focus-visible { outline: 2px solid #d4a843; outline-offset: 1px; }
+
+/* Body split */
+.workspace { display: flex; flex: 1; overflow: hidden; }
+
+/* Library drawer */
+.library {
+  width: 230px; background: #120d07; border-right: 1px solid #4a3a1a;
+  overflow-y: auto; flex-shrink: 0; padding: 0.7rem;
+}
+.library h3 {
+  font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: #b8862a; margin: 0.2rem 0 0.7rem;
+}
+.lib-item {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 0.6rem; border-radius: 4px; cursor: pointer;
+  border: 1px solid transparent; margin-bottom: 0.3rem; font-size: 0.8rem;
+  color: #cdbf95;
+}
+.lib-item:hover { background: #1d1609; }
+.lib-item.active { background: #241a0c; border-color: #8b2e0a; color: #f2e8c9; }
+.lib-item .lib-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-del {
+  background: none; border: none; color: #7a5a2a; cursor: pointer;
+  font-size: 0.9rem; padding: 0 0.2rem; line-height: 1;
+}
+.lib-del:hover { color: #c44a0a; }
+
+/* Canvas — candlelit parchment world */
+.canvas-wrap { flex: 1; overflow-y: auto; position: relative; }
+.canvas-wrap::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, var(--glow-1) 0%, transparent 60%),
+    radial-gradient(ellipse at 75% 80%, var(--glow-2) 0%, transparent 50%);
+  animation: candleflicker 6s ease-in-out infinite alternate;
+}
+@keyframes candleflicker { 0%{opacity:.8} 30%{opacity:1} 60%{opacity:.85} 100%{opacity:1} }
+.canvas {
+  max-width: 860px; margin: 0 auto; padding: 1.8rem 1.5rem 8rem;
+  position: relative; z-index: 1;
+}
+
+/* Add-block bar */
+.add-bar {
+  display: flex; gap: 0.5rem; align-items: center; justify-content: center;
+  margin: 1.4rem 0; flex-wrap: wrap;
+}
+.add-bar select {
+  background: #221a0e; border: 1px solid #6b551f; color: #f2e8c9;
+  font-family: 'Cinzel', serif; font-size: 0.8rem; padding: 0.45rem 0.6rem; border-radius: 4px;
+}
+
+/* Editor block wrapper */
+.eblock { position: relative; margin-bottom: 1.6rem; }
+.eblock-tools {
+  position: absolute; top: -0.7rem; right: 0.3rem; z-index: 5;
+  display: flex; gap: 0.25rem; background: #16110a;
+  border: 1px solid #4a3a1a; border-radius: 5px; padding: 0.15rem 0.25rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
+.tool-btn {
+  background: none; border: none; color: #b8862a; cursor: pointer;
+  font-size: 0.85rem; padding: 0.15rem 0.35rem; border-radius: 3px; line-height: 1;
+}
+.tool-btn:hover { background: #2e2412; color: #f2e8c9; }
+.tool-btn.danger:hover { color: #c44a0a; }
+.btype-tag {
+  font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #7a5a2a; align-self: center; padding: 0 0.3rem;
+}
+
+/* Edit form */
+.eform {
+  background: rgba(20,12,4,0.55); border: 1px dashed #6b551f; border-radius: 6px;
+  padding: 1rem 1.1rem; margin-top: 0.4rem;
+}
+.eform label {
+  display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #b8862a; margin: 0.7rem 0 0.25rem;
+}
+.eform label:first-child { margin-top: 0; }
+.eform input[type=text], .eform input[type=number], .eform textarea {
+  width: 100%; background: #1d1609; border: 1px solid #4a3a1a; color: #f2e8c9;
+  font-family: 'IM Fell English', Georgia, serif; font-size: 0.95rem;
+  padding: 0.45rem 0.55rem; border-radius: 4px;
+}
+.eform textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+.eform .row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.eform .row > div { flex: 1; min-width: 90px; }
+.eform .subitem {
+  display: flex; gap: 0.4rem; align-items: flex-start; margin-bottom: 0.4rem; flex-wrap: wrap;
+}
+.eform .subitem input { flex: 1; min-width: 100px; }
+.mini-btn {
+  background: #221a0e; border: 1px solid #6b551f; color: #d4a843;
+  font-family: 'Cinzel', serif; font-size: 0.68rem; padding: 0.3rem 0.55rem;
+  border-radius: 4px; cursor: pointer;
+}
+.mini-btn:hover { background: #2e2412; }
+.mini-btn.del { color: #c44a0a; border-color: #6b2a14; }
+.img-preview { max-width: 160px; max-height: 110px; border: 1px solid #6b551f; border-radius: 4px; margin-top: 0.4rem; display: block; }
+
+.empty-hint {
+  text-align: center; color: #6b551f; font-family: 'IM Fell English', Georgia, serif;
+  font-size: 1.05rem; margin-top: 4rem; line-height: 1.7;
+}
+
+/* ===== SHARED PARCHMENT STYLES injected at runtime (see SHARED_CSS) ===== */
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="brand">⚔ Icespire Builder</span>
+    <span id="meter" class="meter" title="Lager brugt"></span>
+    <input class="session-name" id="sessionName" placeholder="Sessionsnavn…" />
+    <select class="session-name" id="themeSelect" title="Farvetema (gælder hele sessionen)" style="min-width:auto;"></select>
+    <span class="spacer"></span>
+    <button class="btn" id="btnLibrary" title="Vis/skjul bibliotek">Bibliotek</button>
+    <button class="btn" id="btnImport">Importér</button>
+    <button class="btn" id="btnExportJson">Gem (JSON)</button>
+    <button class="btn" id="btnExportHtml">Eksportér HTML</button>
+    <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.68rem;color:#b8862a;cursor:pointer;"><input type="checkbox" id="chkEffects" checked> Effekter</label>
+    <button class="btn" id="btnPrev" title="Forrige scene (←)">◀</button>
+    <button class="btn" id="btnNext" title="Næste scene (→ / mellemrum)">Næste ▶</button>
+    <button class="btn primary" id="btnPresent">▶ Fremvis til TV</button>
+    <input type="file" id="fileImport" accept="application/json" style="display:none">
+  </div>
+  <div class="workspace">
+    <aside class="library" id="library">
+      <h3>Bibliotek</h3>
+      <button class="btn" id="btnNew" style="width:100%; margin-bottom:0.7rem;">+ Ny session</button>
+      <div id="libList"></div>
+    </aside>
+    <div class="canvas-wrap">
+      <div class="canvas" id="canvas"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   SHARED PARCHMENT CSS — single source of truth.
+   Used by: editor canvas, present window, exported HTML.
+   ============================================================ */
+const SHARED_CSS = `
+:root{
+  --ink:#1a1208; --parchment:#f2e8c9; --parchment-dark:#e8d9a8; --parchment-mid:#ede0b5;
+  --gold:#b8862a; --gold-light:#d4a843; --rust:#8b2e0a; --ash:#3d3020; --ember:#c44a0a;
+  --shadow:rgba(20,10,0,.55);
+  --title:#f2e8c9;
+  --glow-1:rgba(180,90,10,.18); --glow-2:rgba(150,60,5,.12);
+}
+.page-wrap{ max-width:860px; margin:0 auto; }
+.header-block{ text-align:center; margin:1.5rem 0 1rem; }
+.header-block .kicker{
+  font-family:'Cinzel',serif; font-size:.78rem; letter-spacing:.32em; text-transform:uppercase;
+  color:var(--gold); display:block; margin-bottom:.6rem;
+}
+.header-block h1{
+  font-family:'Cinzel Decorative',serif; font-weight:700;
+  font-size:clamp(1.8rem,5vw,3rem); color:var(--title); margin:.2rem 0; line-height:1.15;
+  text-shadow:0 2px 22px rgba(0,0,0,.6);
+}
+.header-block .mood{
+  font-family:'IM Fell English',Georgia,serif; font-style:italic;
+  color:var(--gold-light); font-size:1.05rem; margin-top:.5rem;
+}
+.scroll-panel{
+  background:radial-gradient(ellipse at 50% 0%, var(--parchment) 0%, var(--parchment-dark) 100%);
+  border:1px solid var(--gold); border-radius:6px; padding:2rem 2.2rem; margin-bottom:2.2rem;
+  box-shadow:0 4px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3); position:relative; color:var(--ink);
+}
+.scroll-panel h2{
+  font-family:'Cinzel',serif; font-weight:600; font-size:clamp(1rem,3vw,1.4rem);
+  color:var(--rust); margin:0 0 1rem;
+}
+.narrative{
+  font-family:'IM Fell English',Georgia,serif; font-size:1.05rem; line-height:1.75;
+  color:var(--ink); white-space:pre-wrap; margin:0;
+}
+.scene-figure{ margin:0 0 2.2rem; text-align:center; }
+.scene-figure img{
+  max-width:100%; border:2px solid var(--gold); border-radius:6px;
+  box-shadow:0 0 60px rgba(160,80,0,.4); display:block; margin:0 auto;
+}
+.scene-figure figcaption{
+  font-family:'IM Fell English',Georgia,serif; font-style:italic; color:var(--gold-light);
+  font-size:.95rem; margin-top:.7rem;
+}
+.divider{ display:flex; align-items:center; gap:1rem; margin:2.2rem 0; opacity:.7; color:var(--gold); font-size:.9rem; }
+.divider::before,.divider::after{ content:''; flex:1; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
+.skill-checks{ display:flex; flex-wrap:wrap; gap:.5rem; margin:1.2rem 0; }
+.skill-badge{
+  display:inline-block; font-family:'Cinzel',serif; font-weight:600; font-size:.7rem;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--ash);
+  border:1px solid var(--gold); background:var(--parchment-mid); padding:.35rem .9rem; border-radius:3px;
+}
+.skill-badge .skill-name{ color:var(--rust); }
+.statblock{
+  background:var(--parchment); border-top:3px solid var(--rust); border-bottom:3px solid var(--rust);
+  padding:1.2rem 1.4rem; margin:1.5rem 0; font-size:.92rem; line-height:1.6; color:var(--ink);
+  font-family:'IM Fell English',Georgia,serif;
+}
+.statblock-title{ font-family:'Cinzel',serif; font-weight:700; font-size:1.15rem; color:var(--rust); margin-bottom:.1rem; }
+.statblock hr{ border:none; height:2px; background:linear-gradient(to right,var(--rust),var(--ember),var(--rust)); margin:.6rem 0; opacity:.5; }
+.statblock .stat-label{ font-family:'Cinzel',serif; font-weight:600; font-size:.78rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
+.stat-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:.3rem; text-align:center; margin:.5rem 0; }
+.stat-cell{ background:var(--parchment-dark); border:1px solid var(--gold); border-radius:3px; padding:.35rem .2rem; }
+.stat-cell .stat-abbr{ font-family:'Cinzel',serif; font-weight:600; font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color:var(--rust); display:block; }
+.stat-cell .stat-val{ font-weight:700; font-size:.95rem; color:var(--ink); display:block; }
+.stat-cell .stat-mod{ font-size:.75rem; color:var(--ash); display:block; }
+.statblock .attack-name{ font-family:'Cinzel',serif; font-weight:600; font-size:.78rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
+.hp-tracker-section{ background:var(--parchment-mid); border:1px solid var(--gold); border-radius:4px; padding:1rem 1.2rem; margin:1.5rem 0; }
+.hp-tracker-title{ font-family:'Cinzel',serif; font-weight:600; font-size:.8rem; color:var(--rust); text-transform:uppercase; letter-spacing:.1em; margin-bottom:.8rem; text-align:center; }
+.hp-row{ display:flex; align-items:center; gap:.8rem; margin-bottom:.6rem; flex-wrap:wrap; }
+.hp-label{ font-family:'Cinzel',serif; font-weight:600; font-size:.85rem; color:var(--ink); min-width:120px; }
+.hp-btn{ width:30px; height:30px; border:1px solid var(--gold); background:var(--parchment); color:var(--rust); font-family:'Cinzel',serif; font-weight:700; font-size:1rem; cursor:pointer; border-radius:3px; }
+.hp-num{ font-family:'IM Fell English',Georgia,serif; font-weight:700; font-size:1rem; min-width:34px; text-align:center; color:var(--ink); }
+.hp-max{ color:var(--ash); font-size:.85rem; }
+.hp-bar-wrap{ flex:1; min-width:80px; height:8px; background:var(--parchment-dark); border-radius:4px; overflow:hidden; border:1px solid rgba(184,134,42,.3); }
+.hp-bar{ height:100%; border-radius:4px; transition:width .3s ease; }
+.hp-bar.healthy{ background:linear-gradient(to right,#5a7a2a,#7a9a3a); }
+.hp-bar.bloodied{ background:linear-gradient(to right,var(--gold),var(--ember)); }
+.hp-bar.critical{ background:linear-gradient(to right,var(--rust),#6b1a04); }
+.dm-note{ background:rgba(139,46,10,.08); border-left:3px solid var(--rust); margin:1rem 0 0; font-size:.9rem; color:var(--ash); border-radius:4px; }
+.dm-note-toggle{ cursor:pointer; padding:.6rem 1.2rem; font-family:'Cinzel',serif; font-size:.8rem; font-weight:600; color:var(--rust); letter-spacing:.08em; list-style:none; user-select:none; }
+.dm-note-toggle::-webkit-details-marker{ display:none; }
+.dm-note-toggle::before{ content:'▶ '; font-size:.65rem; display:inline-block; transition:transform .2s; }
+details.dm-note[open] .dm-note-toggle::before{ transform:rotate(90deg); }
+.dm-note-content{ padding:.4rem 1.2rem .8rem; }
+.dm-note-content .narrative{ font-size:.95rem; }
+/* scroll-reveal effects */
+.pblock{ }
+.reveal{ opacity:0; transform:translateY(34px) scale(.985); filter:blur(1.5px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1), filter .7s ease; will-change:opacity, transform; }
+.reveal.visible{ opacity:1; transform:none; filter:none; }
+@media (prefers-reduced-motion: reduce){ .reveal{ transform:none; filter:none; transition:opacity .5s ease; } .reveal.visible{ opacity:1; } }
+/* present-mode candlelight */
+.present-body{ background:#0d0a05; color:var(--parchment); margin:0; padding:2.5rem 1.5rem 5rem; min-height:100vh; }
+.present-body::before{ content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(ellipse at 30% 20%, var(--glow-1) 0%, transparent 60%),radial-gradient(ellipse at 75% 80%, var(--glow-2) 0%, transparent 50%);
+  animation:candleflicker 6s ease-in-out infinite alternate; }
+@keyframes candleflicker{ 0%{opacity:.8}30%{opacity:1}60%{opacity:.85}100%{opacity:1} }
+.present-body .page-wrap{ position:relative; z-index:1; }
+.fs-btn{ position:fixed; bottom:14px; right:14px; z-index:99; background:#221a0e; color:#d4a843; border:1px solid #6b551f; font-family:'Cinzel',serif; font-size:.7rem; padding:.5rem .8rem; border-radius:5px; cursor:pointer; }
+.present-empty{ text-align:center; color:var(--gold); font-family:'IM Fell English',Georgia,serif; font-style:italic; margin-top:25vh; opacity:.6; }
+`;
+
+/* inject parchment CSS into editor doc so canvas previews look right */
+(function(){ const s=document.createElement('style'); s.textContent=SHARED_CSS; document.head.appendChild(s); })();
+
+/* ============================================================
+   FARVETEMAER (gælder pr. session)
+   ============================================================ */
+const THEMES = {
+  parchment: { label: 'Pergament & Rust', vars: {
+    '--ink':'#1a1208','--parchment':'#f2e8c9','--parchment-dark':'#e8d9a8','--parchment-mid':'#ede0b5',
+    '--gold':'#b8862a','--gold-light':'#d4a843','--rust':'#8b2e0a','--ash':'#3d3020','--ember':'#c44a0a',
+    '--title':'#f2e8c9','--glow-1':'rgba(190,95,12,.22)','--glow-2':'rgba(150,60,5,.15)' } },
+  frost: { label: 'Frostbidt (Cryovain)', vars: {
+    '--ink':'#0c1a28','--parchment':'#dfeaf3','--parchment-dark':'#c2d6e6','--parchment-mid':'#d2e1ee',
+    '--gold':'#3f7fb0','--gold-light':'#74b6e0','--rust':'#16566f','--ash':'#3f5567','--ember':'#23c7e6',
+    '--title':'#bfe4f5','--glow-1':'rgba(70,150,220,.26)','--glow-2':'rgba(30,80,150,.18)' } },
+  woods: { label: 'Skovdyb (Neverwinter)', vars: {
+    '--ink':'#15240e','--parchment':'#e4edca','--parchment-dark':'#ccd99c','--parchment-mid':'#d8e2b0',
+    '--gold':'#8a6e22','--gold-light':'#b39a3a','--rust':'#245c20','--ash':'#3c4a2e','--ember':'#6cba2e',
+    '--title':'#cfe6a0','--glow-1':'rgba(95,165,40,.26)','--glow-2':'rgba(50,95,25,.17)' } },
+  crypt: { label: 'Krypt (genfærd)', vars: {
+    '--ink':'#cdd8da','--parchment':'#222a2c','--parchment-dark':'#171d1f','--parchment-mid':'#2b3437',
+    '--gold':'#5d6f72','--gold-light':'#9fc6c2','--rust':'#8fc4be','--ash':'#87949a','--ember':'#7fd8c0',
+    '--title':'#d3e7e4','--glow-1':'rgba(110,175,180,.18)','--glow-2':'rgba(70,110,130,.12)' } },
+  royal: { label: 'Alagondar (rødt guld)', vars: {
+    '--ink':'#f3e2b8','--parchment':'#3a1018','--parchment-dark':'#280910','--parchment-mid':'#46141e',
+    '--gold':'#caa23f','--gold-light':'#ecc864','--rust':'#e6c057','--ash':'#b89a6a','--ember':'#d12435',
+    '--title':'#f0d27a','--glow-1':'rgba(155,30,42,.26)','--glow-2':'rgba(125,85,20,.17)' } },
+};
+function themeOf(){ const s=current(); return (s && THEMES[s.theme]) ? s.theme : 'parchment'; }
+function applyTheme(id, target){
+  const t = THEMES[id] || THEMES.parchment;
+  for(const k in t.vars){ target.style.setProperty(k, t.vars[k]); }
+}
+function themeVarsCSS(id){
+  const t = THEMES[id] || THEMES.parchment; let out='';
+  for(const k in t.vars){ out += k+':'+t.vars[k]+';'; }
+  return ':root{'+out+'}';
+}
+
+/* ============================================================
+   DATA MODEL
+   ============================================================ */
+const STORE_KEY = 'icespire_builder_v1';
+const uid = () => Math.random().toString(36).slice(2,9);
+
+const BLOCK_DEFS = {
+  header:      { label: 'Header (titel)' },
+  image:       { label: 'Billede' },
+  narrative:   { label: 'Flavor-tekst' },
+  'narrative-dm': { label: 'Flavor-tekst + DM-noter' },
+  skills:      { label: 'Skill-badges' },
+  statblock:   { label: 'Statblock' },
+  hptracker:   { label: 'HP-tracker' },
+  divider:     { label: 'Divider' },
+};
+
+function blockDefaults(type){
+  switch(type){
+    case 'header': return { kicker:'DRAGONS OF ICESPIRE PEAK', title:'Ny session', mood:'' };
+    case 'image': return { imageData:'', caption:'' };
+    case 'narrative': return { heading:'', text:'Fortællertekst…', skills:[] };
+    case 'narrative-dm': return { heading:'', text:'Fortællertekst…', dmNotes:'DM-noter, DC-værdier, loot…', skills:[] };
+    case 'skills': return { items:[ {name:'PERCEPTION', desc:'Undersøg området'} ] };
+    case 'statblock': return { title:'Modstander', hp:'', ac:'', speed:'30 ft.', cr:'',
+      str:10, dex:10, con:10, int:10, wis:10, cha:10, traits:'', attacks:'' };
+    case 'hptracker': return { combatants:[ {name:'Modstander #1', max:30, cur:30} ] };
+    case 'divider': return { icon:'⚔' };
+    default: return {};
+  }
+}
+
+let state = { sessions: [], currentId: null };
+let editingBlock = null;       // block id currently in edit mode
+let presentWin = null;
+let presentRoot = null;
+
+function newSessionObj(){
+  return { id: uid(), name:'Ny session', theme:'parchment', blocks:[ {id:uid(), type:'header', data:blockDefaults('header')} ] };
+}
+function current(){ return state.sessions.find(s=>s.id===state.currentId); }
+
+/* ---------- IndexedDB storage (large local capacity, no export needed) ---------- */
+const DB_NAME='icespire_db', DB_VER=1;
+let _db=null, useIDB=true, _saveTimer=null;
+
+function openDB(){
+  return new Promise((res,rej)=>{
+    if(!('indexedDB' in window)) return rej(new Error('no indexedDB'));
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions',{keyPath:'id'});
+      if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta',{keyPath:'key'});
+    };
+    req.onsuccess=e=>{ _db=e.target.result; res(_db); };
+    req.onerror=e=>rej(e.target.error||new Error('idb open failed'));
+  });
+}
+function idbAll(store){ return new Promise((res,rej)=>{ const r=_db.transaction(store,'readonly').objectStore(store).getAll(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+function idbGet(store,key){ return new Promise((res,rej)=>{ const r=_db.transaction(store,'readonly').objectStore(store).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+function idbPut(store,val){ return new Promise((res,rej)=>{ const t=_db.transaction(store,'readwrite'); t.objectStore(store).put(val); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+function idbDel(store,key){ return new Promise((res,rej)=>{ const t=_db.transaction(store,'readwrite'); t.objectStore(store).delete(key); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+
+function putMeta(){
+  if(!useIDB) return Promise.resolve();
+  return idbPut('meta',{key:'state', currentId:state.currentId, effects:state.effects}).catch(e=>console.warn(e));
+}
+function saveNow(session){
+  const s = session || current();
+  if(!useIDB){ try{ localStorage.setItem('icespire_builder_v1', JSON.stringify(state)); }catch(e){ console.warn('localStorage full',e); } updateMeter(); return Promise.resolve(); }
+  return idbPut('sessions', s).then(putMeta).then(updateMeter).catch(e=>console.warn(e));
+}
+/* debounced save of the current session (used by all edit operations) */
+function save(){
+  if(!useIDB){ try{ localStorage.setItem('icespire_builder_v1', JSON.stringify(state)); }catch(e){ console.warn('localStorage full',e); } updateMeter(); return; }
+  putMeta();
+  const s = current();
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{ if(s) idbPut('sessions',s).then(updateMeter).catch(e=>console.warn(e)); }, 450);
+}
+
+async function loadState(){
+  try{ await openDB(); }
+  catch(e){ console.warn('IndexedDB unavailable, falling back to localStorage', e); useIDB=false; }
+
+  if(useIDB){
+    try{ if(navigator.storage && navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
+    let sessions = await idbAll('sessions');
+    let meta = await idbGet('meta','state');
+    if(!sessions || !sessions.length){
+      // one-time migration from old localStorage
+      try{
+        const raw=localStorage.getItem('icespire_builder_v1');
+        if(raw){
+          const old=JSON.parse(raw);
+          if(old.sessions && old.sessions.length){
+            for(const s of old.sessions) await idbPut('sessions', s);
+            await idbPut('meta',{key:'state', currentId:old.currentId, effects:old.effects!==false});
+            sessions=old.sessions; meta={currentId:old.currentId, effects:old.effects!==false};
+          }
+        }
+      }catch(e){ console.warn('migration failed',e); }
+    }
+    state.sessions = sessions || [];
+    state.currentId = meta ? meta.currentId : null;
+    state.effects = meta ? (meta.effects!==false) : true;
+  } else {
+    try{ const raw=localStorage.getItem('icespire_builder_v1'); if(raw) state=JSON.parse(raw); }catch(e){}
+    state.sessions = state.sessions || [];
+  }
+
+  if(!state.sessions.length){
+    const s=newSessionObj(); state.sessions=[s]; state.currentId=s.id; await saveNow(s);
+  }
+  if(!state.currentId || !state.sessions.find(s=>s.id===state.currentId)) state.currentId=state.sessions[0].id;
+  if(typeof state.effects==='undefined') state.effects=true;
+}
+
+/* ---------- storage usage meter ---------- */
+async function updateMeter(){
+  const el=document.getElementById('meter'); if(!el) return;
+  try{
+    if(navigator.storage && navigator.storage.estimate){
+      const est=await navigator.storage.estimate();
+      const mb=(est.usage||0)/1048576;
+      el.textContent='💾 '+(mb<10?mb.toFixed(1):Math.round(mb))+' MB';
+      el.title='Lager brugt af biblioteket'+(est.quota?(' · ca. '+Math.round(est.quota/1048576)+' MB tilgængeligt'):'');
+    } else { el.textContent=''; }
+  }catch(e){ el.textContent=''; }
+}
+
+/* ---------- image downscaling on import ---------- */
+function compressImage(file, maxDim, quality){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.naturalWidth, h=img.naturalHeight;
+      const scale=Math.min(1, maxDim/Math.max(w,h));
+      w=Math.max(1,Math.round(w*scale)); h=Math.max(1,Math.round(h*scale));
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      try{ res(c.toDataURL('image/jpeg', quality)); }catch(e){ rej(e); }
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('ugyldigt billede')); };
+    img.src=url;
+  });
+}
+
+/* ============================================================
+   RENDERING — shared content (player / DM / export)
+   includeDM=false → player TV view (no secrets)
+   includeDM=true  → DM view + export (collapsible notes)
+   ============================================================ */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function mod(score){ const m=Math.floor((Number(score)-10)/2); return (m>=0?'+':'−')+Math.abs(m); }
+function hpClass(pct){ return pct>50?'healthy':(pct>25?'bloodied':'critical'); }
+
+function badgesHTML(items){
+  if(!items || !items.length) return '';
+  const b = items.map(it=>`<span class="skill-badge"><span class="skill-name">${esc(it.name)}</span>${it.desc?' — '+esc(it.desc):''}</span>`).join('');
+  return `<div class="skill-checks">${b}</div>`;
+}
+function renderBlockContent(block, includeDM){
+  const d = block.data || {};
+  switch(block.type){
+    case 'header':
+      return `<div class="header-block">
+        ${d.kicker?`<span class="kicker">${esc(d.kicker)}</span>`:''}
+        <h1>${esc(d.title||'')}</h1>
+        ${d.mood?`<div class="mood">${esc(d.mood)}</div>`:''}
+      </div>`;
+    case 'image':
+      if(!d.imageData) return includeDM?`<div class="scroll-panel"><em>(billede mangler)</em></div>`:'';
+      return `<figure class="scene-figure">
+        <img src="${d.imageData}" alt="">
+        ${d.caption?`<figcaption>${esc(d.caption)}</figcaption>`:''}
+      </figure>`;
+    case 'divider':
+      return `<div class="divider">${esc(d.icon||'◆')}</div>`;
+    case 'narrative':
+      return `<div class="scroll-panel">
+        ${d.heading?`<h2>${esc(d.heading)}</h2>`:''}
+        <p class="narrative">${esc(d.text||'')}</p>
+        ${badgesHTML(d.skills)}
+      </div>`;
+    case 'narrative-dm':
+      return `<div class="scroll-panel">
+        ${d.heading?`<h2>${esc(d.heading)}</h2>`:''}
+        <p class="narrative">${esc(d.text||'')}</p>
+        ${badgesHTML(d.skills)}
+        ${includeDM && (d.dmNotes||'').trim() ? `<details class="dm-note"><summary class="dm-note-toggle">🔒 DM-noter</summary><div class="dm-note-content"><p class="narrative">${esc(d.dmNotes)}</p></div></details>` : ''}
+      </div>`;
+    case 'skills': {
+      return `<div class="scroll-panel">${badgesHTML(d.items)}</div>`;
+    }
+    case 'statblock': {
+      const abil = [['STR',d.str],['DEX',d.dex],['CON',d.con],['INT',d.int],['WIS',d.wis],['CHA',d.cha]]
+        .map(([a,v])=>`<div class="stat-cell"><span class="stat-abbr">${a}</span><span class="stat-val">${esc(v)}</span><span class="stat-mod">${mod(v)}</span></div>`).join('');
+      return `<div class="scroll-panel"><div class="statblock">
+        <div class="statblock-title">${esc(d.title||'')}</div><hr>
+        ${d.hp?`<div class="stat-line"><span class="stat-label">HP:</span> ${esc(d.hp)}</div>`:''}
+        ${d.ac?`<div class="stat-line"><span class="stat-label">AC:</span> ${esc(d.ac)}</div>`:''}
+        ${d.speed?`<div class="stat-line"><span class="stat-label">Speed:</span> ${esc(d.speed)}</div>`:''}
+        ${d.cr?`<div class="stat-line"><span class="stat-label">CR:</span> ${esc(d.cr)}</div>`:''}
+        <hr><div class="stat-grid">${abil}</div><hr>
+        ${(d.traits||'').trim()?`<div class="stat-line"><span class="stat-label">Traits:</span> ${esc(d.traits)}</div>`:''}
+        ${(d.attacks||'').trim()?`<div class="stat-line"><span class="attack-name">Attacks:</span> ${esc(d.attacks)}</div>`:''}
+      </div></div>`;
+    }
+    case 'hptracker': {
+      const rows = (d.combatants||[]).map((c,i)=>{
+        const max=Number(c.max)||1, cur=Math.max(0,Math.min(max,Number(c.cur)||0));
+        const pct=(cur/max)*100;
+        return `<div class="hp-row"><span class="hp-label">${esc(c.name)}</span>
+          <span class="hp-num">${cur}</span><span class="hp-max">/ ${max}</span>
+          <div class="hp-bar-wrap"><div class="hp-bar ${hpClass(pct)}" style="width:${pct}%"></div></div></div>`;
+      }).join('');
+      return `<div class="scroll-panel"><div class="hp-tracker-section"><div class="hp-tracker-title">⚔ HP Tracker</div>${rows}</div></div>`;
+    }
+  }
+  return '';
+}
+
+function renderPageBlocks(session, includeDM){
+  return session.blocks.map(b=>{
+    const c = renderBlockContent(b, includeDM);
+    if(!c) return '';
+    return `<div class="pblock" data-bid="${b.id}">${c}</div>`;
+  }).join('');
+}
+function renderPlayerHTML(session){
+  if(!session || !session.blocks.length) return '';
+  return `<div class="page-wrap">${renderPageBlocks(session,false)}</div>`;
+}
+
+/* ============================================================
+   EDITOR CANVAS
+   ============================================================ */
+const canvas = document.getElementById('canvas');
+
+/* scroll-reveal in the editor canvas (mirrors the present view) */
+let revealedEditor = new Set();
+let _lastSessionId = null;
+const editorIO = ('IntersectionObserver' in window) ? new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); revealedEditor.add(e.target.getAttribute('data-id')); editorIO.unobserve(e.target); } });
+}, { root: document.querySelector('.canvas-wrap'), threshold: 0.12 }) : null;
+function applyEditorReveal(){
+  if(!editorIO) return;
+  const cur = current();
+  if(cur && cur.id !== _lastSessionId){ revealedEditor = new Set(); _lastSessionId = cur.id; }
+  document.querySelectorAll('.eblock').forEach(el=>{
+    const id = el.getAttribute('data-id');
+    if(!state.effects || revealedEditor.has(id)){ el.classList.remove('reveal'); el.classList.add('visible'); return; }
+    el.classList.add('reveal'); editorIO.observe(el);
+  });
+}
+
+function renderCanvas(){
+  const s = current();
+  document.getElementById('sessionName').value = s.name || '';
+  document.getElementById('themeSelect').value = themeOf();
+  applyTheme(themeOf(), document.documentElement);
+  let html = '';
+  if(!s.blocks.length){
+    html = `<div class="empty-hint">Tom session.<br>Tilføj din første blok herunder.</div>`;
+  } else {
+    s.blocks.forEach((b,i)=>{
+      const tools = `<div class="eblock-tools">
+        <span class="btype-tag">${BLOCK_DEFS[b.type]?BLOCK_DEFS[b.type].label:b.type}</span>
+        <button class="tool-btn" data-act="up" data-id="${b.id}" title="Op" ${i===0?'disabled style=opacity:.3':''}>▲</button>
+        <button class="tool-btn" data-act="down" data-id="${b.id}" title="Ned" ${i===s.blocks.length-1?'disabled style=opacity:.3':''}>▼</button>
+        <button class="tool-btn" data-act="edit" data-id="${b.id}" title="Rediger">✎</button>
+        <button class="tool-btn danger" data-act="del" data-id="${b.id}" title="Slet">✕</button>
+      </div>`;
+      const body = (editingBlock===b.id)
+        ? renderForm(b)
+        : (renderBlockContent(b,true) || `<div class="scroll-panel"><em>Tom ${esc(b.type)} — klik ✎</em></div>`);
+      html += `<div class="eblock" data-id="${b.id}">${tools}${body}</div>`;
+    });
+  }
+  // add bar
+  const opts = Object.entries(BLOCK_DEFS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  html += `<div class="add-bar">
+    <select id="addType">${opts}</select>
+    <button class="btn primary" id="btnAdd">+ Tilføj blok</button>
+  </div>`;
+  canvas.innerHTML = html;
+  document.getElementById('btnAdd').onclick = ()=>{
+    const t = document.getElementById('addType').value;
+    addBlock(t);
+  };
+  applyEditorReveal();
+}
+
+function renderForm(b){
+  const d = b.data;
+  const f = (field, val, type='text') => `<input type="${type}" data-field="${field}" value="${esc(val)}">`;
+  const ta = (field, val) => `<textarea data-field="${field}">${esc(val)}</textarea>`;
+  const skillRows = (arr, sub) => (arr||[]).map((it,i)=>`<div class="subitem">
+        <input type="text" data-sub="${sub}" data-idx="${i}" data-key="name" value="${esc(it.name)}" placeholder="SKILL">
+        <input type="text" data-sub="${sub}" data-idx="${i}" data-key="desc" value="${esc(it.desc)}" placeholder="kort beskrivelse (valgfri)">
+        <button class="mini-btn del" data-subdel="${sub}" data-idx="${i}">✕</button></div>`).join('')
+      + `<button class="mini-btn" data-subadd="${sub}">+ Tilføj badge</button>`;
+  let inner = '';
+  switch(b.type){
+    case 'header':
+      inner = `<label>Kampagne (kicker)</label>${f('kicker',d.kicker)}
+        <label>Titel</label>${f('title',d.title)}
+        <label>Stemning (mood)</label>${f('mood',d.mood)}`; break;
+    case 'image':
+      inner = `<label>Billede (indlejres som base64)</label>
+        <input type="file" data-img="1" accept="image/*">
+        ${d.imageData?`<img class="img-preview" src="${d.imageData}">`:''}
+        <label>Billedtekst</label>${f('caption',d.caption)}`; break;
+    case 'narrative':
+      inner = `<label>Overskrift</label>${f('heading',d.heading)}
+        <label>Fortællertekst</label>${ta('text',d.text)}
+        <label>Skill-badges (vises i samme boks)</label>${skillRows(d.skills,'skills')}`; break;
+    case 'narrative-dm':
+      inner = `<label>Overskrift</label>${f('heading',d.heading)}
+        <label>Fortællertekst (spiller-synlig)</label>${ta('text',d.text)}
+        <label>Skill-badges (vises i samme boks, spiller-synlig)</label>${skillRows(d.skills,'skills')}
+        <label>DM-noter (skjult — vises ALDRIG på spiller-TV)</label>${ta('dmNotes',d.dmNotes)}`; break;
+    case 'skills': {
+      inner = `<label>Skill-badges (selvstændig blok)</label>${skillRows(d.items,'items')}`; break;
+    }
+    case 'statblock':
+      inner = `<label>Titel</label>${f('title',d.title)}
+        <div class="row"><div><label>HP</label>${f('hp',d.hp)}</div><div><label>AC</label>${f('ac',d.ac)}</div>
+          <div><label>Speed</label>${f('speed',d.speed)}</div><div><label>CR</label>${f('cr',d.cr)}</div></div>
+        <label>Abilities</label>
+        <div class="row">
+          <div><label>STR</label>${f('str',d.str,'number')}</div><div><label>DEX</label>${f('dex',d.dex,'number')}</div>
+          <div><label>CON</label>${f('con',d.con,'number')}</div><div><label>INT</label>${f('int',d.int,'number')}</div>
+          <div><label>WIS</label>${f('wis',d.wis,'number')}</div><div><label>CHA</label>${f('cha',d.cha,'number')}</div>
+        </div>
+        <label>Traits</label>${ta('traits',d.traits)}
+        <label>Attacks</label>${ta('attacks',d.attacks)}`; break;
+    case 'hptracker': {
+      const items = (d.combatants||[]).map((c,i)=>`<div class="subitem">
+        <input type="text" data-sub="combatants" data-idx="${i}" data-key="name" value="${esc(c.name)}" placeholder="Navn">
+        <input type="number" data-sub="combatants" data-idx="${i}" data-key="max" value="${esc(c.max)}" placeholder="Max HP" style="max-width:90px">
+        <input type="number" data-sub="combatants" data-idx="${i}" data-key="cur" value="${esc(c.cur)}" placeholder="HP nu" style="max-width:90px">
+        <button class="mini-btn del" data-subdel="combatants" data-idx="${i}">✕</button></div>`).join('');
+      inner = `<label>Modstandere</label>${items}<button class="mini-btn" data-subadd="combatants">+ Tilføj</button>`; break;
+    }
+    case 'divider':
+      inner = `<label>Ikon</label>${f('icon',d.icon)}`; break;
+  }
+  return `<div class="eform" data-id="${b.id}">${inner}
+    <div style="margin-top:1rem;text-align:right;"><button class="mini-btn" data-done="1">Færdig</button></div></div>`;
+}
+
+/* ----- canvas event delegation ----- */
+canvas.addEventListener('click', e=>{
+  const tb = e.target.closest('[data-act]');
+  if(tb){
+    const id = tb.dataset.id, act = tb.dataset.act;
+    if(act==='up') moveBlock(id,-1);
+    else if(act==='down') moveBlock(id,1);
+    else if(act==='edit'){ editingBlock = (editingBlock===id?null:id); renderCanvas(); }
+    else if(act==='del'){ if(confirm('Slet denne blok?')) removeBlock(id); }
+    return;
+  }
+  if(e.target.closest('[data-done]')){ editingBlock=null; renderCanvas(); return; }
+  const subadd = e.target.closest('[data-subadd]');
+  if(subadd){ addSubItem(subadd.closest('.eform').dataset.id, subadd.dataset.subadd); return; }
+  const subdel = e.target.closest('[data-subdel]');
+  if(subdel){ delSubItem(subdel.closest('.eform').dataset.id, subdel.dataset.subdel, Number(subdel.dataset.idx)); return; }
+});
+
+canvas.addEventListener('input', e=>{
+  const form = e.target.closest('.eform'); if(!form) return;
+  const b = current().blocks.find(x=>x.id===form.dataset.id); if(!b) return;
+  const t = e.target;
+  if(t.dataset.field){ b.data[t.dataset.field] = (t.type==='number')? t.value : t.value; commitLive(); }
+  else if(t.dataset.sub){
+    const arr = b.data[t.dataset.sub]; const it = arr[Number(t.dataset.idx)];
+    if(it){ it[t.dataset.key] = t.value; commitLive(); }
+  }
+});
+
+canvas.addEventListener('change', e=>{
+  const t = e.target;
+  if(t.dataset.img){
+    const form = t.closest('.eform'); const b = current().blocks.find(x=>x.id===form.dataset.id);
+    const file = t.files[0]; if(!file||!b) return;
+    compressImage(file, 1920, 0.85).then(dataUrl=>{
+      b.data.imageData = dataUrl; saveNow(current()); pushToPresent(); editingBlock=b.id; renderCanvas();
+    }).catch(err=>{ alert('Kunne ikke indlæse billedet: '+err.message); });
+  }
+});
+
+function commitLive(){ save(); pushToPresent(); } // updates TV instantly, keeps form focus
+
+/* ----- block ops ----- */
+function addBlock(type){
+  current().blocks.push({ id:uid(), type, data:blockDefaults(type) });
+  editingBlock = current().blocks[current().blocks.length-1].id;
+  save(); renderCanvas(); pushToPresent();
+}
+function removeBlock(id){
+  const s=current(); s.blocks = s.blocks.filter(b=>b.id!==id);
+  if(editingBlock===id) editingBlock=null;
+  save(); renderCanvas(); pushToPresent();
+}
+function moveBlock(id,dir){
+  const s=current(); const i=s.blocks.findIndex(b=>b.id===id); const j=i+dir;
+  if(j<0||j>=s.blocks.length) return;
+  [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];
+  save(); renderCanvas(); pushToPresent();
+}
+function addSubItem(blockId, key){
+  const b=current().blocks.find(x=>x.id===blockId);
+  if(key==='items' || key==='skills'){ if(!b.data[key]) b.data[key]=[]; b.data[key].push({name:'SKILL',desc:''}); }
+  else if(key==='combatants') b.data.combatants.push({name:'Modstander',max:30,cur:30});
+  save(); renderCanvas(); pushToPresent();
+}
+function delSubItem(blockId,key,idx){
+  const b=current().blocks.find(x=>x.id===blockId);
+  b.data[key].splice(idx,1);
+  save(); renderCanvas(); pushToPresent();
+}
+
+/* ============================================================
+   LIBRARY
+   ============================================================ */
+function renderLibrary(){
+  const list = document.getElementById('libList');
+  list.innerHTML = state.sessions.map(s=>`
+    <div class="lib-item ${s.id===state.currentId?'active':''}" data-id="${s.id}">
+      <span class="lib-title">${esc(s.name||'Uden navn')}</span>
+      <button class="lib-del" data-del="${s.id}" title="Slet">🗑</button>
+    </div>`).join('');
+}
+document.getElementById('libList').addEventListener('click', e=>{
+  const del = e.target.closest('[data-del]');
+  if(del){
+    e.stopPropagation();
+    if(state.sessions.length<=1){ alert('Du kan ikke slette den sidste session.'); return; }
+    if(confirm('Slet hele denne session?')){
+      const id=del.dataset.del;
+      state.sessions = state.sessions.filter(s=>s.id!==id);
+      if(state.currentId===id) state.currentId=state.sessions[0].id;
+      if(useIDB) idbDel('sessions', id).then(putMeta).then(updateMeter).catch(e=>console.warn(e)); else save();
+      renderLibrary(); editingBlock=null; renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  const item = e.target.closest('.lib-item');
+  if(item){ state.currentId=item.dataset.id; editingBlock=null; save(); renderLibrary(); renderCanvas(); pushToPresent(); }
+});
+document.getElementById('btnNew').onclick = ()=>{
+  const s=newSessionObj(); state.sessions.push(s); state.currentId=s.id;
+  editingBlock=null; saveNow(s); renderLibrary(); renderCanvas(); pushToPresent();
+};
+document.getElementById('sessionName').addEventListener('input', e=>{
+  current().name = e.target.value; save(); renderLibrary();
+});
+document.getElementById('btnLibrary').onclick = ()=>{
+  const lib=document.getElementById('library');
+  lib.style.display = (lib.style.display==='none')?'block':'none';
+};
+
+/* ============================================================
+   PRESENT (dual-view) — TV window via about:blank child
+   ============================================================ */
+function openPresent(){
+  presentWin = window.open('', 'icespire_present', 'width=1280,height=720');
+  if(!presentWin){ alert('Pop op blev blokeret. Tillad pop op-vinduer for denne side og prøv igen.'); return; }
+  const doc = presentWin.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiller-visning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+    <style>${SHARED_CSS}</style></head>
+    <body class="present-body"><div id="player-root"></div>
+    <button class="fs-btn" id="fsBtn">⛶ Fuldskærm</button>
+    <script>
+    window.__effects=true; window.__cur=0; window.__armed=false; window.__revealed=new Set();
+    function __kids(){ var r=document.getElementById('player-root'); return r?Array.prototype.slice.call(r.children):[]; }
+    window.__revealTo=function(idx){
+      var ch=__kids();
+      for(var i=0;i<=idx&&i<ch.length;i++){
+        ch[i].classList.add('visible');
+        var bid=ch[i].getAttribute('data-bid'); if(bid) window.__revealed.add(bid);
+      }
+      if(idx>window.__cur) window.__cur=idx;
+    };
+    window.__scrollReveal=function(){
+      if(!window.__armed||!window.__effects) return;
+      var ch=__kids(); var line=140; var idx=-1;
+      for(var i=0;i<ch.length;i++){ if(ch[i].getBoundingClientRect().top<line) idx=i; }
+      if(idx>window.__cur) window.__revealTo(idx);
+    };
+    window.__arm=function(){ window.__armed=true; window.__revealTo(window.__cur); window.__scrollReveal(); };
+    window.__applyReveal=function(){
+      var ch=__kids(); window.__armed=false; window.__cur=0;
+      for(var i=0;i<ch.length;i++){
+        var el=ch[i]; var bid=el.getAttribute('data-bid');
+        if(!window.__effects||(bid&&window.__revealed.has(bid))){ el.classList.remove('reveal'); el.classList.add('visible'); if(bid&&window.__revealed.has(bid)) window.__cur=i; }
+        else el.classList.add('reveal');
+      }
+      if(!window.__effects) return;
+      var imgs=document.getElementById('player-root').querySelectorAll('img'); var pending=0;
+      var done=function(){ pending--; if(pending<=0) window.__arm(); };
+      Array.prototype.forEach.call(imgs,function(im){ if(!im.complete){ pending++; im.addEventListener('load',done,{once:true}); im.addEventListener('error',done,{once:true}); } });
+      if(pending===0){ requestAnimationFrame(function(){ requestAnimationFrame(window.__arm); }); }
+      setTimeout(window.__arm,1200);
+    };
+    window.addEventListener('scroll', function(){ window.__scrollReveal(); }, {passive:true});
+    window.addEventListener('resize', function(){ window.__scrollReveal(); });
+    document.addEventListener('fullscreenchange', function(){ setTimeout(window.__scrollReveal,80); });
+    window.__step=function(dir){
+      var ch=__kids(); var n=ch.length; if(!n) return;
+      var target=Math.max(0,Math.min(n-1, window.__cur+dir));
+      if(dir>0) window.__revealTo(target); else window.__cur=target;
+      if(ch[target]) ch[target].scrollIntoView({behavior:'smooth',block:'nearest'});
+      setTimeout(window.__scrollReveal,350);
+    };
+    <\/script>
+    </body></html>`);
+  doc.close();
+  presentRoot = doc.getElementById('player-root');
+  applyTheme(themeOf(), doc.documentElement);
+  const fsBtn = doc.getElementById('fsBtn');
+  fsBtn.addEventListener('click', ()=>{ try{ doc.documentElement.requestFullscreen(); }catch(e){} });
+  pushToPresent();
+}
+function pushToPresent(){
+  if(!presentWin || presentWin.closed || !presentRoot) return;
+  const html = renderPlayerHTML(current());
+  presentRoot.innerHTML = html || `<div class="present-empty">Venter på indhold…</div>`;
+  try{ applyTheme(themeOf(), presentWin.document.documentElement); }catch(e){}
+  try{ presentWin.__effects = !!state.effects; if(presentWin.__applyReveal) presentWin.__applyReveal(); }catch(e){}
+}
+document.getElementById('btnPresent').onclick = openPresent;
+document.getElementById('btnNext').onclick = ()=>{ if(presentWin && !presentWin.closed) presentWin.__step(1); };
+document.getElementById('btnPrev').onclick = ()=>{ if(presentWin && !presentWin.closed) presentWin.__step(-1); };
+document.getElementById('chkEffects').addEventListener('change', e=>{ state.effects = e.target.checked; save(); renderCanvas(); pushToPresent(); });
+document.getElementById('themeSelect').addEventListener('change', e=>{
+  current().theme = e.target.value; save();
+  applyTheme(e.target.value, document.documentElement);
+  if(presentWin && !presentWin.closed){ try{ applyTheme(e.target.value, presentWin.document.documentElement); }catch(_){} }
+});
+
+/* keyboard remote control of the TV window (when focus is on the editor) */
+document.addEventListener('keydown', e=>{
+  if(!presentWin || presentWin.closed) return;
+  const tag = (e.target.tagName||'').toLowerCase();
+  if(tag==='input' || tag==='textarea' || tag==='select') return;
+  if(e.key==='ArrowRight' || e.key===' '){ e.preventDefault(); presentWin.__step(1); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); presentWin.__step(-1); }
+  else if(e.key==='ArrowDown'){ e.preventDefault(); try{ presentWin.scrollBy({top:220,behavior:'smooth'}); }catch(_){} }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); try{ presentWin.scrollBy({top:-220,behavior:'smooth'}); }catch(_){} }
+});
+
+/* ============================================================
+   IMPORT / EXPORT
+   ============================================================ */
+function download(filename, text, mime){
+  const blob = new Blob([text], {type:mime||'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+document.getElementById('btnExportJson').onclick = ()=>{
+  const s=current();
+  download((s.name||'session').replace(/[^a-z0-9æøå_-]+/gi,'_').toLowerCase()+'.json',
+    JSON.stringify(s,null,2), 'application/json');
+};
+document.getElementById('btnImport').onclick = ()=> document.getElementById('fileImport').click();
+document.getElementById('fileImport').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const obj=JSON.parse(r.result);
+      if(!obj.blocks) throw new Error('Ikke en gyldig sessionsfil');
+      obj.id = uid();
+      state.sessions.push(obj); state.currentId=obj.id;
+      editingBlock=null; saveNow(obj); renderLibrary(); renderCanvas(); pushToPresent();
+    }catch(err){ alert('Kunne ikke importere: '+err.message); }
+    e.target.value='';
+  };
+  r.readAsText(file);
+});
+document.getElementById('btnExportHtml').onclick = ()=>{
+  const s=current();
+  const body = `<div class="page-wrap">${renderPageBlocks(s,true)}</div>`;
+  const revealScript = `<script>(function(){var els=document.querySelectorAll('.pblock');if(!('IntersectionObserver'in window)){els.forEach(function(el){el.classList.add('visible');});return;}var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:0.12});els.forEach(function(el){el.classList.add('reveal');io.observe(el);});})();<\/script>`;
+  const full = `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc(s.name||'Session')}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>${SHARED_CSS}</style>
+<style>${themeVarsCSS(themeOf())}</style></head>
+<body class="present-body">${body}${state.effects?revealScript:''}</body></html>`;
+  download((s.name||'session').replace(/[^a-z0-9æøå_-]+/gi,'_').toLowerCase()+'.html', full, 'text/html');
+};
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+(async function boot(){
+  document.getElementById('themeSelect').innerHTML = Object.keys(THEMES).map(k=>`<option value="${k}">${THEMES[k].label}</option>`).join('');
+  await loadState();
+  document.getElementById('chkEffects').checked = !!state.effects;
+  renderLibrary();
+  renderCanvas();
+  updateMeter();
+})();
+</script>
+</body>
+</html>
