@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icespire — Spillet starter snart</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1208;
+  --parchment: #f2e8c9;
+  --parchment-dark: #e8d9a8;
+  --parchment-mid: #ede0b5;
+  --gold: #b8862a;
+  --gold-light: #d4a843;
+  --rust: #8b2e0a;
+  --ash: #3d3020;
+  --ember: #c44a0a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #0d0a05;
+  color: var(--parchment);
+  font-family: 'IM Fell English', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Candlelight-atmosfære på setup-skærmen */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(180,90,10,0.18) 0%, transparent 60%),
+    radial-gradient(ellipse at 75% 80%, rgba(150,60,5,0.12) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: candleflicker 6s ease-in-out infinite alternate;
+}
+@keyframes candleflicker {
+  0% { opacity: 0.8; } 30% { opacity: 1.0; } 60% { opacity: 0.85; } 100% { opacity: 1.0; }
+}
+
+/* ============ SETUP-SKÆRM ============ */
+.setup {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 6rem;
+}
+
+.setup h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-weight: 700;
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  color: var(--gold-light);
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+.setup .kicker {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  font-size: 0.72rem;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 0.6rem;
+}
+.setup .sub {
+  text-align: center;
+  color: var(--parchment-dark);
+  opacity: 0.7;
+  font-size: 0.95rem;
+  margin-bottom: 2.5rem;
+}
+
+.panel {
+  background: radial-gradient(ellipse at 50% 0%, var(--parchment) 0%, var(--parchment-dark) 100%);
+  color: var(--ink);
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  padding: 1.6rem 1.8rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.panel h2 {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: var(--rust);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem 1.4rem;
+}
+.field { display: flex; flex-direction: column; gap: 0.3rem; }
+.field label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--rust);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.field input[type=text], .field input[type=number], .field select {
+  font-family: 'IM Fell English', Georgia, serif;
+  font-size: 1rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  background: var(--parchment-mid);
+  color: var(--ink);
+}
+.field.inline { flex-direction: row; align-items: center; gap: 0.5rem; }
+.field.inline label { text-transform: none; letter-spacing: 0; font-size: 0.9rem; font-family: 'IM Fell English', Georgia, serif; font-weight: normal; color: var(--ink); }
+
+/* Drop-zone */
+.dropzone {
+  border: 2px dashed var(--gold);
+  border-radius: 6px;
+  padding: 1.6rem;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(184,134,42,0.06);
+  transition: background 0.15s, border-color 0.15s;
+  margin-bottom: 1.2rem;
+}
+.dropzone:hover, .dropzone.drag { background: rgba(184,134,42,0.16); border-color: var(--rust); }
+.dropzone p { color: var(--ash); font-size: 0.95rem; }
+.dropzone .big { font-family: 'Cinzel', serif; color: var(--rust); font-size: 1.05rem; margin-bottom: 0.3rem; }
+
+/* Slide-liste */
+.slides-list { display: flex; flex-direction: column; gap: 0.9rem; }
+.slide-card {
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  background: var(--parchment-mid);
+  border: 1px solid var(--gold);
+  border-radius: 5px;
+  padding: 0.7rem;
+}
+.slide-card .thumb {
+  width: 130px; height: 78px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--gold);
+}
+.slide-card .fields { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.slide-card input[type=text] {
+  font-family: 'IM Fell English', Georgia, serif;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--gold);
+  border-radius: 3px;
+  background: var(--parchment);
+  color: var(--ink);
+  width: 100%;
+}
+.slide-card input.title-in { font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); }
+.slide-card .actions { display: flex; flex-direction: column; gap: 0.3rem; justify-content: center; }
+.mini-btn {
+  border: 1px solid var(--gold);
+  background: var(--parchment);
+  color: var(--rust);
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  min-width: 34px;
+}
+.mini-btn:hover { background: var(--parchment-dark); }
+.mini-btn.del { color: #7a1a04; border-color: #7a1a04; }
+
+.empty { text-align: center; color: var(--ash); opacity: 0.6; padding: 1.5rem; font-style: italic; }
+
+/* Store knapper */
+.btn-row { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+.btn {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.95rem;
+  padding: 0.8rem 1.8rem;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid var(--gold);
+  transition: transform 0.1s, box-shadow 0.15s;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn.primary { background: linear-gradient(to bottom, var(--gold-light), var(--gold)); color: #2a1c06; box-shadow: 0 0 24px rgba(184,134,42,0.4); }
+.btn.ghost { background: transparent; color: var(--gold-light); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ============ FREMVISNING (present mode) ============ */
+.present {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: none;
+  overflow: hidden;
+  cursor: none;
+}
+.present.active { display: block; }
+
+.kb-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.6s ease-in-out;
+  overflow: hidden;
+}
+.kb-img {
+  position: absolute;
+  inset: -6%;                 /* overscan så pan aldrig viser sorte kanter */
+  background-size: cover;
+  background-position: center;
+  will-change: transform;
+  transform: scale(1.08);
+}
+
+/* Ken Burns-varianter (GPU-komposit: kun transform) */
+@keyframes kbZoomIn   { from { transform: scale(1.04); }                      to { transform: scale(1.16); } }
+@keyframes kbZoomOut  { from { transform: scale(1.16); }                      to { transform: scale(1.05); } }
+@keyframes kbPanLeft  { from { transform: scale(1.16) translateX(2.5%); }     to { transform: scale(1.16) translateX(-2.5%); } }
+@keyframes kbPanRight { from { transform: scale(1.16) translateX(-2.5%); }    to { transform: scale(1.16) translateX(2.5%); } }
+@keyframes kbPanUp    { from { transform: scale(1.16) translateY(2.5%); }     to { transform: scale(1.18) translateY(-2.5%); } }
+@keyframes kbDiag     { from { transform: scale(1.1) translate(2%, 1.5%); }   to { transform: scale(1.2) translate(-2%, -1.5%); } }
+
+/* Vignette + varm tone for læsbarhed */
+.present-vignette {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 42%, transparent 40%, rgba(0,0,0,0.35) 100%),
+    linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, transparent 22%, transparent 55%, rgba(0,0,0,0.85) 100%),
+    radial-gradient(ellipse at 30% 20%, rgba(180,90,10,0.10) 0%, transparent 60%);
+}
+
+/* Centreret nedtælling / overskrift */
+.center-block {
+  position: absolute; z-index: 3;
+  top: 12%; left: 0; right: 0;
+  text-align: center;
+  pointer-events: none;
+}
+.center-block .kicker {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  font-size: clamp(1.1rem, 2.4vw, 2.2rem);
+  color: var(--gold-light);
+  margin-bottom: 1.2rem;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.95), 0 0 30px rgba(196,74,10,0.35);
+}
+.center-block .heading {
+  font-family: 'Cinzel Decorative', serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 5.5vw, 4.5rem);
+  color: var(--parchment);
+  text-shadow: 0 3px 24px rgba(0,0,0,0.95), 0 0 60px rgba(196,74,10,0.4);
+  margin-bottom: 0.6rem;
+}
+.countdown {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  color: var(--gold-light);
+  letter-spacing: 0.1em;
+  text-shadow: 0 3px 24px rgba(0,0,0,0.95);
+  font-variant-numeric: tabular-nums;
+}
+.countdown.done {
+  color: var(--ember);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+@keyframes pulseGlow {
+  0%,100% { opacity: 0.85; text-shadow: 0 3px 24px rgba(0,0,0,0.95); }
+  50%     { opacity: 1;    text-shadow: 0 3px 24px rgba(0,0,0,0.95), 0 0 50px rgba(196,74,10,0.7); }
+}
+
+/* Quest-info nederst */
+.quest-block {
+  position: absolute; z-index: 3;
+  left: 5%; right: 5%; bottom: 6%;
+  max-width: 60%;
+  transition: opacity 0.8s ease;
+}
+.quest-block .q-kicker {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  font-size: clamp(0.65rem, 1.1vw, 0.85rem);
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+}
+.quest-block .q-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3.4vw, 3rem);
+  color: var(--parchment);
+  line-height: 1.15;
+  margin-bottom: 0.6rem;
+  text-shadow: 0 3px 18px rgba(0,0,0,0.95);
+}
+.quest-block .q-desc {
+  font-family: 'IM Fell English', Georgia, serif;
+  font-size: clamp(1rem, 1.8vw, 1.5rem);
+  line-height: 1.5;
+  color: var(--parchment-dark);
+  text-shadow: 0 2px 14px rgba(0,0,0,0.95);
+}
+
+/* Diskret hint nederst til højre */
+.present-hint {
+  position: absolute; z-index: 4;
+  bottom: 1rem; right: 1.2rem;
+  font-size: 0.75rem; color: rgba(242,232,201,0.35);
+  font-family: 'Cinzel', serif; letter-spacing: 0.1em;
+  transition: opacity 0.4s;
+}
+
+.paused-badge {
+  position: absolute; z-index: 4;
+  top: 1rem; left: 50%; transform: translateX(-50%);
+  font-family: 'Cinzel', serif; letter-spacing: 0.2em; text-transform: uppercase;
+  font-size: 0.8rem; color: var(--gold-light);
+  background: rgba(0,0,0,0.5); padding: 0.4rem 1rem; border-radius: 4px;
+  display: none;
+}
+.present.paused .paused-badge { display: block; }
+</style>
+</head>
+<body>
+
+<!-- ============ SETUP ============ -->
+<div class="setup" id="setup">
+  <div class="kicker">Dragons of Icespire Peak</div>
+  <h1>Spillet starter snart</h1>
+  <p class="sub">Byg en stemnings-skærm til TV'et: billeder der bevæger sig, med quests fra kampagnen — og en valgfri nedtælling til at samle bordet.</p>
+
+  <div class="panel">
+    <h2>Indstillinger</h2>
+    <div class="settings-grid">
+      <div class="field">
+        <label>Kampagne-linje (top)</label>
+        <input type="text" id="set-kicker" value="Dragons of Icespire Peak">
+      </div>
+      <div class="field">
+        <label>Overskrift</label>
+        <input type="text" id="set-heading" value="Spillet starter snart">
+      </div>
+      <div class="field">
+        <label>Sekunder pr. billede</label>
+        <input type="number" id="set-interval" value="10" min="3" max="60">
+      </div>
+      <div class="field">
+        <label>Billedkvalitet</label>
+        <select id="set-quality">
+          <option value="high">Høj — 4K (større filer)</option>
+          <option value="balanced">Balanceret</option>
+          <option value="compact">Kompakt (mindst)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Nedtælling (minutter)</label>
+        <input type="number" id="set-countdown" value="5" min="0" max="120">
+      </div>
+      <div class="field inline">
+        <input type="checkbox" id="set-cd-on" checked>
+        <label for="set-cd-on">Vis nedtælling</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Billeder & quests</h2>
+    <div class="dropzone" id="dropzone">
+      <p class="big">⚔ Træk billeder herind — eller klik for at vælge</p>
+      <p>Flere billeder ad gangen er fint. Gemmes lokalt (offline), komprimeres automatisk.</p>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" multiple style="display:none">
+    <div class="slides-list" id="slidesList"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn primary" id="startBtn">▶ Start fremvisning</button>
+    <button class="btn ghost" id="exportBtn">Eksportér backup</button>
+    <button class="btn ghost" id="importBtn">Importér backup</button>
+    <input type="file" id="importInput" accept="application/json" style="display:none">
+  </div>
+</div>
+
+<!-- ============ FREMVISNING ============ -->
+<div class="present" id="present">
+  <div class="kb-layer" id="layer0"><div class="kb-img"></div></div>
+  <div class="kb-layer" id="layer1"><div class="kb-img"></div></div>
+  <div class="present-vignette"></div>
+
+  <div class="center-block">
+    <div class="kicker" id="p-kicker"></div>
+    <div class="heading" id="p-heading"></div>
+    <div class="countdown" id="p-countdown"></div>
+  </div>
+
+  <div class="quest-block" id="questBlock">
+    <div class="q-kicker" id="q-kicker">Aktuel quest</div>
+    <div class="q-title" id="q-title"></div>
+    <div class="q-desc" id="q-desc"></div>
+  </div>
+
+  <div class="paused-badge">⏸ På pause</div>
+  <div class="present-hint" id="hint">← → skift &nbsp;·&nbsp; mellemrum: pause &nbsp;·&nbsp; Esc: luk</div>
+</div>
+
+<script>
+/* ---------- IndexedDB ---------- */
+const DB_NAME = 'icespire-startsoon';
+const STORE = 'slides';
+let db;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror = e => rej(e);
+  });
+}
+function tx(mode) { return db.transaction(STORE, mode).objectStore(STORE); }
+function dbGetAll() {
+  return new Promise((res, rej) => {
+    const r = tx('readonly').getAll();
+    r.onsuccess = () => res(r.result || []);
+    r.onerror = () => rej(r.error);
+  });
+}
+function dbPut(item) {
+  return new Promise((res, rej) => {
+    const r = tx('readwrite').put(item);
+    r.onsuccess = () => res();
+    r.onerror = () => rej(r.error);
+  });
+}
+function dbDelete(id) {
+  return new Promise((res, rej) => {
+    const r = tx('readwrite').delete(id);
+    r.onsuccess = () => res();
+    r.onerror = () => rej(r.error);
+  });
+}
+
+/* ---------- State ---------- */
+let slides = []; // {id, imageData, title, desc, order}
+
+/* ---------- Settings i localStorage ---------- */
+const SETTINGS_KEY = 'icespire-startsoon-settings';
+function loadSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    if (s.kicker !== undefined) document.getElementById('set-kicker').value = s.kicker;
+    if (s.heading !== undefined) document.getElementById('set-heading').value = s.heading;
+    if (s.interval !== undefined) document.getElementById('set-interval').value = s.interval;
+    if (s.quality !== undefined) document.getElementById('set-quality').value = s.quality;
+    if (s.countdown !== undefined) document.getElementById('set-countdown').value = s.countdown;
+    if (s.cdOn !== undefined) document.getElementById('set-cd-on').checked = s.cdOn;
+  } catch(e) {}
+}
+function saveSettings() {
+  const s = {
+    kicker: document.getElementById('set-kicker').value,
+    heading: document.getElementById('set-heading').value,
+    interval: document.getElementById('set-interval').value,
+    quality: document.getElementById('set-quality').value,
+    countdown: document.getElementById('set-countdown').value,
+    cdOn: document.getElementById('set-cd-on').checked
+  };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
+['set-kicker','set-heading','set-interval','set-quality','set-countdown','set-cd-on'].forEach(id => {
+  document.getElementById(id).addEventListener('change', saveSettings);
+});
+
+/* ---------- Billedkomprimering ---------- */
+const QUALITY_PRESETS = {
+  high:     { maxW: 3840, quality: 0.92 },
+  balanced: { maxW: 2560, quality: 0.88 },
+  compact:  { maxW: 1920, quality: 0.82 }
+};
+function currentPreset() {
+  const key = document.getElementById('set-quality').value || 'high';
+  return QUALITY_PRESETS[key] || QUALITY_PRESETS.high;
+}
+
+function compressImage(file, maxW = 3840, quality = 0.92) {
+  return new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxW / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+        res(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = rej;
+      img.src = e.target.result;
+    };
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ---------- Slide-håndtering ---------- */
+async function addFiles(fileList) {
+  const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+  const preset = currentPreset();
+  for (const f of files) {
+    try {
+      const data = await compressImage(f, preset.maxW, preset.quality);
+      const item = {
+        id: 'slide-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
+        imageData: data,
+        title: '',
+        desc: '',
+        order: slides.length
+      };
+      slides.push(item);
+      await dbPut(item);
+    } catch(e) { console.error('Kunne ikke indlæse billede', e); }
+  }
+  renderSlides();
+}
+
+function renderSlides() {
+  slides.sort((a,b) => a.order - b.order);
+  const list = document.getElementById('slidesList');
+  if (slides.length === 0) {
+    list.innerHTML = '<div class="empty">Ingen billeder endnu. Træk dine stemningsbilleder ind ovenfor.</div>';
+    document.getElementById('startBtn').disabled = true;
+    return;
+  }
+  document.getElementById('startBtn').disabled = false;
+  list.innerHTML = '';
+  slides.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'slide-card';
+    card.innerHTML = `
+      <div class="thumb" style="background-image:url('${s.imageData}')"></div>
+      <div class="fields">
+        <input type="text" class="title-in" placeholder="Quest-titel (fx: Dragens skygge over Phandalin)" value="${escapeAttr(s.title)}">
+        <input type="text" class="desc-in" placeholder="Kort teaser (fx: Cryovain er set nord for byen …)" value="${escapeAttr(s.desc)}">
+      </div>
+      <div class="actions">
+        <button class="mini-btn up" ${i===0?'disabled':''}>▲</button>
+        <button class="mini-btn down" ${i===slides.length-1?'disabled':''}>▼</button>
+        <button class="mini-btn del">✕</button>
+      </div>`;
+    const [titleIn, descIn] = card.querySelectorAll('input');
+    titleIn.addEventListener('change', async () => { s.title = titleIn.value; await dbPut(s); });
+    descIn.addEventListener('change', async () => { s.desc = descIn.value; await dbPut(s); });
+    card.querySelector('.up').addEventListener('click', () => move(i, -1));
+    card.querySelector('.down').addEventListener('click', () => move(i, 1));
+    card.querySelector('.del').addEventListener('click', () => removeSlide(s.id));
+    list.appendChild(card);
+  });
+}
+
+function escapeAttr(s) { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+async function move(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= slides.length) return;
+  const a = slides[i], b = slides[j];
+  const t = a.order; a.order = b.order; b.order = t;
+  await dbPut(a); await dbPut(b);
+  renderSlides();
+}
+async function removeSlide(id) {
+  await dbDelete(id);
+  slides = slides.filter(s => s.id !== id);
+  slides.forEach((s,i) => s.order = i);
+  for (const s of slides) await dbPut(s);
+  renderSlides();
+}
+
+/* ---------- Drop-zone ---------- */
+const dz = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+dz.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value=''; });
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+});
+
+/* ---------- Backup ---------- */
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const data = { slides, settings: JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') };
+  const blob = new Blob([JSON.stringify(data)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'icespire_startsoon_backup.json';
+  a.click();
+});
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importInput').click());
+document.getElementById('importInput').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  const text = await file.text();
+  try {
+    const data = JSON.parse(text);
+    if (data.settings) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(data.settings)); loadSettings(); }
+    if (Array.isArray(data.slides)) {
+      for (const s of slides) await dbDelete(s.id);
+      slides = data.slides;
+      for (const s of slides) await dbPut(s);
+      renderSlides();
+    }
+    alert('Backup importeret.');
+  } catch(err) { alert('Kunne ikke læse backup-filen.'); }
+  e.target.value = '';
+});
+
+/* ---------- FREMVISNING ---------- */
+const present = document.getElementById('present');
+const layers = [
+  { root: document.getElementById('layer0'), img: document.querySelector('#layer0 .kb-img') },
+  { root: document.getElementById('layer1'), img: document.querySelector('#layer1 .kb-img') }
+];
+const KB = ['kbZoomIn','kbZoomOut','kbPanLeft','kbPanRight','kbPanUp','kbDiag'];
+
+let front = 0, curIdx = 0, slideTimer = null, cdTimer = null, cdRemaining = 0, paused = false;
+let intervalMs = 10000, hintTimeout = null;
+
+function startPresent() {
+  if (slides.length === 0) return;
+  slides.sort((a,b)=>a.order-b.order);
+  saveSettings();
+
+  intervalMs = Math.max(3, parseInt(document.getElementById('set-interval').value)||10) * 1000;
+  document.getElementById('p-kicker').textContent = document.getElementById('set-kicker').value;
+  document.getElementById('p-heading').textContent = document.getElementById('set-heading').value;
+
+  const cdOn = document.getElementById('set-cd-on').checked;
+  const cdMin = parseInt(document.getElementById('set-countdown').value)||0;
+  const cdEl = document.getElementById('p-countdown');
+  if (cdOn && cdMin > 0) {
+    cdRemaining = cdMin * 60;
+    cdEl.style.display = 'block';
+    updateCountdown();
+    cdTimer = setInterval(tickCountdown, 1000);
+  } else {
+    cdEl.style.display = 'none';
+  }
+
+  present.classList.add('active');
+  document.documentElement.requestFullscreen?.().catch(()=>{});
+
+  curIdx = 0; front = 0;
+  showSlide(0, true);
+  slideTimer = setInterval(nextSlide, intervalMs);
+  showHintBriefly();
+}
+
+function showSlide(i, immediate) {
+  const s = slides[i];
+  const back = 1 - front;
+  const layer = layers[back];
+  layer.img.style.backgroundImage = `url('${s.imageData}')`;
+
+  const anim = KB[Math.floor(Math.random()*KB.length)];
+  layer.img.style.animation = 'none';
+  void layer.img.offsetWidth;             // tving reflow så animationen genstarter
+  layer.img.style.animation = `${anim} ${intervalMs + 2500}ms ease-in-out forwards`;
+
+  layers[back].root.style.opacity = 1;
+  layers[front].root.style.opacity = 0;
+  front = back;
+
+  // Quest-tekst med blød fade
+  const qb = document.getElementById('questBlock');
+  qb.style.opacity = 0;
+  setTimeout(() => {
+    const hasQuest = (s.title||'').trim() || (s.desc||'').trim();
+    document.getElementById('q-kicker').style.display = hasQuest ? 'block' : 'none';
+    document.getElementById('q-title').textContent = s.title || '';
+    document.getElementById('q-desc').textContent = s.desc || '';
+    qb.style.opacity = hasQuest ? 1 : 0;
+  }, immediate ? 100 : 700);
+}
+
+function nextSlide() {
+  curIdx = (curIdx + 1) % slides.length;
+  showSlide(curIdx);
+}
+function prevSlide() {
+  curIdx = (curIdx - 1 + slides.length) % slides.length;
+  showSlide(curIdx);
+}
+function manualNav(dir) {
+  clearInterval(slideTimer);
+  dir > 0 ? nextSlide() : prevSlide();
+  if (!paused) slideTimer = setInterval(nextSlide, intervalMs);
+}
+
+function updateCountdown() {
+  const el = document.getElementById('p-countdown');
+  if (cdRemaining <= 0) {
+    el.textContent = 'Nu begynder vi';
+    el.classList.add('done');
+    return;
+  }
+  const m = Math.floor(cdRemaining/60), s = cdRemaining%60;
+  el.textContent = `Starter om ${m}:${String(s).padStart(2,'0')}`;
+}
+function tickCountdown() {
+  if (paused) return;
+  cdRemaining--;
+  updateCountdown();
+  if (cdRemaining <= 0) clearInterval(cdTimer);
+}
+
+function togglePause() {
+  paused = !paused;
+  present.classList.toggle('paused', paused);
+  if (paused) {
+    clearInterval(slideTimer);
+    // frys Ken Burns
+    layers.forEach(l => l.img.style.animationPlayState = 'paused');
+  } else {
+    slideTimer = setInterval(nextSlide, intervalMs);
+    layers.forEach(l => l.img.style.animationPlayState = 'running');
+  }
+}
+
+function exitPresent() {
+  clearInterval(slideTimer); clearInterval(cdTimer);
+  present.classList.remove('active','paused');
+  paused = false;
+  document.getElementById('p-countdown').classList.remove('done');
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(()=>{});
+}
+
+function showHintBriefly() {
+  const hint = document.getElementById('hint');
+  hint.style.opacity = 1;
+  clearTimeout(hintTimeout);
+  hintTimeout = setTimeout(() => hint.style.opacity = 0, 4000);
+}
+
+/* Musebevægelse viser hint kort */
+present.addEventListener('mousemove', () => { if (present.classList.contains('active')) showHintBriefly(); });
+
+document.getElementById('startBtn').addEventListener('click', startPresent);
+
+document.addEventListener('keydown', e => {
+  if (!present.classList.contains('active')) return;
+  if (e.key === 'Escape') exitPresent();
+  else if (e.key === 'ArrowRight') manualNav(1);
+  else if (e.key === 'ArrowLeft') manualNav(-1);
+  else if (e.key === ' ') { e.preventDefault(); togglePause(); }
+});
+
+/* ---------- Init ---------- */
+(async function init() {
+  loadSettings();
+  await openDB();
+  slides = await dbGetAll();
+  renderSlides();
+})();
+</script>
+</body>
+</html>

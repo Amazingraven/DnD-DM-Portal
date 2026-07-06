@@ -12,6 +12,9 @@ sessionsdata ligger her, medmindre du bevidst lægger en backup-eksport i `backu
 - `backups/` — periodiske eksporter af dit sessionsbibliotek (via builderens backup-funktion).
   Bruges også til manuel sync mellem flere pc'er: eksportér på maskine A, læg filen her, hent og
   importér på maskine B.
+- `lobby/index.html` — opstarts-skærmen (Ken Burns-slideshow med quest-info og nedtælling), åbnes
+  via "🕯 Opstarts-skærm"-knappen i builderens topbar. Tilgås direkte på
+  `https://amazingraven.github.io/DnD-DM-Portal/lobby/`.
 
 ## Vigtigt
 
