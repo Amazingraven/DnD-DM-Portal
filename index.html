@@ -576,7 +576,11 @@ function renderBlockContent(block, includeDM){
           <span class="hp-label">${esc(c.name)}</span>
           <div class="hp-controls">
             <button class="hp-btn" onclick="window.__hpChange&&window.__hpChange('${rid}',${max},-1)">−</button>
-            <input type="number" class="hp-input" id="hp-${rid}" value="${cur}" min="0" max="${max}" onchange="window.__hpSet&&window.__hpSet('${rid}',${max})">
+            <input type="text" inputmode="numeric" class="hp-input" id="hp-${rid}" value="${cur}" data-baseline="${cur}"
+              title="Skriv et tal, eller et regnestykke som -8 eller 15+3"
+              onfocus="this.select()"
+              onkeydown="if(event.key==='Enter'){this.blur();}"
+              onchange="window.__hpSet&&window.__hpSet('${rid}',${max})">
             <button class="hp-btn" onclick="window.__hpChange&&window.__hpChange('${rid}',${max},1)">+</button>
             <span class="hp-max">/ ${max}</span>
           </div>
@@ -590,13 +594,23 @@ function renderBlockContent(block, includeDM){
 }
 
 /* Shared HP-tracker interactivity — attached to window so it works identically in the
-   editor canvas, the present window, and static HTML exports (all render via renderBlockContent). */
-window.__hpUpdateBar = function(rid, max){
+   editor canvas, the present window, and static HTML exports (all render via renderBlockContent).
+   The input accepts either a plain number (absolute) or a small arithmetic expression
+   (e.g. "-8", "+5", "15-8+2") which is evaluated relative to the last confirmed value. */
+window.__hpSafeEval = function(expr){
+  if(!/^[\d+\-*/(). ]+$/.test(expr)) return NaN;
+  try{
+    const val = Function('"use strict"; return (' + expr + ')')();
+    return (typeof val === 'number' && isFinite(val)) ? val : NaN;
+  }catch(e){ return NaN; }
+};
+window.__hpUpdateBar = function(rid, max, val){
   const input = document.getElementById('hp-'+rid);
   const bar = document.getElementById('bar-'+rid);
   if(!input || !bar) return;
-  let val = Math.max(0, Math.min(max, parseInt(input.value)||0));
+  val = Math.max(0, Math.min(max, Math.round(val)));
   input.value = val;
+  input.dataset.baseline = val;
   const pct = (val/max)*100;
   bar.style.width = pct+'%';
   bar.className = 'hp-bar ' + (pct>50?'healthy':(pct>25?'bloodied':'critical'));
@@ -604,11 +618,25 @@ window.__hpUpdateBar = function(rid, max){
 window.__hpChange = function(rid, max, delta){
   const input = document.getElementById('hp-'+rid);
   if(!input) return;
-  let val = Math.max(0, Math.min(max, (parseInt(input.value)||0) + delta));
-  input.value = val;
-  window.__hpUpdateBar(rid, max);
+  const baseline = parseFloat(input.dataset.baseline)||0;
+  window.__hpUpdateBar(rid, max, baseline + delta);
 };
-window.__hpSet = function(rid, max){ window.__hpUpdateBar(rid, max); };
+window.__hpSet = function(rid, max){
+  const input = document.getElementById('hp-'+rid);
+  if(!input) return;
+  const raw = (input.value||'').trim();
+  const baseline = parseFloat(input.dataset.baseline)||0;
+  let result;
+  if(/^[+\-]/.test(raw)){
+    result = window.__hpSafeEval(baseline + raw);
+  } else if(/[+\-*/]/.test(raw)){
+    result = window.__hpSafeEval(raw);
+  } else {
+    result = parseFloat(raw);
+  }
+  if(isNaN(result)) result = baseline;
+  window.__hpUpdateBar(rid, max, result);
+};
 
 function renderPageBlocks(session, includeDM){
   let activeTransition = 'fade';
@@ -913,21 +941,39 @@ function openPresent(){
     };
     window.__applyPages=function(){ window.__showPage(window.__cur, false); };
     window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
-    window.__hpUpdateBar=function(rid, max){
+    window.__hpSafeEval=function(expr){
+      if(!/^[\d+\-*/(). ]+$/.test(expr)) return NaN;
+      try{
+        var val = Function('"use strict"; return (' + expr + ')')();
+        return (typeof val === 'number' && isFinite(val)) ? val : NaN;
+      }catch(e){ return NaN; }
+    };
+    window.__hpUpdateBar=function(rid, max, val){
       var input=document.getElementById('hp-'+rid), bar=document.getElementById('bar-'+rid);
       if(!input||!bar) return;
-      var val=Math.max(0, Math.min(max, parseInt(input.value)||0));
+      val=Math.max(0, Math.min(max, Math.round(val)));
       input.value=val;
+      input.dataset.baseline=val;
       var pct=(val/max)*100;
       bar.style.width=pct+'%';
       bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
     };
     window.__hpChange=function(rid, max, delta){
       var input=document.getElementById('hp-'+rid); if(!input) return;
-      input.value=Math.max(0, Math.min(max, (parseInt(input.value)||0)+delta));
-      window.__hpUpdateBar(rid, max);
+      var baseline=parseFloat(input.dataset.baseline)||0;
+      window.__hpUpdateBar(rid, max, baseline+delta);
     };
-    window.__hpSet=function(rid, max){ window.__hpUpdateBar(rid, max); };
+    window.__hpSet=function(rid, max){
+      var input=document.getElementById('hp-'+rid); if(!input) return;
+      var raw=(input.value||'').trim();
+      var baseline=parseFloat(input.dataset.baseline)||0;
+      var result;
+      if(/^[+\-]/.test(raw)){ result=window.__hpSafeEval(baseline+raw); }
+      else if(/[+\-*/]/.test(raw)){ result=window.__hpSafeEval(raw); }
+      else { result=parseFloat(raw); }
+      if(isNaN(result)) result=baseline;
+      window.__hpUpdateBar(rid, max, result);
+    };
     <\/script>
     </body></html>`);
   doc.close();
@@ -1000,21 +1046,39 @@ document.getElementById('btnExportHtml').onclick = ()=>{
   const body = `<div class="page-wrap">${renderPageBlocks(s,true)}</div>`;
   const revealScript = `<script>(function(){var els=document.querySelectorAll('.pblock');if(!('IntersectionObserver'in window)){els.forEach(function(el){el.classList.add('visible');});return;}var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:0.12});els.forEach(function(el){el.classList.add('reveal');io.observe(el);});})();<\/script>`;
   const hpScript = `<script>
-    window.__hpUpdateBar=function(rid, max){
+    window.__hpSafeEval=function(expr){
+      if(!/^[\\d+\\-*/(). ]+$/.test(expr)) return NaN;
+      try{
+        var val = Function('"use strict"; return (' + expr + ')')();
+        return (typeof val === 'number' && isFinite(val)) ? val : NaN;
+      }catch(e){ return NaN; }
+    };
+    window.__hpUpdateBar=function(rid, max, val){
       var input=document.getElementById('hp-'+rid), bar=document.getElementById('bar-'+rid);
       if(!input||!bar) return;
-      var val=Math.max(0, Math.min(max, parseInt(input.value)||0));
+      val=Math.max(0, Math.min(max, Math.round(val)));
       input.value=val;
+      input.dataset.baseline=val;
       var pct=(val/max)*100;
       bar.style.width=pct+'%';
       bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
     };
     window.__hpChange=function(rid, max, delta){
       var input=document.getElementById('hp-'+rid); if(!input) return;
-      input.value=Math.max(0, Math.min(max, (parseInt(input.value)||0)+delta));
-      window.__hpUpdateBar(rid, max);
+      var baseline=parseFloat(input.dataset.baseline)||0;
+      window.__hpUpdateBar(rid, max, baseline+delta);
     };
-    window.__hpSet=function(rid, max){ window.__hpUpdateBar(rid, max); };
+    window.__hpSet=function(rid, max){
+      var input=document.getElementById('hp-'+rid); if(!input) return;
+      var raw=(input.value||'').trim();
+      var baseline=parseFloat(input.dataset.baseline)||0;
+      var result;
+      if(/^[+\\-]/.test(raw)){ result=window.__hpSafeEval(baseline+raw); }
+      else if(/[+\\-*/]/.test(raw)){ result=window.__hpSafeEval(raw); }
+      else { result=parseFloat(raw); }
+      if(isNaN(result)) result=baseline;
+      window.__hpUpdateBar(rid, max, result);
+    };
   <\/script>`;
   const full = `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
