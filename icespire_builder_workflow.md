@@ -8,7 +8,9 @@ fordi builder-JSON i sidste ende renderes gennem samme designsystem.
 > ny bloktype eller et felt til programmet, opdateres dette dokument i samme ombæring. Builderen er
 > autoritativ — hvis kode og dokument er uenige, vinder koden.
 >
-> **Skema-version:** 2 (8 bloktyper, 5 temaer)
+> **Skema-version:** 3 (8 bloktyper, 5 temaer)
+>
+> **v3-ændring:** `divider` har nu et valgfrit `transition`-felt (`fade`/`slide`/`instant`), der styrer overgangseffekten for scenen efter dividerern under fremvisning.
 >
 > **v2-ændring:** `narrative` og `narrative-dm` har nu et valgfrit `skills`-array, så skill-badges vises i samme tekstboks som scenen. Den selvstændige `skills`-blok findes stadig (bagudkompatibel), men indlejring i scenen er den foretrukne måde.
 
@@ -126,9 +128,12 @@ Hver blok er:
 
 ### `divider` — sektionsskille
 ```json
-{ "icon": "⚔" }
+{ "icon": "⚔", "transition": "fade" }
 ```
 - Alternér gerne mellem `⚔` og `◆`.
+- `transition` — én af: `fade` (blød indtoning, standard), `slide` (glider ind fra siden), `instant`
+  (ingen animation). Styrer overgangseffekten for scenen, der starter lige efter dividerern, når
+  man skifter til den under fremvisning (Næste/Forrige).
 
 ---
 

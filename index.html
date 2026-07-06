@@ -291,6 +291,9 @@ details.dm-note[open] .dm-note-toggle::before{ transform:rotate(90deg); }
 .pblock{ }
 .reveal{ opacity:0; transform:translateY(34px) scale(.985); filter:blur(1.5px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1), filter .7s ease; will-change:opacity, transform; }
 .reveal.visible{ opacity:1; transform:none; filter:none; }
+.reveal[data-transition="slide"]{ transform:translateX(70px) scale(.985); }
+.reveal[data-transition="slide"].visible{ transform:none; }
+.reveal[data-transition="instant"]{ transition:none; filter:none; transform:none; }
 @media (prefers-reduced-motion: reduce){ .reveal{ transform:none; filter:none; transition:opacity .5s ease; } .reveal.visible{ opacity:1; } }
 /* present-mode candlelight */
 .present-body{ background:#0d0a05; color:var(--parchment); margin:0; padding:2.5rem 1.5rem 5rem; min-height:100vh; }
@@ -369,7 +372,7 @@ function blockDefaults(type){
     case 'statblock': return { title:'Modstander', hp:'', ac:'', speed:'30 ft.', cr:'',
       str:10, dex:10, con:10, int:10, wis:10, cha:10, traits:'', attacks:'' };
     case 'hptracker': return { combatants:[ {name:'Modstander #1', max:30, cur:30} ] };
-    case 'divider': return { icon:'⚔' };
+    case 'divider': return { icon:'⚔', transition:'fade' };
     default: return {};
   }
 }
@@ -569,10 +572,15 @@ function renderBlockContent(block, includeDM){
 }
 
 function renderPageBlocks(session, includeDM){
+  let activeTransition = 'fade';
   return session.blocks.map(b=>{
     const c = renderBlockContent(b, includeDM);
     if(!c) return '';
-    return `<div class="pblock" data-bid="${b.id}">${c}</div>`;
+    const wrap = `<div class="pblock" data-bid="${b.id}" data-transition="${esc(activeTransition)}">${c}</div>`;
+    if(b.type === 'divider'){
+      activeTransition = (b.data && b.data.transition) || 'fade';
+    }
+    return wrap;
   }).join('');
 }
 function renderPlayerHTML(session){
@@ -692,7 +700,13 @@ function renderForm(b){
       inner = `<label>Modstandere</label>${items}<button class="mini-btn" data-subadd="combatants">+ Tilføj</button>`; break;
     }
     case 'divider':
-      inner = `<label>Ikon</label>${f('icon',d.icon)}`; break;
+      inner = `<label>Ikon</label>${f('icon',d.icon)}
+        <label>Overgangseffekt (ved skift til næste scene)</label>
+        <select data-field="transition">
+          <option value="fade" ${(!d.transition||d.transition==='fade')?'selected':''}>Fade — blød indtoning</option>
+          <option value="slide" ${d.transition==='slide'?'selected':''}>Slide — glider ind fra siden</option>
+          <option value="instant" ${d.transition==='instant'?'selected':''}>Instant — ingen animation</option>
+        </select>`; break;
   }
   return `<div class="eform" data-id="${b.id}">${inner}
     <div style="margin-top:1rem;text-align:right;"><button class="mini-btn" data-done="1">Færdig</button></div></div>`;
