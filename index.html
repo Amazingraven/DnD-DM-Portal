@@ -295,6 +295,12 @@ details.dm-note[open] .dm-note-toggle::before{ transform:rotate(90deg); }
 .reveal[data-transition="slide"].visible{ transform:none; }
 .reveal[data-transition="instant"]{ transition:none; filter:none; transform:none; }
 @media (prefers-reduced-motion: reduce){ .reveal{ transform:none; filter:none; transition:opacity .5s ease; } .reveal.visible{ opacity:1; } }
+/* deck-mode: dividers split content into pages, only current page is shown */
+.present-body .pblock.enter-fade{ animation:deckFade .6s ease both; }
+.present-body .pblock.enter-slide{ animation:deckSlide .6s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes deckFade{ from{opacity:0; transform:translateY(28px);} to{opacity:1; transform:none;} }
+@keyframes deckSlide{ from{opacity:0; transform:translateX(90px);} to{opacity:1; transform:none;} }
+@media (prefers-reduced-motion: reduce){ .present-body .pblock.enter-fade,.present-body .pblock.enter-slide{ animation:none; } }
 /* present-mode candlelight */
 .present-body{ background:#0d0a05; color:var(--parchment); margin:0; padding:2.5rem 1.5rem 5rem; min-height:100vh; }
 .present-body::before{ content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
@@ -573,12 +579,14 @@ function renderBlockContent(block, includeDM){
 
 function renderPageBlocks(session, includeDM){
   let activeTransition = 'fade';
+  let pageIdx = 0;
   return session.blocks.map(b=>{
     const c = renderBlockContent(b, includeDM);
     if(!c) return '';
-    const wrap = `<div class="pblock" data-bid="${b.id}" data-transition="${esc(activeTransition)}">${c}</div>`;
+    const wrap = `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-transition="${esc(activeTransition)}">${c}</div>`;
     if(b.type === 'divider'){
       activeTransition = (b.data && b.data.transition) || 'fade';
+      pageIdx++;
     }
     return wrap;
   }).join('');
@@ -839,47 +847,39 @@ function openPresent(){
     <body class="present-body"><div id="player-root"></div>
     <button class="fs-btn" id="fsBtn">⛶ Fuldskærm</button>
     <script>
-    window.__effects=true; window.__cur=0; window.__armed=false; window.__revealed=new Set();
+    window.__effects=true; window.__cur=0;
     function __kids(){ var r=document.getElementById('player-root'); return r?Array.prototype.slice.call(r.children):[]; }
-    window.__revealTo=function(idx){
-      var ch=__kids();
-      for(var i=0;i<=idx&&i<ch.length;i++){
-        ch[i].classList.add('visible');
-        var bid=ch[i].getAttribute('data-bid'); if(bid) window.__revealed.add(bid);
-      }
-      if(idx>window.__cur) window.__cur=idx;
-    };
-    window.__scrollReveal=function(){
-      if(!window.__armed||!window.__effects) return;
-      var ch=__kids(); var line=140; var idx=-1;
-      for(var i=0;i<ch.length;i++){ if(ch[i].getBoundingClientRect().top<line) idx=i; }
-      if(idx>window.__cur) window.__revealTo(idx);
-    };
-    window.__arm=function(){ window.__armed=true; window.__revealTo(window.__cur); window.__scrollReveal(); };
-    window.__applyReveal=function(){
-      var ch=__kids(); window.__armed=false; window.__cur=0;
+    function __maxPage(){
+      var ch=__kids(), m=0;
+      for(var i=0;i<ch.length;i++){ var p=parseInt(ch[i].getAttribute('data-page')||'0',10); if(p>m) m=p; }
+      return m;
+    }
+    window.__showPage=function(idx, animate){
+      var ch=__kids(); if(!ch.length) return;
+      var max=__maxPage();
+      idx = Math.max(0, Math.min(max, idx));
       for(var i=0;i<ch.length;i++){
-        var el=ch[i]; var bid=el.getAttribute('data-bid');
-        if(!window.__effects||(bid&&window.__revealed.has(bid))){ el.classList.remove('reveal'); el.classList.add('visible'); if(bid&&window.__revealed.has(bid)) window.__cur=i; }
-        else el.classList.add('reveal');
+        var el=ch[i];
+        var p=parseInt(el.getAttribute('data-page')||'0',10);
+        el.classList.remove('enter-fade','enter-slide');
+        if(p===idx){
+          el.style.display='';
+          if(animate && window.__effects){
+            var trans = el.getAttribute('data-transition')||'fade';
+            if(trans!=='instant'){
+              void el.offsetWidth;
+              el.classList.add('enter-'+trans);
+            }
+          }
+        } else {
+          el.style.display='none';
+        }
       }
-      if(!window.__effects) return;
-      var imgs=document.getElementById('player-root').querySelectorAll('img'); var pending=0;
-      var done=function(){ pending--; if(pending<=0) window.__arm(); };
-      Array.prototype.forEach.call(imgs,function(im){ if(!im.complete){ pending++; im.addEventListener('load',done,{once:true}); im.addEventListener('error',done,{once:true}); } });
-      if(pending===0){ requestAnimationFrame(function(){ requestAnimationFrame(window.__arm); }); }
-      setTimeout(window.__arm,1200);
+      window.__cur=idx;
+      try{ window.scrollTo(0,0); }catch(e){}
     };
-    window.addEventListener('scroll', function(){ window.__scrollReveal(); }, {passive:true});
-    window.addEventListener('resize', function(){ window.__scrollReveal(); });
-    document.addEventListener('fullscreenchange', function(){ setTimeout(window.__scrollReveal,80); });
-    window.__step=function(dir){
-      var ch=__kids(); var n=ch.length; if(!n) return;
-      var target=Math.max(0,Math.min(n-1, window.__cur+dir));
-      if(dir>0) window.__revealTo(target); else window.__cur=target;
-      if(ch[target]) ch[target].scrollIntoView({behavior:'smooth',block:'nearest'});
-      setTimeout(window.__scrollReveal,350);
-    };
+    window.__applyPages=function(){ window.__showPage(window.__cur, false); };
+    window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
     <\/script>
     </body></html>`);
   doc.close();
@@ -894,7 +894,7 @@ function pushToPresent(){
   const html = renderPlayerHTML(current());
   presentRoot.innerHTML = html || `<div class="present-empty">Venter på indhold…</div>`;
   try{ applyTheme(themeOf(), presentWin.document.documentElement); }catch(e){}
-  try{ presentWin.__effects = !!state.effects; if(presentWin.__applyReveal) presentWin.__applyReveal(); }catch(e){}
+  try{ presentWin.__effects = !!state.effects; if(presentWin.__applyPages) presentWin.__applyPages(); }catch(e){}
 }
 document.getElementById('btnPresent').onclick = openPresent;
 document.getElementById('btnNext').onclick = ()=>{ if(presentWin && !presentWin.closed) presentWin.__step(1); };
