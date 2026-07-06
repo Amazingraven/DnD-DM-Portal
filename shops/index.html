@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phandalin — Butikker & Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0a05;
+    --ink: #1a1208;
+    --parch: #f2e8c9;
+    --parch-dark: #e8d9a8;
+    --gold: #b8862a;
+    --gold-light: #d4a843;
+    --rust: #8b2e0a;
+    --ash: #3d3020;
+    --ash-light: #5a4a30;
+    --sold: #c0392b;
+    --low: #c77e25;
+    --ok: #4a7c59;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IM Fell English', Georgia, serif;
+    min-height: 100vh;
+    padding-bottom: 5rem;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(180,90,10,.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 75% 80%, rgba(150,60,5,.10) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    padding: 2.5rem 1.5rem 1.5rem;
+    border-bottom: 1px solid rgba(184,134,42,.2);
+    margin-bottom: 0;
+  }
+  .header-sub {
+    font-family: 'Cinzel', serif;
+    font-size: .72rem;
+    letter-spacing: .35em;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: .6rem;
+  }
+  h1 {
+    font-family: 'Cinzel Decorative', 'Cinzel', serif;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    color: var(--parch);
+    text-shadow: 0 0 40px rgba(180,100,10,.5), 0 2px 4px rgba(0,0,0,.8);
+    line-height: 1.3;
+  }
+  .session-badge {
+    display: inline-block;
+    margin-top: .8rem;
+    font-family: 'Cinzel', serif;
+    font-size: .65rem;
+    letter-spacing: .2em;
+    color: var(--gold-light);
+    border: 1px solid var(--gold);
+    padding: .25rem 1rem;
+    border-radius: 2px;
+  }
+
+  /* ── Divider ── */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    opacity: .6;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .divider-icon { color: var(--gold); font-size: 1rem; }
+
+  /* ── Shop grid ── */
+  .shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .shop-card {
+    background: rgba(30,20,5,.6);
+    border: 1px solid rgba(184,134,42,.25);
+    border-radius: 4px;
+    padding: 1.2rem 1rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all .2s;
+    user-select: none;
+  }
+  .shop-card:hover { border-color: rgba(184,134,42,.5); background: rgba(30,20,5,.8); }
+  .shop-card.active {
+    background: rgba(184,134,42,.12);
+    border-color: var(--gold);
+    box-shadow: 0 0 16px rgba(184,134,42,.2);
+  }
+  .shop-icon { font-size: 1.6rem; margin-bottom: .5rem; }
+  .shop-name {
+    font-family: 'Cinzel', serif;
+    font-size: .78rem;
+    color: var(--parch);
+    font-weight: 600;
+    letter-spacing: .05em;
+    margin-bottom: .2rem;
+  }
+  .shop-keeper {
+    font-size: .82rem;
+    color: var(--gold-light);
+    font-style: italic;
+    margin-bottom: .6rem;
+  }
+  .shop-meta { display: flex; gap: .4rem; justify-content: center; flex-wrap: wrap; }
+  .meta-badge {
+    font-family: 'Cinzel', serif;
+    font-size: .58rem;
+    letter-spacing: .1em;
+    padding: .15rem .5rem;
+    border-radius: 2px;
+  }
+  .meta-count {
+    background: rgba(184,134,42,.12);
+    color: var(--gold-light);
+    border: 1px solid rgba(184,134,42,.25);
+  }
+  .meta-sold {
+    background: rgba(192,57,43,.12);
+    color: var(--sold);
+    border: 1px solid rgba(192,57,43,.25);
+  }
+
+  /* ── Panel ── */
+  .scroll-panel {
+    background: radial-gradient(ellipse at 50% 0%, var(--parch) 0%, var(--parch-dark) 100%);
+    border: 1px solid rgba(160,100,20,.4);
+    border-radius: 4px;
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: inset 0 0 40px rgba(100,50,0,.15), 0 4px 20px rgba(0,0,0,.6);
+  }
+  .panel-title {
+    font-family: 'Cinzel', serif;
+    font-size: .95rem;
+    font-weight: 600;
+    color: var(--rust);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+  }
+  .panel-title-keeper {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: .9rem;
+    color: var(--ash-light);
+    letter-spacing: normal;
+    text-transform: none;
+    font-weight: normal;
+  }
+  .panel-title-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--rust), transparent);
+    opacity: .4;
+  }
+
+  /* ── Table ── */
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-family: 'Cinzel', serif;
+    font-size: .65rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--rust);
+    padding: .6rem .7rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(139,46,10,.3);
+  }
+  tr { border-bottom: 1px solid rgba(139,46,10,.12); }
+  tr.sold-out { opacity: .5; }
+  td { padding: .65rem .7rem; vertical-align: middle; color: var(--ash); font-size: .92rem; }
+  .item-name { font-weight: 600; color: var(--ink); line-height: 1.3; margin-bottom: .15rem; }
+  .item-rules { font-size: .8rem; color: var(--ash-light); line-height: 1.5; }
+  .item-type {
+    font-family: 'Cinzel', serif;
+    font-size: .68rem;
+    letter-spacing: .08em;
+    color: var(--ash-light);
+  }
+  .item-price {
+    font-family: 'Cinzel', serif;
+    font-size: .82rem;
+    color: var(--rust);
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .qty-badge {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: .72rem;
+    letter-spacing: .1em;
+    padding: .2rem .6rem;
+    border-radius: 2px;
+    font-weight: 600;
+    min-width: 54px;
+    text-align: center;
+  }
+  .qty-ok    { background: rgba(74,124,89,.15);  color: var(--ok);   border: 1px solid rgba(74,124,89,.3); }
+  .qty-low   { background: rgba(199,126,37,.15); color: var(--low);  border: 1px solid rgba(199,126,37,.3); }
+  .qty-sold  { background: rgba(192,57,43,.15);  color: var(--sold); border: 1px solid rgba(192,57,43,.3); }
+
+  /* ── Action buttons ── */
+  .action-row { display: flex; gap: .35rem; justify-content: center; }
+  .btn-icon {
+    width: 28px; height: 28px;
+    border: none; border-radius: 2px;
+    cursor: pointer; font-size: .9rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity .15s;
+    line-height: 1;
+  }
+  .btn-icon:disabled { opacity: .3; cursor: not-allowed; }
+  .btn-sell   { background: rgba(192,57,43,.15);  color: var(--sold); border: 1px solid rgba(192,57,43,.3); }
+  .btn-add    { background: rgba(74,124,89,.15);  color: var(--ok);   border: 1px solid rgba(74,124,89,.3); }
+  .btn-edit   { background: rgba(184,134,42,.12); color: var(--gold); border: 1px solid rgba(184,134,42,.3); }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    display: flex;
+    gap: .8rem;
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(139,46,10,.2);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn-ghost {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .45rem 1rem;
+    border-radius: 2px;
+    cursor: pointer;
+    border: 1px solid rgba(184,134,42,.4);
+    background: rgba(184,134,42,.1);
+    color: var(--gold);
+    transition: all .15s;
+  }
+  .btn-ghost:hover { background: rgba(184,134,42,.2); }
+  .stock-label {
+    margin-left: auto;
+    font-family: 'Cinzel', serif;
+    font-size: .65rem;
+    color: var(--ash-light);
+    letter-spacing: .1em;
+  }
+
+  /* ── Modal ── */
+  .overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.75);
+    z-index: 100;
+    align-items: center; justify-content: center;
+    padding: 1rem;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: radial-gradient(ellipse at 50% 0%, var(--parch) 0%, var(--parch-dark) 100%);
+    border: 1px solid rgba(160,100,20,.5);
+    border-radius: 4px;
+    padding: 2rem;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 8px 40px rgba(0,0,0,.8);
+  }
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 1.2rem;
+  }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+  .form-row { margin-bottom: 0; }
+  .form-row.full { grid-column: 1 / -1; }
+  label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: .65rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: .35rem;
+  }
+  input, textarea, select {
+    width: 100%;
+    padding: .5rem .7rem;
+    background: rgba(255,255,255,.5);
+    border: 1px solid rgba(139,46,10,.35);
+    border-radius: 2px;
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: .95rem;
+    color: var(--ink);
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  .modal-actions {
+    display: flex;
+    gap: .7rem;
+    margin-top: 1.5rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn-primary {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    padding: .5rem 1.2rem;
+    border-radius: 2px;
+    cursor: pointer;
+    border: 1px solid var(--gold);
+    background: rgba(184,134,42,.2);
+    color: var(--rust);
+    font-weight: 600;
+  }
+  .btn-secondary {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    padding: .5rem 1.2rem;
+    border-radius: 2px;
+    cursor: pointer;
+    border: 1px solid rgba(139,46,10,.3);
+    background: transparent;
+    color: var(--ash);
+  }
+  .btn-danger {
+    margin-right: auto;
+    border-color: rgba(192,57,43,.5) !important;
+    color: var(--sold) !important;
+  }
+
+  /* ── Toast ── */
+  #toast {
+    display: none;
+    position: fixed;
+    top: 1.5rem; right: 1.5rem;
+    background: rgba(184,134,42,.95);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: .75rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    padding: .6rem 1.2rem;
+    border-radius: 2px;
+    z-index: 200;
+    box-shadow: 0 4px 12px rgba(0,0,0,.5);
+    animation: fadeIn .2s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+  #shop-detail { display: none; }
+  #shop-detail.open { display: block; }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<header>
+  <div class="header-sub">Dragon of Icespire Peak · Phandalin</div>
+  <h1>Butikker &amp; Inventory</h1>
+  <div class="session-badge">Live Inventory Manager</div>
+</header>
+
+<div class="page">
+  <div class="divider"><span class="divider-icon">⚔</span></div>
+  <div style="display:flex; justify-content:center; gap:0.7rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+    <button class="btn-secondary" id="btn-export-portal">⬇ Eksportér til spillerportal (JSON)</button>
+    <a class="btn-secondary" href="../" style="text-decoration:none; display:inline-flex; align-items:center;">⚔ Til Builder</a>
+  </div>
+  <div class="shop-grid" id="shop-grid"></div>
+  <div id="shop-detail"></div>
+</div>
+
+<!-- Edit / Add modal -->
+<div class="overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Rediger vare</div>
+    <div class="form-grid">
+      <div class="form-row full">
+        <label for="f-name">Navn</label>
+        <input id="f-name" type="text" placeholder="Genstands navn">
+      </div>
+      <div class="form-row">
+        <label for="f-qty">Antal</label>
+        <input id="f-qty" type="number" min="0">
+      </div>
+      <div class="form-row">
+        <label for="f-price">Pris</label>
+        <input id="f-price" type="text" placeholder="fx 50 gp">
+      </div>
+      <div class="form-row full">
+        <label for="f-type">Type</label>
+        <input id="f-type" type="text" placeholder="fx Potion, Våben, Gadget...">
+      </div>
+      <div class="form-row full">
+        <label for="f-rules">Regler / beskrivelse</label>
+        <textarea id="f-rules" placeholder="Krav, brug, effekt..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary btn-danger" id="btn-delete" onclick="deleteItem()" style="display:none">Slet vare</button>
+      <button class="btn-secondary" onclick="closeModal()">Annuller</button>
+      <button class="btn-primary" onclick="saveItem()">Gem ændringer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = 'phandalin-inventory-v4';
+
+const DEFAULT_SHOPS = [
+  {
+    id: 'shrine', name: 'Shrine of Luck', keeper: 'Garaele', icon: '🌟',
+    items: [
+      { id: 's1', name: 'Healing Potion', qty: 6, type: 'Potion', rules: 'Brug: Action. Krav: Ingen. Effekt: Healer 2d4+2 HP.', price: '50 gp' },
+      { id: 's2', name: 'Scroll of Guidance', qty: 4, type: 'Scroll (Cantrip)', rules: 'Brug: Action. Krav: Alle; Religion-tjek DC 5 (fejl = scroll opbrugt uden effekt). Effekt: I de næste 10 runder tilføjes +1d4 til det første evnetjek du foretager.', price: '10 gp' },
+      { id: 's3', name: 'Scroll of Aid', qty: 2, type: 'Scroll (2nd)', rules: 'Brug: Action. Krav: Alle; Religion-tjek DC 10 (fejl = scroll opbrugt uden effekt). Effekt: Op til 3 skabninger får +5 maks HP og +5 aktuelle HP frem til næste Long Rest (ikke temp HP).', price: '75 gp' },
+      { id: 's4', name: 'Quarterstaff of Good Fortune', qty: 1, type: 'Våben (Quarterstaff; versatile; 1d6/1d8)', rules: 'Krav: Troldmand (Bard/Cleric/Druid/Sorcerer/Warlock/Wizard). Effekt: 1/Long Rest pr. trylleformular: cast Bless (koncentration, 10 runder) og Cure Wounds (øjeblikkelig).', price: '900 gp' },
+      { id: 's5', name: 'Vestments of Blessed Luck', qty: 1, type: 'Rustning (Tøj; Arcane Armor)', rules: 'Krav: Ingen. AC: 12 + Dex (ingen rustningsfærdighed kræves). Effekt: 1/Long Rest — når du mislykkes et redningskast, tilføj +1d4 til resultatet (kan ændre udfald).', price: '400 gp' },
+    ]
+  },
+  {
+    id: 'miners', name: "Miner's Exchange", keeper: 'Halia Thornton', icon: '💎',
+    items: [
+      { id: 'm1', name: 'Old Phandalin Undercrypt Map', qty: 1, type: 'Vidunderligt (Kort/Relic)', rules: 'Lore: Phandalin var engang en stor antik alverby. Ork-angreb for århundreder siden ødelagde området. Næsten intet af den gamle civilisation er tilbage — undtagen hvad der stadig sover under det moderne Phandalin. Halia påstår at have en hemmelig indgang, men det kræver guld og det rette ry. Brug: Ikke et kampitem. Effekt: Med dette kort opnår gruppen et stort spor til Phandalins underjord.', price: '200 gp/job' },
+      { id: 'm2', name: 'Zhentarim Stiletto', qty: 1, type: 'Våben (Magisk Dolk; finesse, light, thrown 20/60; 1d4 piercing)', rules: 'Krav: Færdighed med dolke (eller simple våben). Effekt: +1 til angreb. Ved træf: +1 gift-skade (udover piercing). 1/Long Rest: Når du rammer, kan du øjeblikkeligt Disengage (ingen muligheds-angreb mod dig resten af din tur) uden at bruge en handling.', price: '350 gp' },
+      { id: 'm3', name: 'Shadowweave Studded Leather', qty: 1, type: 'Magisk Rustning (Let; Studded Leather)', rules: 'Krav: Færdighed med let rustning (typisk Rogue/Ranger/Bard). AC: 13 + Dex. Effekt: 1/Long Rest: cast Invisibility (kun selv, koncentration, 10 runder).', price: '950 gp' },
+      { id: 'm4', name: 'Charm of the Night Fox', qty: 1, type: 'Vidunderligt (Trinket)', rules: 'Krav: Ingen. Effekt: 1/Long Rest — tilføj +1d4 til et hvilket som helst Dexterity-færdighedstjek (Acrobatics, Sleight of Hand eller Stealth) efter kastet men før du kender resultatet.', price: '300 gp' },
+      { id: 'm5', name: 'Poisoned Arrows (bundt à 5)', qty: 2, type: 'Ammunition (Forgiftede pile)', rules: 'Brug: Hver pil opbruges ved brug. Ved træf: Målet foretager Con save DC 12. Fejl: 1d4 gift-skade og forgiftet frem til slutningen af målets næste tur. Succes: Halvt gift-skade, ingen tilstand. Krav: Færdighed med en bue der skyder pile.', price: '75 gp' },
+    ]
+  },
+  {
+    id: 'stonehill', name: 'Stonehill Inn', keeper: 'Tolbin', icon: '🍺',
+    items: [
+      { id: 'st1', name: 'Standard Rations (1 dag)', qty: 20, type: 'Rejsegear (Rationer)', rules: 'Rejseregel (Regionkort): Brug 1 ration pr. karakter for at bevæge sig 1 kortrude / felt under overland-rejse. Ingen ration = ingen bevægelse for den karakter på regionkortet (medmindre DM bestemmer andet).', price: '5 sp' },
+      { id: 'st2', name: 'Hearty Stew', qty: 10, type: 'Forbrugsgenstand (Mad)', rules: 'Brug: Skal spises på Stonehill Inn. Effekt: Få 1d8 midlertidig HP. Begrænsning: Stakker ikke.', price: '5 gp' },
+    ]
+  },
+  {
+    id: 'lionshield', name: 'Lionshield Coster', keeper: 'Linene Graywind', icon: '⚔️',
+    items: [
+      { id: 'l1', name: '+1 Shield', qty: 1, type: 'Rustning (Skjold; +2 AC)', rules: 'Krav: Færdighed med skjolde. Effekt: Magisk +1 AC (i alt +3 AC fra dette skjold).', price: '900 gp' },
+      { id: 'l2', name: 'Phandalin Ward-Shield', qty: 1, type: 'Rustning (Skjold; +2 AC)', rules: 'Krav: Færdighed med skjolde. Effekt: 1/Long Rest (Reaktion): giv +2 AC mod ét angreb til dig eller en allieret inden for 5 ft.', price: '800 gp' },
+      { id: 'l3', name: 'Blessed Mace', qty: 1, type: 'Våben (Kølle; 1d6 bludgeoning)', rules: 'Krav: Færdighed med simple våben. Effekt: Ved træf mod udøde: +1d4 strålende skade.', price: '250 gp' },
+      { id: 'l4', name: 'Helm of the Lion', qty: 1, type: 'Vidunderligt (Hjelm)', rules: 'Krav: Fighter eller Paladin (eller DM-godkendt martial). Effekt: Fordel på redningskast mod forskrækket. 1/Long Rest (Bonushandling): få 1d8 midlertidig HP.', price: '600 gp' },
+      { id: 'l5', name: '+1 Longsword', qty: 1, type: 'Våben (Longsword; versatile; 1d8/1d10 slashing)', rules: 'Krav: Færdighed med martial våben (eller longsword). Effekt: Magisk +1 til angreb og +1 til skade.', price: '1.000 gp' },
+    ]
+  },
+  {
+    id: 'gnomengarde', name: 'Gnomengarde', keeper: "Gizmo's Trade-Bench", icon: '⚙️',
+    items: [
+      { id: 'g1', name: 'Smoke Capsule', qty: 3, type: 'Forbrugsgenstand (Gadget)', rules: 'Brug: Action. Effekt: Skaber en 10 ft røgsky i 10 runder (DM afgør sigtbarhed).', price: '5 gp' },
+      { id: 'g2', name: 'Mechanical Scope', qty: 2, type: 'Vidunderligt (Våbenvedhæftning)', rules: 'Montering: 10 runder uden for kamp. Hæftes på et afstandsvåben. Effekt: Når du rammer med et afstandsangreb og d20-resultatet er 18–20, gør +1d4 ekstra skade (samme type som våbnet).', price: '400 gp' },
+      { id: 'g3', name: 'Arcano-Mechanical Demo Key', qty: 1, type: 'Vidunderligt (Gadget; Nøgle)', rules: 'Brug: Action — åbner enhver dør/lås. Krav: To personer: én med færdighed i Arcana, én med færdighed i Sleight of Hand. Begge foretager tjek DC 10. Ved fejl: Nøglen eksploderer, men døren åbner stadig. Eksplosion: Skabninger inden for 5 ft foretager Dex save DC 10 eller tager 1d6 ild-skade (halvt ved succes).', price: '250 gp' },
+      { id: 'g4', name: 'Infused Grease Bomb', qty: 8, type: 'Forbrugsgenstand (Gadget)', rules: 'Brug: Action, kast (30/60 ft). Effekt: Skaber Grease i et 10 ft kvadrat i 10 runder — svært terræn; når en skabning bevæger sig ind i eller starter sin tur dér, Dex save DC 10 eller faldt bagover. Valgfri antændelse: Hvis området rammes af ild, foretager skabninger Dex save DC 10 eller tager 1d4 ild (halvt ved succes) og fedtet forsvinder.', price: '10 gp' },
+      { id: 'g5', name: 'Clockwork Wildspark Capsule', qty: 5, type: 'Forbrugsgenstand (Gadget; Wild Magic)', rules: 'Brug: Bonushandling. Effekt: Slå 1d6: (1) +10 ft hastighed i 10 runder (2) 1d4 temp HP pr. niveau (min 3) (3) næste angreb +1d4 skade (4) teleportér op til 30 ft (5) kast lys 20 ft i 10 runder + ulempe på næste Stealth-tjek (6) 5 ft mini-tåge om dig i 1 runde.', price: '25 gp' },
+      { id: 'g6', name: 'Repeating Fire-Enhancer', qty: 2, type: 'Vidunderligt (Våbenvedhæftning)', rules: 'Montering: 10 runder uden for kamp. Hæftes på et afstandsvåben. Krav: Færdighed med det pågældende våben. Effekt: Magisk +1 til angreb med det våben og +1 ild-skade ved træf.', price: '350 gp' },
+    ]
+  }
+];
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let shops = [];
+let activeShopId = null;
+let editState = null; // { shopId, itemId, isNew }
+let toastTimer = null;
+
+function loadData() {
+  try {
+    const stored = localStorage.getItem(KEY);
+    shops = stored ? JSON.parse(stored) : deepCopy(DEFAULT_SHOPS);
+  } catch {
+    shops = deepCopy(DEFAULT_SHOPS);
+  }
+}
+
+function saveData() {
+  localStorage.setItem(KEY, JSON.stringify(shops));
+}
+
+function deepCopy(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+// ── Toast ──────────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.animation = 'none';
+  void el.offsetHeight;
+  el.style.animation = 'fadeIn .2s ease';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.display = 'none'; }, 1800);
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function render() {
+  renderShopGrid();
+  renderShopDetail();
+}
+
+function renderShopGrid() {
+  const grid = document.getElementById('shop-grid');
+  grid.innerHTML = shops.map(shop => {
+    const soldOut = shop.items.filter(i => i.qty === 0).length;
+    const isActive = shop.id === activeShopId;
+    return `
+      <div class="shop-card ${isActive ? 'active' : ''}" onclick="toggleShop('${shop.id}')">
+        <div class="shop-icon">${shop.icon}</div>
+        <div class="shop-name">${shop.name}</div>
+        <div class="shop-keeper">${shop.keeper}</div>
+        <div class="shop-meta">
+          <span class="meta-badge meta-count">${shop.items.length} varer</span>
+          ${soldOut > 0 ? `<span class="meta-badge meta-sold">${soldOut} udsolgt</span>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderShopDetail() {
+  const detail = document.getElementById('shop-detail');
+  if (!activeShopId) { detail.className = ''; detail.innerHTML = ''; return; }
+  const shop = shops.find(s => s.id === activeShopId);
+  if (!shop) { detail.className = ''; detail.innerHTML = ''; return; }
+
+  const inStock = shop.items.filter(i => i.qty > 0).length;
+
+  detail.className = 'open';
+  detail.innerHTML = `
+    <div class="scroll-panel">
+      <div class="panel-title">
+        ${shop.icon}&nbsp;${shop.name}
+        <span class="panel-title-keeper">— ${shop.keeper}</span>
+        <div class="panel-title-line"></div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Genstand</th>
+            <th style="width:85px;text-align:center">Antal</th>
+            <th style="width:130px">Type</th>
+            <th style="width:90px;text-align:right">Pris</th>
+            <th style="width:110px;text-align:center">Handling</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${shop.items.map(item => `
+            <tr class="${item.qty === 0 ? 'sold-out' : ''}">
+              <td>
+                <div class="item-name">${item.name}</div>
+                ${item.rules ? `<div class="item-rules">${item.rules}</div>` : ''}
+              </td>
+              <td style="text-align:center">
+                <span class="qty-badge ${item.qty === 0 ? 'qty-sold' : item.qty <= 2 ? 'qty-low' : 'qty-ok'}">
+                  ${item.qty === 0 ? 'Udsolgt' : '&times;' + item.qty}
+                </span>
+              </td>
+              <td class="item-type">${item.type}</td>
+              <td class="item-price">${item.price}</td>
+              <td style="text-align:center">
+                <div class="action-row">
+                  <button class="btn-icon btn-sell" onclick="sellItem('${shop.id}','${item.id}')" ${item.qty === 0 ? 'disabled' : ''} title="Solgt (−1)">−</button>
+                  <button class="btn-icon btn-add" onclick="restockItem('${shop.id}','${item.id}')" title="Genopfyld (+1)">+</button>
+                  <button class="btn-icon btn-edit" onclick="openEdit('${shop.id}','${item.id}')" title="Rediger">✎</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="bottom-bar">
+        <button class="btn-ghost" onclick="openAdd('${shop.id}')">+ Tilføj vare</button>
+        <span class="stock-label">${inStock}/${shop.items.length} varer på lager</span>
+      </div>
+    </div>`;
+}
+
+// ── Actions ────────────────────────────────────────────────────────────────────
+function toggleShop(id) {
+  activeShopId = activeShopId === id ? null : id;
+  render();
+}
+
+function sellItem(shopId, itemId) {
+  const shop = shops.find(s => s.id === shopId);
+  const item = shop.items.find(i => i.id === itemId);
+  if (item.qty > 0) { item.qty--; saveData(); render(); toast('Solgt −1'); }
+}
+
+function restockItem(shopId, itemId) {
+  const shop = shops.find(s => s.id === shopId);
+  const item = shop.items.find(i => i.id === itemId);
+  item.qty++;
+  saveData(); render(); toast('Genopfyldt +1');
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────────
+function openEdit(shopId, itemId) {
+  const shop = shops.find(s => s.id === shopId);
+  const item = shop.items.find(i => i.id === itemId);
+  editState = { shopId, itemId, isNew: false };
+  document.getElementById('modal-title').textContent = 'Rediger vare';
+  document.getElementById('f-name').value = item.name;
+  document.getElementById('f-qty').value = item.qty;
+  document.getElementById('f-price').value = item.price;
+  document.getElementById('f-type').value = item.type;
+  document.getElementById('f-rules').value = item.rules || '';
+  document.getElementById('btn-delete').style.display = 'inline-block';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function openAdd(shopId) {
+  editState = { shopId, itemId: null, isNew: true };
+  document.getElementById('modal-title').textContent = 'Tilføj ny vare';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-qty').value = '1';
+  document.getElementById('f-price').value = '';
+  document.getElementById('f-type').value = '';
+  document.getElementById('f-rules').value = '';
+  document.getElementById('btn-delete').style.display = 'none';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editState = null;
+}
+
+function saveItem() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) return;
+  const shop = shops.find(s => s.id === editState.shopId);
+  if (editState.isNew) {
+    shop.items.push({
+      id: 'c_' + Date.now(),
+      name,
+      qty: parseInt(document.getElementById('f-qty').value) || 1,
+      price: document.getElementById('f-price').value.trim(),
+      type: document.getElementById('f-type').value.trim(),
+      rules: document.getElementById('f-rules').value.trim(),
+    });
+    toast('Vare tilføjet');
+  } else {
+    const item = shop.items.find(i => i.id === editState.itemId);
+    item.name  = name;
+    item.qty   = parseInt(document.getElementById('f-qty').value) || 0;
+    item.price = document.getElementById('f-price').value.trim();
+    item.type  = document.getElementById('f-type').value.trim();
+    item.rules = document.getElementById('f-rules').value.trim();
+    toast('Ændringer gemt');
+  }
+  saveData(); closeModal(); render();
+}
+
+function deleteItem() {
+  const shop = shops.find(s => s.id === editState.shopId);
+  shop.items = shop.items.filter(i => i.id !== editState.itemId);
+  saveData(); closeModal(); render(); toast('Vare slettet');
+}
+
+// ── Export til spillerportal ──────────────────────────────────────────────────
+function exportForPortal() {
+  const blob = new Blob([JSON.stringify(shops, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'shops.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('shops.json eksporteret — send den til Claude for at opdatere spillerportalen');
+}
+document.getElementById('btn-export-portal').addEventListener('click', exportForPortal);
+
+// Close modal on overlay click
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+loadData();
+render();
+</script>
+</body>
+</html>

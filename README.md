@@ -15,6 +15,10 @@ sessionsdata ligger her, medmindre du bevidst lægger en backup-eksport i `backu
 - `lobby/index.html` — opstarts-skærmen (Ken Burns-slideshow med quest-info og nedtælling), åbnes
   via "🕯 Opstarts-skærm"-knappen i builderens topbar. Tilgås direkte på
   `https://amazingraven.github.io/DnD-DM-Portal/lobby/`.
+- `shops/index.html` — fuld inventory-styring for butikkerne (køb/salg/redigering/tilføj/slet).
+  **Kun til dig** — data ligger i browserens localStorage, synkroniserer ikke automatisk med
+  spillerportalen. Brug "⬇ Eksportér til spillerportal"-knappen og send filen til Claude for at
+  opdatere den read-only `shops.json` i `DnD-Portal`, som spillerne ser.
 
 ## Vigtigt
 
