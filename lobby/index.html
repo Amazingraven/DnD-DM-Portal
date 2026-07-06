@@ -381,6 +381,14 @@ body::before {
         <label>Nedtælling (minutter)</label>
         <input type="number" id="set-countdown" value="5" min="0" max="120">
       </div>
+      <div class="field">
+        <label>Nedtællingstekst (før uret)</label>
+        <input type="text" id="set-cd-label" value="Starter om">
+      </div>
+      <div class="field">
+        <label>Tekst ved 00:00</label>
+        <input type="text" id="set-cd-done" value="Nu begynder vi">
+      </div>
       <div class="field inline">
         <input type="checkbox" id="set-cd-on" checked>
         <label for="set-cd-on">Vis nedtælling</label>
@@ -480,6 +488,8 @@ function loadSettings() {
     if (s.interval !== undefined) document.getElementById('set-interval').value = s.interval;
     if (s.quality !== undefined) document.getElementById('set-quality').value = s.quality;
     if (s.countdown !== undefined) document.getElementById('set-countdown').value = s.countdown;
+    if (s.cdLabel !== undefined) document.getElementById('set-cd-label').value = s.cdLabel;
+    if (s.cdDone !== undefined) document.getElementById('set-cd-done').value = s.cdDone;
     if (s.cdOn !== undefined) document.getElementById('set-cd-on').checked = s.cdOn;
   } catch(e) {}
 }
@@ -490,11 +500,13 @@ function saveSettings() {
     interval: document.getElementById('set-interval').value,
     quality: document.getElementById('set-quality').value,
     countdown: document.getElementById('set-countdown').value,
+    cdLabel: document.getElementById('set-cd-label').value,
+    cdDone: document.getElementById('set-cd-done').value,
     cdOn: document.getElementById('set-cd-on').checked
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
 }
-['set-kicker','set-heading','set-interval','set-quality','set-countdown','set-cd-on'].forEach(id => {
+['set-kicker','set-heading','set-interval','set-quality','set-countdown','set-cd-label','set-cd-done','set-cd-on'].forEach(id => {
   document.getElementById(id).addEventListener('change', saveSettings);
 });
 
@@ -730,12 +742,13 @@ function manualNav(dir) {
 function updateCountdown() {
   const el = document.getElementById('p-countdown');
   if (cdRemaining <= 0) {
-    el.textContent = 'Nu begynder vi';
+    el.textContent = document.getElementById('set-cd-done').value || 'Nu begynder vi';
     el.classList.add('done');
     return;
   }
   const m = Math.floor(cdRemaining/60), s = cdRemaining%60;
-  el.textContent = `Starter om ${m}:${String(s).padStart(2,'0')}`;
+  const label = document.getElementById('set-cd-label').value || 'Starter om';
+  el.textContent = `${label} ${m}:${String(s).padStart(2,'0')}`;
 }
 function tickCountdown() {
   if (paused) return;
