@@ -19,6 +19,11 @@ sessionsdata ligger her, medmindre du bevidst lægger en backup-eksport i `backu
   **Kun til dig** — data ligger i browserens localStorage, synkroniserer ikke automatisk med
   spillerportalen. Brug "⬇ Eksportér til spillerportal"-knappen og send filen til Claude for at
   opdatere den read-only `shops.json` i `DnD-Portal`, som spillerne ser.
+- `content/index.html` — Portal Content Manager: form-baseret editor til NPC'er, items, podcasts
+  og session-logs (de fire andre datafiler i `DnD-Portal/data/`). Faner for hver type, "+ Tilføj",
+  redigér/slet pr. post. **"🔄 Hent nyeste fra portal"** henter det, der allerede ligger live, ind i
+  editoren, så du ikke starter forfra. **"⬇ Eksportér JSON"** downloader den redigerede fil —
+  send den til Claude, som pusher den til `DnD-Portal`.
 
 ## Vigtigt
 
