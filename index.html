@@ -950,12 +950,24 @@ async function openPresent(){
     <script>
     window.__effects=true; window.__cur=0;
     function __kids(){ return Array.prototype.slice.call(document.querySelectorAll('#player-root .pblock')); }
+    function __ensurePages(){
+      // If data-page attrs are missing (older cached render), derive pages from divider blocks.
+      var ch=__kids(); if(!ch.length) return;
+      var hasPages = ch.some(function(el){ return el.getAttribute('data-page')!==null; });
+      if(hasPages) return;
+      var pg=0;
+      for(var i=0;i<ch.length;i++){
+        ch[i].setAttribute('data-page', String(pg));
+        if((ch[i].className||'').indexOf('divider')>-1 || ch[i].querySelector('.divider')) pg++;
+      }
+    }
     function __maxPage(){
       var ch=__kids(), m=0;
       for(var i=0;i<ch.length;i++){ var p=parseInt(ch[i].getAttribute('data-page')||'0',10); if(p>m) m=p; }
       return m;
     }
     window.__showPage=function(idx, animate){
+      __ensurePages();
       var ch=__kids(); if(!ch.length) return;
       var max=__maxPage();
       idx = Math.max(0, Math.min(max, idx));
@@ -979,8 +991,8 @@ async function openPresent(){
       window.__cur=idx;
       try{ window.scrollTo(0,0); }catch(e){}
     };
-    window.__applyPages=function(){ window.__showPage(window.__cur, false); };
-    window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
+    window.__applyPages=function(){ window.__showPage(window.__cur||0, false); };
+    window.__step=function(dir){ window.__showPage((window.__cur||0)+dir, true); };
     window.__hpSafeEval=function(expr){
       if(!/^[\d+\-*/(). ]+$/.test(expr)) return NaN;
       try{
@@ -1031,7 +1043,10 @@ function pushToPresent(){
   const html = renderPlayerHTML(current());
   presentRoot.innerHTML = html || `<div class="present-empty">Venter på indhold…</div>`;
   try{ applyTheme(themeOf(), presentWin.document.documentElement); }catch(e){}
-  try{ presentWin.__effects = !!state.effects; if(presentWin.__applyPages) presentWin.__applyPages(); }catch(e){}
+  const applyNow = ()=>{ try{ presentWin.__effects = !!state.effects; if(presentWin.__applyPages) presentWin.__applyPages(); }catch(e){} };
+  applyNow();
+  // Timing-safe: re-apply after the browser has laid out the freshly injected DOM.
+  try{ presentWin.requestAnimationFrame ? presentWin.requestAnimationFrame(applyNow) : setTimeout(applyNow, 30); }catch(e){ setTimeout(applyNow, 30); }
 }
 document.getElementById('btnPresent').onclick = openPresent;
 document.getElementById('btnPickScreen').onclick = pickPresentScreen;
