@@ -949,7 +949,7 @@ async function openPresent(){
     <button class="fs-btn" id="fsBtn">⛶ Fuldskærm</button>
     <script>
     window.__effects=true; window.__cur=0;
-    function __kids(){ var r=document.getElementById('player-root'); return r?Array.prototype.slice.call(r.children):[]; }
+    function __kids(){ return Array.prototype.slice.call(document.querySelectorAll('#player-root .pblock')); }
     function __maxPage(){
       var ch=__kids(), m=0;
       for(var i=0;i<ch.length;i++){ var p=parseInt(ch[i].getAttribute('data-page')||'0',10); if(p>m) m=p; }
