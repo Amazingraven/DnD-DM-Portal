@@ -178,6 +178,7 @@ body {
     <button class="btn" id="btnPrev" title="Forrige scene (←)">◀</button>
     <button class="btn" id="btnNext" title="Næste scene (→ / mellemrum)">Næste ▶</button>
     <button class="btn primary" id="btnPresent">▶ Fremvis til TV</button>
+    <button class="btn" id="btnPickScreen" title="Vælg hvilken skærm fremvisningen skal åbne på">🖥 Vælg skærm</button>
     <a class="btn" id="btnLobby" href="lobby/" target="_blank" title="Åbn opstarts-skærm i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">🕯 Opstarts-skærm</a>
     <a class="btn" id="btnShops" href="shops/" target="_blank" title="Åbn butiks-/inventory-styring i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">🏪 Butikker</a>
     <a class="btn" id="btnContent" href="content/" target="_blank" title="Åbn portal content manager i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">📜 Portal-indhold</a>
@@ -895,8 +896,47 @@ document.getElementById('btnLibrary').onclick = ()=>{
 /* ============================================================
    PRESENT (dual-view) — TV window via about:blank child
    ============================================================ */
-function openPresent(){
-  presentWin = window.open('', 'icespire_present', 'width=1280,height=720');
+let __cachedScreenDetails = null;
+async function getScreenList(){
+  if(!('getScreenDetails' in window)) return null;
+  try{
+    __cachedScreenDetails = __cachedScreenDetails || await window.getScreenDetails();
+    return __cachedScreenDetails;
+  }catch(e){ return null; } // permission denied or dismissed
+}
+async function pickPresentScreen(){
+  const details = await getScreenList();
+  if(!details){
+    alert('Automatisk skærmvalg kræver Chrome eller Edge, samt din tilladelse. Du kan stadig trække fremvisningsvinduet manuelt over på den rigtige skærm.');
+    return;
+  }
+  const screens = details.screens;
+  if(screens.length<=1){ alert('Der er kun fundet én skærm.'); return; }
+  const lines = screens.map((s,i)=>`${i}: ${s.width}×${s.height}`+
+    (s===details.currentScreen?' — denne skærm (builderen kører her)':'')+
+    (s.isPrimary?' — primær':'')).join('\n');
+  const def = String(screens.findIndex(s=>s!==details.currentScreen) >= 0 ? screens.findIndex(s=>s!==details.currentScreen) : 0);
+  const choice = prompt('Hvilken skærm skal "Fremvis til TV" åbne på?\n\n'+lines, def);
+  if(choice===null) return;
+  const idx = parseInt(choice,10);
+  if(isNaN(idx) || !screens[idx]){ alert('Ugyldigt valg.'); return; }
+  state.presentScreenIdx = idx;
+  save();
+  alert('Gemt. Fremvisningen åbner nu automatisk på skærm '+idx+'.');
+}
+async function openPresent(){
+  let features = 'width=1280,height=720';
+  let willFullscreen = false;
+  const details = await getScreenList();
+  if(details){
+    let target = (typeof state.presentScreenIdx==='number') ? details.screens[state.presentScreenIdx] : null;
+    if(!target) target = details.screens.find(s=>s!==details.currentScreen) || details.currentScreen;
+    if(target){
+      features = `left=${target.availLeft},top=${target.availTop},width=${target.availWidth},height=${target.availHeight}`;
+      willFullscreen = true;
+    }
+  }
+  presentWin = window.open('', 'icespire_present', features);
   if(!presentWin){ alert('Pop op blev blokeret. Tillad pop op-vinduer for denne side og prøv igen.'); return; }
   const doc = presentWin.document;
   doc.open();
@@ -981,6 +1021,9 @@ function openPresent(){
   applyTheme(themeOf(), doc.documentElement);
   const fsBtn = doc.getElementById('fsBtn');
   fsBtn.addEventListener('click', ()=>{ try{ doc.documentElement.requestFullscreen(); }catch(e){} });
+  if(willFullscreen){
+    try{ presentWin.focus(); doc.documentElement.requestFullscreen().catch(()=>{}); }catch(e){}
+  }
   pushToPresent();
 }
 function pushToPresent(){
@@ -991,6 +1034,7 @@ function pushToPresent(){
   try{ presentWin.__effects = !!state.effects; if(presentWin.__applyPages) presentWin.__applyPages(); }catch(e){}
 }
 document.getElementById('btnPresent').onclick = openPresent;
+document.getElementById('btnPickScreen').onclick = pickPresentScreen;
 document.getElementById('btnNext').onclick = ()=>{ if(presentWin && !presentWin.closed) presentWin.__step(1); };
 document.getElementById('btnPrev').onclick = ()=>{ if(presentWin && !presentWin.closed) presentWin.__step(-1); };
 document.getElementById('chkEffects').addEventListener('change', e=>{ state.effects = e.target.checked; save(); renderCanvas(); pushToPresent(); });
@@ -1044,7 +1088,48 @@ document.getElementById('fileImport').addEventListener('change', e=>{
 document.getElementById('btnExportHtml').onclick = ()=>{
   const s=current();
   const body = `<div class="page-wrap">${renderPageBlocks(s,true)}</div>`;
-  const revealScript = `<script>(function(){var els=document.querySelectorAll('.pblock');if(!('IntersectionObserver'in window)){els.forEach(function(el){el.classList.add('visible');});return;}var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}});},{threshold:0.12});els.forEach(function(el){el.classList.add('reveal');io.observe(el);});})();<\/script>`;
+  const navButtons = `<div class="export-nav">
+    <button class="fs-btn" id="prevBtn">◀ Forrige</button>
+    <button class="fs-btn" id="nextBtn">Næste ▶</button>
+    <button class="fs-btn" id="fsBtn">⛶ Fuldskærm</button>
+  </div>`;
+  const deckScript = `<script>
+    window.__effects=${state.effects?'true':'false'}; window.__cur=0;
+    function __kids(){ var r=document.querySelector('.page-wrap'); return r?Array.prototype.slice.call(r.children):[]; }
+    function __maxPage(){
+      var ch=__kids(), m=0;
+      for(var i=0;i<ch.length;i++){ var p=parseInt(ch[i].getAttribute('data-page')||'0',10); if(p>m) m=p; }
+      return m;
+    }
+    window.__showPage=function(idx, animate){
+      var ch=__kids(); if(!ch.length) return;
+      var max=__maxPage();
+      idx = Math.max(0, Math.min(max, idx));
+      for(var i=0;i<ch.length;i++){
+        var el=ch[i];
+        var p=parseInt(el.getAttribute('data-page')||'0',10);
+        el.classList.remove('enter-fade','enter-slide');
+        if(p===idx){
+          el.style.display='';
+          if(animate && window.__effects){
+            var trans = el.getAttribute('data-transition')||'fade';
+            if(trans!=='instant'){ void el.offsetWidth; el.classList.add('enter-'+trans); }
+          }
+        } else { el.style.display='none'; }
+      }
+      window.__cur=idx;
+      try{ window.scrollTo(0,0); }catch(e){}
+    };
+    window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
+    window.__showPage(0, false);
+    document.getElementById('nextBtn').addEventListener('click', function(){ window.__step(1); });
+    document.getElementById('prevBtn').addEventListener('click', function(){ window.__step(-1); });
+    document.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight' || e.key===' '){ e.preventDefault(); window.__step(1); }
+      else if(e.key==='ArrowLeft'){ e.preventDefault(); window.__step(-1); }
+    });
+    document.getElementById('fsBtn').addEventListener('click', function(){ try{ document.documentElement.requestFullscreen(); }catch(e){} });
+  <\/script>`;
   const hpScript = `<script>
     window.__hpSafeEval=function(expr){
       if(!/^[\\d+\\-*/(). ]+$/.test(expr)) return NaN;
@@ -1080,13 +1165,15 @@ document.getElementById('btnExportHtml').onclick = ()=>{
       window.__hpUpdateBar(rid, max, result);
     };
   <\/script>`;
+  const navCSS = `<style>.export-nav{ position:fixed; bottom:14px; right:14px; z-index:99; display:flex; gap:.5rem; } .export-nav .fs-btn{ position:static; }</style>`;
   const full = `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(s.name||'Session')}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>${SHARED_CSS}</style>
-<style>${themeVarsCSS(themeOf())}</style></head>
-<body class="present-body">${body}${hpScript}${state.effects?revealScript:''}</body></html>`;
+<style>${themeVarsCSS(themeOf())}</style>
+${navCSS}</head>
+<body class="present-body">${body}${navButtons}${hpScript}${deckScript}</body></html>`;
   download((s.name||'session').replace(/[^a-z0-9æøå_-]+/gi,'_').toLowerCase()+'.html', full, 'text/html');
 };
 
