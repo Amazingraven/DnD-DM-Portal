@@ -608,11 +608,11 @@ window.__hpUpdateBar = function(rid, max, val){
   const input = document.getElementById('hp-'+rid);
   const bar = document.getElementById('bar-'+rid);
   if(!input || !bar) return;
-  val = Math.max(0, Math.min(max, Math.round(val)));
+  val = Math.max(0, Math.round(val));
   input.value = val;
   input.dataset.baseline = val;
   const pct = (val/max)*100;
-  bar.style.width = pct+'%';
+  bar.style.width = Math.min(100, pct)+'%';
   bar.className = 'hp-bar ' + (pct>50?'healthy':(pct>25?'bloodied':'critical'));
 };
 window.__hpChange = function(rid, max, delta){
@@ -951,11 +951,11 @@ function openPresent(){
     window.__hpUpdateBar=function(rid, max, val){
       var input=document.getElementById('hp-'+rid), bar=document.getElementById('bar-'+rid);
       if(!input||!bar) return;
-      val=Math.max(0, Math.min(max, Math.round(val)));
+      val=Math.max(0, Math.round(val));
       input.value=val;
       input.dataset.baseline=val;
       var pct=(val/max)*100;
-      bar.style.width=pct+'%';
+      bar.style.width=Math.min(100,pct)+'%';
       bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
     };
     window.__hpChange=function(rid, max, delta){
@@ -1056,11 +1056,11 @@ document.getElementById('btnExportHtml').onclick = ()=>{
     window.__hpUpdateBar=function(rid, max, val){
       var input=document.getElementById('hp-'+rid), bar=document.getElementById('bar-'+rid);
       if(!input||!bar) return;
-      val=Math.max(0, Math.min(max, Math.round(val)));
+      val=Math.max(0, Math.round(val));
       input.value=val;
       input.dataset.baseline=val;
       var pct=(val/max)*100;
-      bar.style.width=pct+'%';
+      bar.style.width=Math.min(100,pct)+'%';
       bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
     };
     window.__hpChange=function(rid, max, delta){
