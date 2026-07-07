@@ -947,96 +947,87 @@ async function openPresent(){
     <style>${SHARED_CSS}</style></head>
     <body class="present-body"><div id="player-root"></div>
     <button class="fs-btn" id="fsBtn">⛶ Fuldskærm</button>
-    <script>
-    window.__effects=true; window.__cur=0;
-    function __kids(){ return Array.prototype.slice.call(document.querySelectorAll('#player-root .pblock')); }
-    function __ensurePages(){
-      // If data-page attrs are missing (older cached render), derive pages from divider blocks.
-      var ch=__kids(); if(!ch.length) return;
-      var hasPages = ch.some(function(el){ return el.getAttribute('data-page')!==null; });
-      if(hasPages) return;
-      var pg=0;
-      for(var i=0;i<ch.length;i++){
-        ch[i].setAttribute('data-page', String(pg));
-        if((ch[i].className||'').indexOf('divider')>-1 || ch[i].querySelector('.divider')) pg++;
-      }
-    }
-    function __maxPage(){
-      var ch=__kids(), m=0;
-      for(var i=0;i<ch.length;i++){ var p=parseInt(ch[i].getAttribute('data-page')||'0',10); if(p>m) m=p; }
-      return m;
-    }
-    window.__showPage=function(idx, animate){
-      __ensurePages();
-      var ch=__kids(); if(!ch.length) return;
-      var max=__maxPage();
-      idx = Math.max(0, Math.min(max, idx));
-      for(var i=0;i<ch.length;i++){
-        var el=ch[i];
-        var p=parseInt(el.getAttribute('data-page')||'0',10);
-        el.classList.remove('enter-fade','enter-slide');
-        if(p===idx){
-          el.style.display='';
-          if(animate && window.__effects){
-            var trans = el.getAttribute('data-transition')||'fade';
-            if(trans!=='instant'){
-              void el.offsetWidth;
-              el.classList.add('enter-'+trans);
-            }
-          }
-        } else {
-          el.style.display='none';
-        }
-      }
-      window.__cur=idx;
-      try{ window.scrollTo(0,0); }catch(e){}
-    };
-    window.__applyPages=function(){ window.__showPage(window.__cur||0, false); };
-    window.__step=function(dir){ window.__showPage((window.__cur||0)+dir, true); };
-    window.__hpSafeEval=function(expr){
-      if(!/^[\d+\-*/(). ]+$/.test(expr)) return NaN;
-      try{
-        var val = Function('"use strict"; return (' + expr + ')')();
-        return (typeof val === 'number' && isFinite(val)) ? val : NaN;
-      }catch(e){ return NaN; }
-    };
-    window.__hpUpdateBar=function(rid, max, val){
-      var input=document.getElementById('hp-'+rid), bar=document.getElementById('bar-'+rid);
-      if(!input||!bar) return;
-      val=Math.max(0, Math.round(val));
-      input.value=val;
-      input.dataset.baseline=val;
-      var pct=(val/max)*100;
-      bar.style.width=Math.min(100,pct)+'%';
-      bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
-    };
-    window.__hpChange=function(rid, max, delta){
-      var input=document.getElementById('hp-'+rid); if(!input) return;
-      var baseline=parseFloat(input.dataset.baseline)||0;
-      window.__hpUpdateBar(rid, max, baseline+delta);
-    };
-    window.__hpSet=function(rid, max){
-      var input=document.getElementById('hp-'+rid); if(!input) return;
-      var raw=(input.value||'').trim();
-      var baseline=parseFloat(input.dataset.baseline)||0;
-      var result;
-      if(/^[+\-]/.test(raw)){ result=window.__hpSafeEval(baseline+raw); }
-      else if(/[+\-*/]/.test(raw)){ result=window.__hpSafeEval(raw); }
-      else { result=parseFloat(raw); }
-      if(isNaN(result)) result=baseline;
-      window.__hpUpdateBar(rid, max, result);
-    };
-    <\/script>
     </body></html>`);
   doc.close();
   presentRoot = doc.getElementById('player-root');
   applyTheme(themeOf(), doc.documentElement);
+  // Define the deck + HP functions directly on the popup window — no reliance on
+  // document.write executing an inline <script> (which browsers often skip after close()).
+  installPresentControls(presentWin, doc);
   const fsBtn = doc.getElementById('fsBtn');
   fsBtn.addEventListener('click', ()=>{ try{ doc.documentElement.requestFullscreen(); }catch(e){} });
   if(willFullscreen){
     try{ presentWin.focus(); doc.documentElement.requestFullscreen().catch(()=>{}); }catch(e){}
   }
   pushToPresent();
+}
+
+/* Installs paging + HP-tracker controls onto the present popup window.
+   Runs in the MAIN app context (guaranteed to execute), operating on the popup's document. */
+function installPresentControls(win, doc){
+  win.__effects = true;
+  win.__cur = 0;
+  function kids(){ return Array.prototype.slice.call(doc.querySelectorAll('#player-root .pblock')); }
+  function maxPage(){
+    var ch=kids(), m=0;
+    for(var i=0;i<ch.length;i++){ var p=parseInt(ch[i].getAttribute('data-page')||'0',10); if(p>m) m=p; }
+    return m;
+  }
+  win.__showPage = function(idx, animate){
+    var ch=kids(); if(!ch.length) return;
+    var max=maxPage();
+    idx = Math.max(0, Math.min(max, idx));
+    for(var i=0;i<ch.length;i++){
+      var el=ch[i];
+      var p=parseInt(el.getAttribute('data-page')||'0',10);
+      el.classList.remove('enter-fade','enter-slide');
+      if(p===idx){
+        el.style.display='';
+        if(animate && win.__effects){
+          var trans = el.getAttribute('data-transition')||'fade';
+          if(trans!=='instant'){ void el.offsetWidth; el.classList.add('enter-'+trans); }
+        }
+      } else {
+        el.style.display='none';
+      }
+    }
+    win.__cur=idx;
+    try{ win.scrollTo(0,0); }catch(e){}
+  };
+  win.__applyPages = function(){ win.__showPage(win.__cur||0, false); };
+  win.__step = function(dir){ win.__showPage((win.__cur||0)+dir, true); };
+  // HP tracker
+  win.__hpSafeEval = function(expr){
+    if(!/^[\d+\-*/(). ]+$/.test(expr)) return NaN;
+    try{ var v = Function('"use strict"; return (' + expr + ')')(); return (typeof v==='number'&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+  };
+  win.__hpUpdateBar = function(rid, max, val){
+    var input=doc.getElementById('hp-'+rid), bar=doc.getElementById('bar-'+rid);
+    if(!input||!bar) return;
+    val=Math.max(0, Math.round(val));
+    input.value=val; input.dataset.baseline=val;
+    var pct=(val/max)*100;
+    bar.style.width=Math.min(100,pct)+'%';
+    bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
+  };
+  win.__hpChange = function(rid, max, delta){
+    var input=doc.getElementById('hp-'+rid); if(!input) return;
+    win.__hpUpdateBar(rid, max, (parseFloat(input.dataset.baseline)||0)+delta);
+  };
+  win.__hpSet = function(rid, max){
+    var input=doc.getElementById('hp-'+rid); if(!input) return;
+    var raw=(input.value||'').trim(), baseline=parseFloat(input.dataset.baseline)||0, result;
+    if(/^[+\-]/.test(raw)){ result=win.__hpSafeEval(baseline+raw); }
+    else if(/[+\-*/]/.test(raw)){ result=win.__hpSafeEval(raw); }
+    else { result=parseFloat(raw); }
+    if(isNaN(result)) result=baseline;
+    win.__hpUpdateBar(rid, max, result);
+  };
+  // Keyboard nav inside the popup itself
+  doc.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); win.__step(1); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); win.__step(-1); }
+  });
 }
 function pushToPresent(){
   if(!presentWin || presentWin.closed || !presentRoot) return;
