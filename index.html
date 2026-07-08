@@ -271,6 +271,10 @@ const SHARED_CSS = `
 .stat-cell .stat-val{ font-weight:700; font-size:1.15rem; color:var(--ink); display:block; }
 .stat-cell .stat-mod{ font-size:.88rem; color:var(--ash); display:block; }
 .statblock .attack-name{ font-family:'Cinzel',serif; font-weight:600; font-size:.92rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
+.statblock .stat-block-section{ margin-top:.8rem; }
+.statblock .stat-block-section .stat-label,
+.statblock .stat-block-section .attack-name{ display:block; margin-bottom:.25rem; }
+.statblock .stat-body{ font-family:'IM Fell English',Georgia,serif; font-size:1.1rem; line-height:1.6; color:var(--ink); }
 .hp-tracker-section{ background:var(--parchment-mid); border:1px solid var(--gold); border-radius:4px; padding:1.3rem 1.5rem; margin:1.5rem 0; }
 .hp-tracker-title{ font-family:'Cinzel',serif; font-weight:600; font-size:1rem; color:var(--rust); text-transform:uppercase; letter-spacing:.1em; margin-bottom:1rem; text-align:center; }
 .hp-row{ display:flex; align-items:center; gap:1rem; margin-bottom:.8rem; flex-wrap:wrap; }
@@ -565,8 +569,8 @@ function renderBlockContent(block, includeDM){
         ${d.speed?`<div class="stat-line"><span class="stat-label">Speed:</span> ${esc(d.speed)}</div>`:''}
         ${d.cr?`<div class="stat-line"><span class="stat-label">CR:</span> ${esc(d.cr)}</div>`:''}
         <hr><div class="stat-grid">${abil}</div><hr>
-        ${(d.traits||'').trim()?`<div class="stat-line"><span class="stat-label">Traits:</span> ${escNL(d.traits)}</div>`:''}
-        ${(d.attacks||'').trim()?`<div class="stat-line"><span class="attack-name">Attacks:</span> ${escNL(d.attacks)}</div>`:''}
+        ${(d.traits||'').trim()?`<div class="stat-block-section"><div class="stat-label">Traits</div><div class="stat-body">${escNL(d.traits)}</div></div>`:''}
+        ${(d.attacks||'').trim()?`<div class="stat-block-section"><div class="attack-name">Attacks</div><div class="stat-body">${escNL(d.attacks)}</div></div>`:''}
       </div></div>`;
     }
     case 'hptracker': {
