@@ -513,6 +513,7 @@ function compressImage(file, maxDim, quality){
    includeDM=true  → DM view + export (collapsible notes)
    ============================================================ */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escNL(s){ return esc(s).replace(/\n/g, '<br>'); }
 function mod(score){ const m=Math.floor((Number(score)-10)/2); return (m>=0?'+':'−')+Math.abs(m); }
 function hpClass(pct){ return pct>50?'healthy':(pct>25?'bloodied':'critical'); }
 
@@ -564,8 +565,8 @@ function renderBlockContent(block, includeDM){
         ${d.speed?`<div class="stat-line"><span class="stat-label">Speed:</span> ${esc(d.speed)}</div>`:''}
         ${d.cr?`<div class="stat-line"><span class="stat-label">CR:</span> ${esc(d.cr)}</div>`:''}
         <hr><div class="stat-grid">${abil}</div><hr>
-        ${(d.traits||'').trim()?`<div class="stat-line"><span class="stat-label">Traits:</span> ${esc(d.traits)}</div>`:''}
-        ${(d.attacks||'').trim()?`<div class="stat-line"><span class="attack-name">Attacks:</span> ${esc(d.attacks)}</div>`:''}
+        ${(d.traits||'').trim()?`<div class="stat-line"><span class="stat-label">Traits:</span> ${escNL(d.traits)}</div>`:''}
+        ${(d.attacks||'').trim()?`<div class="stat-line"><span class="attack-name">Attacks:</span> ${escNL(d.attacks)}</div>`:''}
       </div></div>`;
     }
     case 'hptracker': {
