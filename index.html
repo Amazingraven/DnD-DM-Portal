@@ -189,6 +189,19 @@ body {
       <h3>Bibliotek</h3>
       <button class="btn" id="btnNew" style="width:100%; margin-bottom:0.7rem;">+ Ny session</button>
       <div id="libList"></div>
+      <div class="repo-sync" id="repoSync">
+        <h3 style="margin-top:1.2rem;">☁ Repo-sync</h3>
+        <div id="repoTokenArea">
+          <input type="password" id="ghTokenInput" placeholder="GitHub-token (kun DnD-DM-Portal)"
+            style="width:100%; margin-bottom:0.4rem; font-size:0.72rem; padding:0.4rem; border:1px solid var(--gold); border-radius:3px; background:var(--parchment-dark);">
+          <button class="btn" id="btnSaveToken" style="width:100%; margin-bottom:0.5rem;">Gem token</button>
+        </div>
+        <div id="repoActions" style="display:none;">
+          <button class="btn" id="btnRepoLoad" style="width:100%; margin-bottom:0.4rem;">📁 Hent fra repo</button>
+          <button class="btn primary" id="btnRepoPush" style="width:100%; margin-bottom:0.4rem;">☁ Gem session i repo</button>
+          <button class="btn" id="btnClearToken" style="width:100%; font-size:0.62rem; opacity:0.7;">Glem token</button>
+        </div>
+      </div>
     </aside>
     <div class="canvas-wrap">
       <div class="canvas" id="canvas"></div>
@@ -1080,6 +1093,120 @@ document.getElementById('btnExportJson').onclick = ()=>{
   download((s.name||'session').replace(/[^a-z0-9æøå_-]+/gi,'_').toLowerCase()+'.json',
     JSON.stringify(s,null,2), 'application/json');
 };
+/* ============================================================
+   REPO SYNC — two-way sync of sessions with the GitHub repo.
+   Token is stored in localStorage (origin: amazingraven.github.io).
+   Scope it to ONLY this repo, Contents: Read and write.
+   ============================================================ */
+const GH_OWNER='Amazingraven', GH_REPO='DnD-DM-Portal', GH_DIR='sessions';
+const GH_TOKEN_KEY='icespire-gh-token';
+
+function ghToken(){ return localStorage.getItem(GH_TOKEN_KEY)||''; }
+function ghHeaders(){ return { 'Authorization':'Bearer '+ghToken(), 'Accept':'application/vnd.github+json' }; }
+function slugify(s){ return (s||'session').toLowerCase().replace(/[^a-z0-9æøå]+/gi,'-').replace(/^-+|-+$/g,'')||'session'; }
+let _toastTimer=null;
+function toast(msg){
+  let el=document.getElementById('__toast');
+  if(!el){ el=document.createElement('div'); el.id='__toast';
+    el.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#8b2e0a;color:#f2e8c9;font-family:Cinzel,serif;font-size:.8rem;letter-spacing:.08em;padding:.6rem 1.2rem;border-radius:4px;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.5);';
+    document.body.appendChild(el);
+  }
+  el.textContent=msg; el.style.display='block';
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>{ el.style.display='none'; },2400);
+}
+function b64encode(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64decode(b64){ return decodeURIComponent(escape(atob(b64))); }
+
+async function ghGetFile(path){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?_=${Date.now()}`;
+  const res=await fetch(url,{headers:ghHeaders()});
+  if(res.status===404) return null;
+  if(!res.ok) throw new Error('GitHub-fejl '+res.status+' ved læsning af '+path);
+  const data=await res.json();
+  return { sha:data.sha, text:b64decode(data.content||'') };
+}
+async function ghPutFile(path, contentText, message, sha){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const body={ message, content:b64encode(contentText) };
+  if(sha) body.sha=sha;
+  const res=await fetch(url,{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+  if(!res.ok){ const t=await res.text(); throw new Error('GitHub-fejl '+res.status+': '+t.slice(0,140)); }
+  return res.json();
+}
+
+function reflectTokenState(){
+  const has=!!ghToken();
+  document.getElementById('repoTokenArea').style.display = has?'none':'block';
+  document.getElementById('repoActions').style.display = has?'block':'none';
+}
+
+async function repoPushCurrent(){
+  const s=current(); if(!s){ alert('Ingen session valgt.'); return; }
+  if(!ghToken()){ alert('Gem en token først.'); return; }
+  const btn=document.getElementById('btnRepoPush'); const old=btn.textContent; btn.textContent='Gemmer…'; btn.disabled=true;
+  try{
+    const slug=slugify(s.name);
+    const path=`${GH_DIR}/${slug}.json`;
+    // strip volatile runtime id so the file is stable; keep everything else
+    const payload={ name:s.name, theme:s.theme, blocks:s.blocks };
+    const existing=await ghGetFile(path);
+    await ghPutFile(path, JSON.stringify(payload,null,2),
+      (existing?'Opdater':'Tilføj')+' session: '+s.name, existing?existing.sha:null);
+    // update index.json
+    let index=[], indexSha=null;
+    const idx=await ghGetFile(`${GH_DIR}/index.json`);
+    if(idx){ indexSha=idx.sha; try{ index=JSON.parse(idx.text); }catch(e){ index=[]; } }
+    const entry={ file:`${slug}.json`, name:s.name, updated:new Date().toISOString().slice(0,10) };
+    const at=index.findIndex(e=>e.file===entry.file);
+    if(at>=0) index[at]=entry; else index.push(entry);
+    index.sort((a,b)=>a.name.localeCompare(b.name,'da'));
+    await ghPutFile(`${GH_DIR}/index.json`, JSON.stringify(index,null,2), 'Opdater session-indeks', indexSha);
+    toast('Gemt i repo ✓');
+  }catch(err){ alert('Kunne ikke gemme i repo: '+err.message); }
+  finally{ btn.textContent=old; btn.disabled=false; }
+}
+
+async function repoLoadList(){
+  if(!ghToken()){ alert('Gem en token først.'); return; }
+  try{
+    const idx=await ghGetFile(`${GH_DIR}/index.json`);
+    const index = idx ? JSON.parse(idx.text) : [];
+    if(!index.length){ alert('Ingen sessioner i repoet endnu. Gem én først med "☁ Gem session i repo".'); return; }
+    const list=index.map((e,i)=>`${i+1}. ${e.name}`+(e.updated?'  ('+e.updated+')':'')).join('\n');
+    const choice=prompt('Hvilken session vil du hente ind?\n\n'+list+'\n\nSkriv nummeret:');
+    if(choice===null) return;
+    const n=parseInt(choice,10)-1;
+    if(isNaN(n)||!index[n]){ alert('Ugyldigt valg.'); return; }
+    const file=await ghGetFile(`${GH_DIR}/${index[n].file}`);
+    if(!file){ alert('Filen findes ikke længere i repoet.'); return; }
+    const obj=JSON.parse(file.text);
+    if(!obj.blocks) throw new Error('Ikke en gyldig sessionsfil');
+    // load as a new local session (existing local edits stay untouched)
+    const existing=state.sessions.find(x=>x.name===obj.name);
+    obj.id=uid();
+    if(existing && !confirm(`"${obj.name}" findes allerede lokalt. Hent repo-udgaven ind som en ekstra kopi?`)) return;
+    state.sessions.push(obj); state.currentId=obj.id;
+    editingBlock=null; saveNow(obj); renderLibrary(); renderCanvas(); pushToPresent();
+    toast('Hentet fra repo ✓');
+  }catch(err){ alert('Kunne ikke hente fra repo: '+err.message); }
+}
+
+document.getElementById('btnSaveToken').onclick=()=>{
+  const v=document.getElementById('ghTokenInput').value.trim();
+  if(!v){ alert('Indsæt en token først.'); return; }
+  localStorage.setItem(GH_TOKEN_KEY, v);
+  document.getElementById('ghTokenInput').value='';
+  reflectTokenState();
+  toast('Token gemt i denne browser');
+};
+document.getElementById('btnClearToken').onclick=()=>{
+  if(!confirm('Fjern den gemte token fra denne browser?')) return;
+  localStorage.removeItem(GH_TOKEN_KEY); reflectTokenState(); toast('Token fjernet');
+};
+document.getElementById('btnRepoPush').onclick=repoPushCurrent;
+document.getElementById('btnRepoLoad').onclick=repoLoadList;
+reflectTokenState();
+
 document.getElementById('btnImport').onclick = ()=> document.getElementById('fileImport').click();
 document.getElementById('fileImport').addEventListener('change', e=>{
   const file=e.target.files[0]; if(!file) return;
