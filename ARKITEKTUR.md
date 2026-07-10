@@ -24,6 +24,8 @@ Live: `https://amazingraven.github.io/DnD-DM-Portal/`
 | `backups/` | Manuelle bibliotekseksporter (valgfrit). |
 | `icespire_builder_workflow.md` | JSON-skema for sessioner (bloktyper, temaer). |
 | `dnd-session-projekt-prompt.md` | Designsystem + bespoke-HTML-fallback. |
+| `scripts/STIL.md` | **Stilguide** — tone, struktur og indhold for sessioner (læs før du skriver kladder). |
+| `reference/` | Faktiske eksempel-sessioner (fx bespoke Axeholm-dungeon) til stil-reference. |
 
 ### 2. `DnD-Portal` — offentlig spillerportal
 Live: `https://amazingraven.github.io/DnD-Portal/`
