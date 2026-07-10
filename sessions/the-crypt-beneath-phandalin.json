@@ -2,159 +2,449 @@
   "name": "The Crypt Beneath Phandalin",
   "theme": "crypt",
   "blocks": [
-    { "id": "b1", "type": "header", "data": {
-      "kicker": "DRAGONS OF ICESPIRE PEAK",
-      "title": "The Crypt Beneath Phandalin",
-      "mood": "To sjæle · én ed · én grav" } },
-
-    { "id": "b2", "type": "image", "data": { "imageData": "", "caption": "Nedgangen fra Halias ødelagte laboratorium — ældre end Phandalin selv" } },
-
-    { "id": "b3", "type": "narrative-dm", "data": {
-      "heading": "The Burned Descent",
-      "text": "Nedgangen begynder i resterne af Halias ødelagte laboratorium. Acid har ædt sig gennem sten og metal. Luften lugter stadig af brændt alkymi, sort drageblod og våd aske.\n\nEfter få meter ændrer arkitekturen sig. Halias jern, rør og runer forsvinder bag jer, og væggene bliver ældre. Elveriske sølvlinjer løber gennem stenen som årer. Nogle er skåret fri med værktøj. Halia har plyndret det, hun kunne — men hun kom aldrig helt ind.",
-      "skills": [
-        { "name": "INVESTIGATION", "desc": "Undersøg de opbrudte vægge" },
-        { "name": "ARCANA", "desc": "Læs runerne i stenen" },
-        { "name": "SURVIVAL", "desc": "Følg sporene dybere ned" }
-      ],
-      "dmNotes": "STED: Overgangen fra det kendte (Halias verden) til det skjulte (den ældre krypt). Halia har brudt sig ind i noget ældre, ikke bygget det.\n\nCHECKS:\nInvestigation DC 13: Halia har brudt sig ind i noget ældre, ikke bygget det.\nArcana DC 14: Runerne her er beskyttende, men gamle og svækkede.\nSurvival DC 13: Nharessyths blodspor fører dybere ned.\n\nTONE: Stedet skal føles gammelt, hemmeligt og ældre end Phandalin. Krypten antyder, at byen er bygget oven på ældre lag af historie." } },
-
-    { "id": "b4", "type": "divider", "data": { "icon": "◆", "transition": "fade" } },
-
-    { "id": "b5", "type": "image", "data": { "imageData": "", "caption": "Vejkrydset — en cirkel af hvid sten, slidt blank af kløer og tunge skridt" } },
-
-    { "id": "b6", "type": "narrative-dm", "data": {
-      "heading": "Cross Roads",
-      "text": "Et cirkulært vejkryds åbner sig i mørket. Fire korridorer løber ud i hver sin retning. Midt på gulvet er en cirkel af hvid sten, slidt blank af kløer og tunge skridt.\n\nI skyggen mellem to søjler ligger Nharessyth.\n\nHan er enorm, sortskællet og såret. Hans vinger hænger lavt. De steder, hvor Halias rør sad boret ind i ham, står stadig åbne. Han er fri, men ikke hel.",
-      "skills": [
-        { "name": "INSIGHT", "desc": "Læs dragens sindstilstand" },
-        { "name": "HISTORY", "desc": "Kender du navnet Aelrindel Vaeruth?" },
-        { "name": "PERSUASION", "desc": "Tal med dragen" }
-      ],
-      "dmNotes": "NHARESSYTH: Ikke venlig. Ikke ond. Gammel, stolt og fuld af skyld. Spil ham med tyngde og få pauser — han vælger sine ord.\n\nDIALOG (læs op efter behov):\n\"I skar lænkerne. Det gør jer ikke gode. Men det gør jer anderledes end hende.\"\n\"I søger dragejægeren. Alle søger ham forkert.\"\n\"Han var ikke min herre. Ikke helt. Han var min rytter. Min våbenbroder. Min dårskab.\"\n\"Aelrindel Vaeruth.\"\n\"Han er stadig derinde.\"\n\nINFORMATION spilleren kan få:\n• Aelrindel er fanget i sin sidste kamp.\n• Han vil angribe alt, der træder ind.\n• Nharessyth kan ikke selv skade ham.\n• Kommer Nharessyth for tæt på, kan det gamle rytterbånd tvinge ham ind i kampen.\n• Nharessyth ønsker ikke hævn. Han ønsker afslutning.\n\nCHECKS:\nInsight DC 14: Dragen skjuler skam, ikke forræderi.\nHistory DC 15: Aelrindel Vaeruth er et navn fra en meget gammel elverlegende.\nPersuasion DC 16: Få Nharessyth til at indrømme, at han stadig håber." } },
-
-    { "id": "b7", "type": "divider", "data": { "icon": "⚔", "transition": "slide" } },
-
-    { "id": "b8", "type": "image", "data": { "imageData": "", "caption": "Navnenes Hal — sølv, rav og sort sten, med store sektioner skåret bort" } },
-
-    { "id": "b9", "type": "narrative-dm", "data": {
-      "heading": "Hall of Names",
-      "text": "En lang, lavloftet hal. Begge vægge er dækket af navne indgraveret i sølv, rav og sort sten. Nogle er elvernavne. Andre er dragenavne, skrevet med større tegn.\n\nMen store sektioner er skåret ud af væggene. Nogen har fjernet de navne, der havde værdi.\n\nDa I træder ind, begynder de tilbageværende navne at lyse svagt. Stemmer hvisker på elvisk. Først sørgmodigt. Så vredt.",
-      "skills": [
-        { "name": "RELIGION", "desc": "Ær de døde" },
-        { "name": "PERSUASION", "desc": "Forklar hvorfor I er kommet" },
-        { "name": "PERFORMANCE", "desc": "Læs et navn højt" }
-      ],
-      "dmNotes": "PÅ VÆGGEN (vigtig detalje, afsløres ved læsning):\nAelrindel Vaeruth\nNharessyth, Black Wing of the Last Oath\nUnder navnene: \"Two souls. One oath. One grave.\"\n\nTRIGGER: Hvis nogen forsøger at fjerne sølv/navne fra væggen, angriber gravvagterne straks.\n\nUNDGÅ KAMP (non-combat options):\nReligion DC 15: Ær de døde og få vagterne til at standse.\nPersuasion DC 16: Forklar at I kommer på Nharessyths vegne.\nPerformance DC 14: Læs et navn korrekt og respektfuldt.\n\nENCOUNTER: 3-4 Gravebound Sentinels (se statblock). Nekrotisk resistens, radiant svaghed. De forsvarer navnene — de er ikke aggressive uden anledning." } },
-
-    { "id": "b10", "type": "statblock", "data": {
-      "title": "Gravebound Sentinel × 4",
-      "hp": "32", "ac": "14", "speed": "30 ft.", "cr": "2",
-      "str": 14, "dex": 12, "con": 14, "int": 8, "wis": 12, "cha": 6,
-      "traits": "Resistens: nekrotisk skade.\nSvaghed: radiant skade.\nUdød: immun over for gift og charmed.\nTrigger: angriber først hvis nogen fjerner sølv eller navne fra væggen.",
-      "attacks": "Spirit Blade: +5 to hit, 2d6+3 nekrotisk skade." } },
-
-    { "id": "b11", "type": "hptracker", "data": { "combatants": [
-      { "name": "Sentinel #1", "max": 32, "cur": 32 },
-      { "name": "Sentinel #2", "max": 32, "cur": 32 },
-      { "name": "Sentinel #3", "max": 32, "cur": 32 },
-      { "name": "Sentinel #4", "max": 32, "cur": 32 } ] } },
-
-    { "id": "b12", "type": "divider", "data": { "icon": "◆", "transition": "fade" } },
-
-    { "id": "b13", "type": "image", "data": { "imageData": "", "caption": "Dragebroen — formet som ryggen på et enormt dyr, over et sort dyb" } },
-
-    { "id": "b14", "type": "narrative-dm", "data": {
-      "heading": "The Dragon Bridge",
-      "text": "En smal bro spænder over et sort dyb. Broen er formet som ryggen på et enormt dyr. Langs siderne står lave statuer af elverryttere, alle med tomme tøjler i hænderne.\n\nOver broen hænger fragmenter af enorme sorte ribben. Kæder og sølvtråde dingler mellem knoglerne.\n\nDa I træder ud på broen, strammer de tomme tøjler sig. Som om noget usynligt trækker imod.",
-      "skills": [
-        { "name": "ACROBATICS", "desc": "Kryds broen med balancen i behold" },
-        { "name": "ATHLETICS", "desc": "Grib en, der mister fodfæste" },
-        { "name": "ARCANA", "desc": "Forstå broens natur" },
-        { "name": "ANIMAL HANDLING", "desc": "Tøjler eller lænker?" }
-      ],
-      "dmNotes": "HAZARD: Broen reagerer på panik og voldsom bevægelse. Rolige helte klarer den let; panik straffes.\n\nCHECKS:\nAcrobatics DC 13: Kryds broen uden at miste balancen.\nAthletics DC 14: Grib en anden, der mister fodfæste.\nArcana DC 15: Broen fungerer som et gammelt bindingsritual.\nAnimal Handling DC 15: Forstå forskellen på tøjler og lænker.\n\nFEJL-TRAPPE:\n• Første fejl: prone eller hænger på kanten.\n• Anden fejl: falder til lavere stenafsats, tager skade.\n• Kritisk fejl: falder dybere, men kan reddes med reb, magi eller Nharessyth.\n\nNHARESSYTH krydser ikke broen. Hvis spurgt: \"Denne bro husker mig. Og jeg husker den.\"" } },
-
-    { "id": "b15", "type": "divider", "data": { "icon": "⚔", "transition": "fade" } },
-
-    { "id": "b16", "type": "image", "data": { "imageData": "", "caption": "Rytterens Galleri — relieffer der fortæller en helts opstigning og fald" } },
-
-    { "id": "b17", "type": "narrative-dm", "data": {
-      "heading": "The Rider's Gallery",
-      "text": "Et højt galleri dækket af relieffer.\n\nFørst: en ung elverkriger foran en sort drage. Elveren har sænket sit våben. Dragen har sænket sit hoved.\n\nSå: de to i luften som ét våben — Nharessyths vinger bredt ud over himlen, Aelrindel stående i sadlen med en lanse af stjernelys.\n\nDrager, der falder. Byer, der knæler. Aelrindel foran et elverråd, hovedet hævet for højt, Nharessyth bag ham med blikket vendt bort.\n\nDet sidste relief er ødelagt. Kun fragmenter: fem hoveder, vinger, ild, gift, frost, lyn — og Aelrindel, der løfter sin lanse mod noget, ingen dødelig burde udfordre.",
-      "skills": [
-        { "name": "HISTORY", "desc": "Læs reliefferne" },
-        { "name": "INSIGHT", "desc": "Studér dragens holdning" },
-        { "name": "INVESTIGATION", "desc": "Find det gentagne emblem" }
-      ],
-      "dmNotes": "BETYDNING: Aelrindel begyndte som beskytter. Blev legende. Legenden blev hovmod. Hovmodet ødelagde ham.\n\nCHECKS:\nHistory DC 14: Reliefferne viser århundreders krig, ikke én kamp.\nInsight DC 15: Nharessyth ser bekymret ud i de sidste billeder.\nReligion DC 17: Det femhovedede motiv peger mod Tiamat — men dette er kun baggrundslore.\nInvestigation DC 15: Aelrindels emblem gentages: en lanse over en sort vinge.\n\nDet femhovedede motiv er ren foreshadowing — pres ikke Tiamat-vinklen, lad det ligge som uro." } },
-
-    { "id": "b18", "type": "divider", "data": { "icon": "◆", "transition": "slide" } },
-
-    { "id": "b19", "type": "image", "data": { "imageData": "", "caption": "Den Knækkede Sadel — et dragerideseletøj, der husker at blive brugt" } },
-
-    { "id": "b20", "type": "narrative-dm", "data": {
-      "heading": "The Broken Saddle",
-      "text": "Et rundt kammer med resterne af et enormt dragerideseletøj. Læderet er hårdt som sten. Sølvbeslagene er mørke. Spænderne er større end skjolde.\n\nVed siden af ligger en knækket lanseholder, en revnet sadelplade og et stykke sort skæl, poleret glat af hænder. På væggen hænger emblemet: en lanse over en sort vinge.\n\nDa I nærmer jer, bevæger seletøjet sig. Ikke som en levende ting. Som noget, der husker at blive brugt.",
-      "skills": [
-        { "name": "ANIMAL HANDLING", "desc": "Berolig seletøjet" },
-        { "name": "ARCANA", "desc": "Find runen bag forsvaret" },
-        { "name": "PERSUASION", "desc": "Tal ved navn" }
-      ],
-      "dmNotes": "ENCOUNTER: The Bound Harness — en magisk forsvarsmekanisme, der forsøger at binde en uværdig rytter.\n\nMEKANIK: Vælg den helt, der går efter emblemet.\nDEX Save DC 14: undgå sølvremmene. Fejl = restrained.\nPå egen tur: Athletics DC 15 eller Acrobatics DC 15 for at slippe fri.\n\nFJENDER: 2-3 Animated Straps (se statblock). Svaghed: slashing. Immun: gift, psykisk.\n\nUNDGÅ KAMP:\nAnimal Handling DC 15: behandl seletøjet som en panisk drageskabning.\nArcana DC 15: find runen, der holder forsvaret aktivt.\nPersuasion DC 16: tal til Aelrindel eller Nharessyth ved navn.\n\nNØGLEGENSTAND — Aelrindel's Rider Sigil:\nDette er IKKE loot. Det er en nøgle til redemption. Vises det til Aelrindel under bosskampen, tæller det som ét Moment of Clarity (se boss-scenen)." } },
-
-    { "id": "b21", "type": "statblock", "data": {
-      "title": "Animated Strap × 3",
-      "hp": "18", "ac": "13", "speed": "0 ft.", "cr": "1/2",
-      "str": 15, "dex": 12, "con": 12, "int": 1, "wis": 6, "cha": 1,
-      "traits": "Svaghed: slashing skade.\nImmun: gift, psykisk skade.\nKonstrukt: bevæger sig ikke fra sin plads.",
-      "attacks": "Binding Lash: +5 to hit, 1d8+3 slag. Ved ramt: STR Save DC 13 eller speed bliver 0 indtil næste tur." } },
-
-    { "id": "b22", "type": "hptracker", "data": { "combatants": [
-      { "name": "Strap #1", "max": 18, "cur": 18 },
-      { "name": "Strap #2", "max": 18, "cur": 18 },
-      { "name": "Strap #3", "max": 18, "cur": 18 } ] } },
-
-    { "id": "b23", "type": "divider", "data": { "icon": "⚔", "transition": "fade" } },
-
-    { "id": "b24", "type": "narrative-dm", "data": {
-      "heading": "The Last Gate",
-      "text": "To enorme dørfløje af mørk sten står foran jer. I midten er en sort dragevinge i obsidian og en elverlanse i sølv. Begge symboler er knækket på midten, men bruddet passer sammen.\n\nPå døren står:\n\n\"No enemy enters.\nNo thief leaves.\nOnly those who know the difference between victory and peace may open the grave.\"",
-      "skills": [
-        { "name": "ARCANA", "desc": "Forstå portens lås" },
-        { "name": "PERSUASION", "desc": "Aflæg en ed" }
-      ],
-      "dmNotes": "TRE MÅDER AT ÅBNE PORTEN:\n\n1. VOLD: Døren kan brydes op. Konsekvens: Aelrindel får advantage på initiative.\n\n2. MAGI: Arcana DC 16 eller relevant spell. Døren åbner, men krypten registrerer heltene som indtrængere.\n\n3. ED (den rene vej): Erklærer heltene, at de kommer for at give fred, åbner døren stille.\nGode formuleringer:\n• \"Vi kommer ikke for at tage din sejr. Vi kommer for at afslutte din krig.\"\n• \"Vi kommer ikke for at dræbe dragen. Vi kommer for at bryde lænken.\"\n• \"Cryovain skal stoppes, men ikke ved at gentage din fejl.\"\n\nMåden porten åbnes på sætter tonen for bosskampen — beløn eden." } },
-
-    { "id": "b25", "type": "divider", "data": { "icon": "◆", "transition": "slide" } },
-
-    { "id": "b26", "type": "image", "data": { "imageData": "", "caption": "Den Sidste Jagt — Aelrindel Vaeruth, stående, ikke begravet" } },
-
-    { "id": "b27", "type": "narrative-dm", "data": {
-      "heading": "The Last Hunt",
-      "text": "Det inderste kammer er enormt og højt som en katedral. Loftet forsvinder op i mørke. Gamle kæder, knækkede bannere og sorte sølvtråde hænger som spindelvæv. Gulvet er dækket af cirkler: drager, elvere, lanser, vinger og stjerner.\n\nMidt i rummet står Aelrindel Vaeruth. Ikke i en kiste. Stående.\n\nHans rustning er revnet, men stadig smuk. Hans ansigt er udtørret, ikke råddent. Øjnene brænder med blegt, ufokuseret lys. I hænderne holder han en lang lanse, mørk af ælde og stadig forkert skarp. Bag ham hænger resterne af en tom dragesadel i kæder.\n\nHan løfter hovedet. Han ser ikke jer. Han ser gennem jer.\n\n\"Nharessyth… To the wings. They come again.\"\n\nSå sænker han lansen.",
-      "skills": [
-        { "name": "PERSUASION", "desc": "Nå ind til den, han var" },
-        { "name": "RELIGION", "desc": "Levende lys mod tågen" }
-      ],
-      "dmNotes": "═══ BOSS: AELRINDEL VAERUTH ═══\nSe statblock nedenfor. HP 225, phase shift ved 112.\n\nSTART: Han ser ikke heltene som personer — kun som \"the wings\" der kommer igen. Han genlever sin sidste kamp.\n\n═══ FASE TO (ved 112 HP) ═══\nDet gamle rytterbånd flænger op. Nharessyth TVINGES ind i kampen (brug Young Black Dragon eller justeret statblock efter level). Han kæmper modvilligt og advarer heltene mellem angreb: \"Do not kill me. End him.\"\nTvangen brydes når Aelrindel når 0 HP — eller hvis redemption lykkes.\n\n═══ REDEMPTION — MOMENTS OF CLARITY ═══\nAelrindel kan frelses. Det kræver tre øjeblikke:\n\nMOMENT 1 — THE NAME: Nharessyth råber hans fulde navn: \"Aelrindel Vaeruth! Not hunter. Not general. Not legend. Aelrindel.\" → Aelrindel mister én legendary action næste runde.\n\nMOMENT 2 — THE SIGIL: En helt viser Aelrindel's Rider Sigil (fra The Broken Saddle). Han tøver: \"That was mine. Before the crown. Before the oath. Before the hunt…\" → Hans næste angreb har disadvantage.\n\nMOMENT 3 — LIVING LIGHT: Aelrindel rammes af radiant skade eller healing. Det brænder ham som morgenlys gennem tåge. → CHA Save: 1. forsøg DC 15, 2. forsøg DC 13, 3. forsøg DC 11. Ved succes stopper kampen.\n\n═══ REDEMPTION-SLUTNING ═══\nLansen falder. Han ser på Nharessyth: \"How long?\" — Nharessyth: \"Too long.\" — Aelrindel lukker øjnene: \"I thought that if I let the war end, then all we lost would mean nothing. But I was the one keeping it alive.\" Han giver slip.\n\nVælger heltene kampvejen, kan de stadig vinde — men det føles koldere. Nharessyth bliver fri, men ikke hel.\n\n═══ LOOT ═══\nVED REDEMPTION gives loot som ARV. Ved drab findes det som GRAVGODS (koldere tone).\n\n• AELRINDEL'S LANCE (1d12 stik, reach, special): Magisk lanse +2. Mod drager: +2d8 force, ignorerer skæl-resistens. 1×/long rest Dragonbreaker Thrust — efter ramt mod drage: CON Save DC 16, fejl = ingen breath weapon til slut på dens næste tur.\n\n• CLAW OF TIAMAT (amulet, sort dragekløs med fem indlæg: hvid/sort/grøn/blå/rød): 1×/long rest, vælg acid/kulde/ild/lyn/gift — læg 1d4 af typen til et fysisk angreb ELLER få resistens mod typen i 3 ture. Bæreren forstår Draconic. FORBANDELSE: alle drager kan sanse amuletten; for onde drager er kløen en dødelig fornærmelse mod deres femhovedede dronning.\n\n• ARROWS OF DRAGON SLAYING (6 stk): Mod drage: CON Save DC 17. Succes = +6d10 stik. Fejl = halv ekstra skade.\n\n• CHROMATIC BREASTPLATE (+1, skælplader der skifter mellem fem farver): Når bæreren tager skade fra en drages breath, fås resistens mod den skadestype indtil næste long rest.\n\n═══ TONE ═══\nKrypten er ikke ond. Den er sørgende. Det værste hernede er ikke ondskab — det er en helt, der aldrig kunne give slip. Lad spillerne mærke forskellen på at TAGE magt fra de døde og at MODTAGE magt fra de døde." } },
-
-    { "id": "b28", "type": "statblock", "data": {
-      "title": "Aelrindel Vaeruth — The Last Dragon Hunter",
-      "hp": "225 (phase shift 112)", "ac": "18", "speed": "40 ft.", "cr": "10",
-      "str": 18, "dex": 16, "con": 16, "int": 12, "wis": 14, "cha": 16,
-      "traits": "Resistens: nekrotisk skade, ikke-magiske våben.\nImmun: gift, charmed, frightened, exhaustion, poisoned.\nPhase Shift ved 112 HP: rytterbåndet flænger op, og Nharessyth tvinges ind i kampen.\nLegendary Actions (3 per runde): Rider's Step (flyt uden opportunity attacks) · Lance Strike (ét lanse-angreb) · Death Cry (koster 2 actions: 30 ft., WIS Save DC 15 eller frightened).",
-      "attacks": "Dragonhunter Lance: +8 to hit, reach 10 ft., 2d8+4 stik + 2d8 nekrotisk.\nSpectral Charge: bevæger han sig 20+ ft. lige før angreb: +3d8 skade og STR Save DC 15 eller prone." } },
-
-    { "id": "b29", "type": "hptracker", "data": { "combatants": [
-      { "name": "Aelrindel", "max": 225, "cur": 225 },
-      { "name": "Nharessyth (fase 2)", "max": 127, "cur": 127 } ] } },
-
-    { "id": "b30", "type": "divider", "data": { "icon": "◆", "transition": "fade" } },
-
-    { "id": "b31", "type": "narrative-dm", "data": {
-      "heading": "Til Spillerne",
-      "text": "Krypten er stille nu. Sølvlinjerne i væggene lyser svagt, som om de trækker vejret for første gang i århundreder.\n\nEn helt, der aldrig kunne give slip — og en drage, der ventede på lov til at sørge.\n\nHvad tager I med jer op i lyset: en sejr, eller en fred?",
-      "dmNotes": "DETTE ER SESSIONENS KERNE-VALG. Lad det stå åbent og lad bordet mærke det.\n\nHold sidesporet kort og mytisk — ikke en stor dungeon. Spilrytme: descent → dragemøde → lille undead-encounter → hazard-bro → lore-rum → harness-encounter → boss/redemption.\n\nUDFALD:\n• Redemption: loot som arv, Nharessyth får fred, tonen er varm trods sorg.\n• Drab: loot som gravgods, Nharessyth bliver fri men ikke hel, tonen er kold.\n\nDette udstyr er heltenes anti-drage-forberedelse før Cryovain — men pointen er valget, ikke loot'et." } }
+    {
+      "id": "b1",
+      "type": "header",
+      "data": {
+        "kicker": "DRAGONS OF ICESPIRE PEAK",
+        "title": "The Crypt Beneath Phandalin",
+        "mood": "To sjæle · én ed · én grav"
+      }
+    },
+    {
+      "id": "b2",
+      "type": "image",
+      "data": {
+        "imageData": "",
+        "caption": "Nedgangen fra Halias ødelagte laboratorium — ældre end Phandalin selv"
+      }
+    },
+    {
+      "id": "b3",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "The Burned Descent",
+        "text": "Nedgangen begynder i resterne af Halias ødelagte laboratorium. Acid har ædt sig gennem sten og metal. Luften lugter stadig af brændt alkymi, sort drageblod og våd aske.\n\nEfter få meter ændrer arkitekturen sig. Halias jern, rør og runer forsvinder bag jer, og væggene bliver ældre. Elveriske sølvlinjer løber gennem stenen som årer. Nogle er skåret fri med værktøj. Halia har plyndret det, hun kunne — men hun kom aldrig helt ind.",
+        "skills": [
+          {
+            "name": "INVESTIGATION",
+            "desc": "Undersøg de opbrudte vægge"
+          },
+          {
+            "name": "ARCANA",
+            "desc": "Læs runerne i stenen"
+          },
+          {
+            "name": "SURVIVAL",
+            "desc": "Følg sporene dybere ned"
+          }
+        ],
+        "dmNotes": "STED: Overgangen fra det kendte (Halias verden) til det skjulte (den ældre krypt). Halia har brudt sig ind i noget ældre, ikke bygget det.\n\nCHECKS:\nInvestigation DC 13: Halia har brudt sig ind i noget ældre, ikke bygget det.\nArcana DC 14: Runerne her er beskyttende, men gamle og svækkede.\nSurvival DC 13: Nharessyths blodspor fører dybere ned.\n\nTONE: Stedet skal føles gammelt, hemmeligt og ældre end Phandalin. Krypten antyder, at byen er bygget oven på ældre lag af historie."
+      }
+    },
+    {
+      "id": "b4",
+      "type": "divider",
+      "data": {
+        "icon": "◆",
+        "transition": "fade"
+      }
+    },
+    {
+      "id": "b5",
+      "type": "image",
+      "data": {
+        "imageData": "",
+        "caption": "Vejkrydset — en cirkel af hvid sten, slidt blank af kløer og tunge skridt"
+      }
+    },
+    {
+      "id": "b6",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "Cross Roads",
+        "text": "Et cirkulært vejkryds åbner sig i mørket. Fire korridorer løber ud i hver sin retning. Midt på gulvet er en cirkel af hvid sten, slidt blank af kløer og tunge skridt.\n\nI skyggen mellem to søjler ligger Nharessyth.\n\nHan er enorm, sortskællet og såret. Hans vinger hænger lavt. De steder, hvor Halias rør sad boret ind i ham, står stadig åbne. Han er fri, men ikke hel.",
+        "skills": [
+          {
+            "name": "INSIGHT",
+            "desc": "Læs dragens sindstilstand"
+          },
+          {
+            "name": "HISTORY",
+            "desc": "Kender du navnet Aelrindel Vaeruth?"
+          },
+          {
+            "name": "PERSUASION",
+            "desc": "Tal med dragen"
+          }
+        ],
+        "dmNotes": "NHARESSYTH: Ikke venlig. Ikke ond. Gammel, stolt og fuld af skyld. Spil ham med tyngde og få pauser — han vælger sine ord.\n\nDIALOG (læs op efter behov):\n\"I skar lænkerne. Det gør jer ikke gode. Men det gør jer anderledes end hende.\"\n\"I søger dragejægeren. Alle søger ham forkert.\"\n\"Han var ikke min herre. Ikke helt. Han var min rytter. Min våbenbroder. Min dårskab.\"\n\"Aelrindel Vaeruth.\"\n\"Han er stadig derinde.\"\n\nINFORMATION spilleren kan få:\n• Aelrindel er fanget i sin sidste kamp.\n• Han vil angribe alt, der træder ind.\n• Nharessyth kan ikke selv skade ham.\n• Kommer Nharessyth for tæt på, kan det gamle rytterbånd tvinge ham ind i kampen.\n• Nharessyth ønsker ikke hævn. Han ønsker afslutning.\n\nCHECKS:\nInsight DC 14: Dragen skjuler skam, ikke forræderi.\nHistory DC 15: Aelrindel Vaeruth er et navn fra en meget gammel elverlegende.\nPersuasion DC 16: Få Nharessyth til at indrømme, at han stadig håber."
+      }
+    },
+    {
+      "id": "b7",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "slide"
+      }
+    },
+    {
+      "id": "b8",
+      "type": "image",
+      "data": {
+        "imageData": "",
+        "caption": "Navnenes Hal — sølv, rav og sort sten, med store sektioner skåret bort"
+      }
+    },
+    {
+      "id": "b9",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "Hall of Names",
+        "text": "En lang, lavloftet hal. Begge vægge er dækket af navne indgraveret i sølv, rav og sort sten. Nogle er elvernavne. Andre er dragenavne, skrevet med større tegn.\n\nMen store sektioner er skåret ud af væggene. Nogen har fjernet de navne, der havde værdi.\n\nDa I træder ind, begynder de tilbageværende navne at lyse svagt. Stemmer hvisker på elvisk. Først sørgmodigt. Så vredt.",
+        "skills": [
+          {
+            "name": "RELIGION",
+            "desc": "Ær de døde"
+          },
+          {
+            "name": "PERSUASION",
+            "desc": "Forklar hvorfor I er kommet"
+          },
+          {
+            "name": "PERFORMANCE",
+            "desc": "Læs et navn højt"
+          }
+        ],
+        "dmNotes": "PÅ VÆGGEN (vigtig detalje, afsløres ved læsning):\nAelrindel Vaeruth\nNharessyth, Black Wing of the Last Oath\nUnder navnene: \"Two souls. One oath. One grave.\"\n\nTRIGGER: Hvis nogen forsøger at fjerne sølv/navne fra væggen, angriber gravvagterne straks.\n\nUNDGÅ KAMP (non-combat options):\nReligion DC 15: Ær de døde og få vagterne til at standse.\nPersuasion DC 16: Forklar at I kommer på Nharessyths vegne.\nPerformance DC 14: Læs et navn korrekt og respektfuldt.\n\nENCOUNTER: 3-4 Gravebound Sentinels (se statblock). Nekrotisk resistens, radiant svaghed. De forsvarer navnene — de er ikke aggressive uden anledning."
+      }
+    },
+    {
+      "id": "b10",
+      "type": "statblock",
+      "data": {
+        "title": "Gravebound Sentinel × 4",
+        "hp": "32",
+        "ac": "14",
+        "speed": "30 ft.",
+        "cr": "2",
+        "str": 14,
+        "dex": 12,
+        "con": 14,
+        "int": 8,
+        "wis": 12,
+        "cha": 6,
+        "traits": "Resistens: nekrotisk skade.\nSvaghed: radiant skade.\nUdød: immun over for gift og charmed.\nTrigger: angriber først hvis nogen fjerner sølv eller navne fra væggen.",
+        "attacks": "Spirit Blade: +5 to hit, 2d6+3 nekrotisk skade."
+      }
+    },
+    {
+      "id": "b11",
+      "type": "hptracker",
+      "data": {
+        "combatants": [
+          {
+            "name": "Sentinel #1",
+            "max": 32,
+            "cur": 32
+          },
+          {
+            "name": "Sentinel #2",
+            "max": 32,
+            "cur": 32
+          },
+          {
+            "name": "Sentinel #3",
+            "max": 32,
+            "cur": 32
+          },
+          {
+            "name": "Sentinel #4",
+            "max": 32,
+            "cur": 32
+          }
+        ]
+      }
+    },
+    {
+      "id": "b12",
+      "type": "divider",
+      "data": {
+        "icon": "◆",
+        "transition": "fade"
+      }
+    },
+    {
+      "id": "b13",
+      "type": "image",
+      "data": {
+        "imageData": "",
+        "caption": "Dragebroen — formet som ryggen på et enormt dyr, over et sort dyb"
+      }
+    },
+    {
+      "id": "b14",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "The Dragon Bridge",
+        "text": "En smal bro spænder over et sort dyb. Broen er formet som ryggen på et enormt dyr. Langs siderne står lave statuer af elverryttere, alle med tomme tøjler i hænderne.\n\nOver broen hænger fragmenter af enorme sorte ribben. Kæder og sølvtråde dingler mellem knoglerne.\n\nDa I træder ud på broen, strammer de tomme tøjler sig. Som om noget usynligt trækker imod.",
+        "skills": [
+          {
+            "name": "ACROBATICS",
+            "desc": "Kryds broen med balancen i behold"
+          },
+          {
+            "name": "ATHLETICS",
+            "desc": "Grib en, der mister fodfæste"
+          },
+          {
+            "name": "ARCANA",
+            "desc": "Forstå broens natur"
+          },
+          {
+            "name": "ANIMAL HANDLING",
+            "desc": "Tøjler eller lænker?"
+          }
+        ],
+        "dmNotes": "HAZARD: Broen reagerer på panik og voldsom bevægelse. Rolige helte klarer den let; panik straffes.\n\nCHECKS:\nAcrobatics DC 13: Kryds broen uden at miste balancen.\nAthletics DC 14: Grib en anden, der mister fodfæste.\nArcana DC 15: Broen fungerer som et gammelt bindingsritual.\nAnimal Handling DC 15: Forstå forskellen på tøjler og lænker.\n\nFEJL-TRAPPE:\n• Første fejl: prone eller hænger på kanten.\n• Anden fejl: falder til lavere stenafsats, tager skade.\n• Kritisk fejl: falder dybere, men kan reddes med reb, magi eller Nharessyth.\n\nNHARESSYTH krydser ikke broen. Hvis spurgt: \"Denne bro husker mig. Og jeg husker den.\""
+      }
+    },
+    {
+      "id": "b15",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
+    },
+    {
+      "id": "b16",
+      "type": "image",
+      "data": {
+        "imageData": "",
+        "caption": "Rytterens Galleri — relieffer der fortæller en helts opstigning og fald"
+      }
+    },
+    {
+      "id": "b17",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "The Rider's Gallery",
+        "text": "Et højt galleri dækket af relieffer.\n\nFørst: en ung elverkriger foran en sort drage. Elveren har sænket sit våben. Dragen har sænket sit hoved.\n\nSå: de to i luften som ét våben — Nharessyths vinger bredt ud over himlen, Aelrindel stående i sadlen med en lanse af stjernelys.\n\nDrager, der falder. Byer, der knæler. Aelrindel foran et elverråd, hovedet hævet for højt, Nharessyth bag ham med blikket vendt bort.\n\nDet sidste relief er ødelagt. Kun fragmenter: fem hoveder, vinger, ild, gift, frost, lyn — og Aelrindel, der løfter sin lanse mod noget, ingen dødelig burde udfordre.",
+        "skills": [
+          {
+            "name": "HISTORY",
+            "desc": "Læs reliefferne"
+          },
+          {
+            "name": "INSIGHT",
+            "desc": "Studér dragens holdning"
+          },
+          {
+            "name": "INVESTIGATION",
+            "desc": "Find det gentagne emblem"
+          }
+        ],
+        "dmNotes": "BETYDNING: Aelrindel begyndte som beskytter. Blev legende. Legenden blev hovmod. Hovmodet ødelagde ham.\n\nCHECKS:\nHistory DC 14: Reliefferne viser århundreders krig, ikke én kamp.\nInsight DC 15: Nharessyth ser bekymret ud i de sidste billeder.\nReligion DC 17: Det femhovedede motiv peger mod Tiamat — men dette er kun baggrundslore.\nInvestigation DC 15: Aelrindels emblem gentages: en lanse over en sort vinge.\n\nDet femhovedede motiv er ren foreshadowing — pres ikke Tiamat-vinklen, lad det ligge som uro."
+      }
+    },
+    {
+      "id": "b18",
+      "type": "divider",
+      "data": {
+        "icon": "◆",
+        "transition": "slide"
+      }
+    },
+    {
+      "id": "b19",
+      "type": "image",
+      "data": {
+        "imageData": "",
+        "caption": "Den Knækkede Sadel — et dragerideseletøj, der husker at blive brugt"
+      }
+    },
+    {
+      "id": "b20",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "The Broken Saddle",
+        "text": "Et rundt kammer med resterne af et enormt dragerideseletøj. Læderet er hårdt som sten. Sølvbeslagene er mørke. Spænderne er større end skjolde.\n\nVed siden af ligger en knækket lanseholder, en revnet sadelplade og et stykke sort skæl, poleret glat af hænder. På væggen hænger emblemet: en lanse over en sort vinge.\n\nDa I nærmer jer, bevæger seletøjet sig. Ikke som en levende ting. Som noget, der husker at blive brugt.",
+        "skills": [
+          {
+            "name": "ANIMAL HANDLING",
+            "desc": "Berolig seletøjet"
+          },
+          {
+            "name": "ARCANA",
+            "desc": "Find runen bag forsvaret"
+          },
+          {
+            "name": "PERSUASION",
+            "desc": "Tal ved navn"
+          }
+        ],
+        "dmNotes": "ENCOUNTER: The Bound Harness — en magisk forsvarsmekanisme, der forsøger at binde en uværdig rytter.\n\nMEKANIK: Vælg den helt, der går efter emblemet.\nDEX Save DC 14: undgå sølvremmene. Fejl = restrained.\nPå egen tur: Athletics DC 15 eller Acrobatics DC 15 for at slippe fri.\n\nFJENDER: 2-3 Animated Straps (se statblock). Svaghed: slashing. Immun: gift, psykisk.\n\nUNDGÅ KAMP:\nAnimal Handling DC 15: behandl seletøjet som en panisk drageskabning.\nArcana DC 15: find runen, der holder forsvaret aktivt.\nPersuasion DC 16: tal til Aelrindel eller Nharessyth ved navn.\n\nNØGLEGENSTAND — Aelrindel's Rider Sigil:\nDette er IKKE loot. Det er en nøgle til redemption. Vises det til Aelrindel under bosskampen, tæller det som ét Moment of Clarity (se boss-scenen)."
+      }
+    },
+    {
+      "id": "b21",
+      "type": "statblock",
+      "data": {
+        "title": "Animated Strap × 3",
+        "hp": "18",
+        "ac": "13",
+        "speed": "0 ft.",
+        "cr": "1/2",
+        "str": 15,
+        "dex": 12,
+        "con": 12,
+        "int": 1,
+        "wis": 6,
+        "cha": 1,
+        "traits": "Svaghed: slashing skade.\nImmun: gift, psykisk skade.\nKonstrukt: bevæger sig ikke fra sin plads.",
+        "attacks": "Binding Lash: +5 to hit, 1d8+3 slag. Ved ramt: STR Save DC 13 eller speed bliver 0 indtil næste tur."
+      }
+    },
+    {
+      "id": "b22",
+      "type": "hptracker",
+      "data": {
+        "combatants": [
+          {
+            "name": "Strap #1",
+            "max": 18,
+            "cur": 18
+          },
+          {
+            "name": "Strap #2",
+            "max": 18,
+            "cur": 18
+          },
+          {
+            "name": "Strap #3",
+            "max": 18,
+            "cur": 18
+          }
+        ]
+      }
+    },
+    {
+      "id": "b23",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
+    },
+    {
+      "id": "b24",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "The Last Gate",
+        "text": "To enorme dørfløje af mørk sten står foran jer. I midten er en sort dragevinge i obsidian og en elverlanse i sølv. Begge symboler er knækket på midten, men bruddet passer sammen.\n\nPå døren står:\n\n\"No enemy enters.\nNo thief leaves.\nOnly those who know the difference between victory and peace may open the grave.\"",
+        "skills": [
+          {
+            "name": "ARCANA",
+            "desc": "Forstå portens lås"
+          },
+          {
+            "name": "PERSUASION",
+            "desc": "Aflæg en ed"
+          }
+        ],
+        "dmNotes": "TRE MÅDER AT ÅBNE PORTEN:\n\n1. VOLD: Døren kan brydes op. Konsekvens: Aelrindel får advantage på initiative.\n\n2. MAGI: Arcana DC 16 eller relevant spell. Døren åbner, men krypten registrerer heltene som indtrængere.\n\n3. ED (den rene vej): Erklærer heltene, at de kommer for at give fred, åbner døren stille.\nGode formuleringer:\n• \"Vi kommer ikke for at tage din sejr. Vi kommer for at afslutte din krig.\"\n• \"Vi kommer ikke for at dræbe dragen. Vi kommer for at bryde lænken.\"\n• \"Cryovain skal stoppes, men ikke ved at gentage din fejl.\"\n\nMåden porten åbnes på sætter tonen for bosskampen — beløn eden."
+      }
+    },
+    {
+      "id": "b25",
+      "type": "divider",
+      "data": {
+        "icon": "◆",
+        "transition": "slide"
+      }
+    },
+    {
+      "id": "b26",
+      "type": "image",
+      "data": {
+        "imageData": "",
+        "caption": "Den Sidste Jagt — Aelrindel Vaeruth, stående, ikke begravet"
+      }
+    },
+    {
+      "id": "b27",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "The Last Hunt",
+        "text": "Det inderste kammer er enormt og højt som en katedral. Loftet forsvinder op i mørke. Gamle kæder, knækkede bannere og sorte sølvtråde hænger som spindelvæv. Gulvet er dækket af cirkler: drager, elvere, lanser, vinger og stjerner.\n\nMidt i rummet står Aelrindel Vaeruth. Ikke i en kiste. Stående.\n\nHans rustning er revnet, men stadig smuk. Hans ansigt er udtørret, ikke råddent. Øjnene brænder med blegt, ufokuseret lys. I hænderne holder han en lang lanse, mørk af ælde og stadig forkert skarp. Bag ham hænger resterne af en tom dragesadel i kæder.\n\nHan løfter hovedet. Han ser ikke jer. Han ser gennem jer.\n\n\"Nharessyth… To the wings. They come again.\"\n\nSå sænker han lansen.",
+        "skills": [
+          {
+            "name": "PERSUASION",
+            "desc": "Nå ind til den, han var"
+          },
+          {
+            "name": "RELIGION",
+            "desc": "Levende lys mod tågen"
+          }
+        ],
+        "dmNotes": "═══ BOSS: AELRINDEL VAERUTH ═══\nSe statblock nedenfor. HP 225, phase shift ved 112.\n\nSTART: Han ser ikke heltene som personer — kun som \"the wings\" der kommer igen. Han genlever sin sidste kamp.\n\n═══ FASE TO (ved 112 HP) ═══\nDet gamle rytterbånd flænger op. Nharessyth TVINGES ind i kampen (brug Young Black Dragon eller justeret statblock efter level). Han kæmper modvilligt og advarer heltene mellem angreb: \"Do not kill me. End him.\"\nTvangen brydes når Aelrindel når 0 HP — eller hvis redemption lykkes.\n\n═══ REDEMPTION — MOMENTS OF CLARITY ═══\nAelrindel kan frelses. Det kræver tre øjeblikke:\n\nMOMENT 1 — THE NAME: Nharessyth råber hans fulde navn: \"Aelrindel Vaeruth! Not hunter. Not general. Not legend. Aelrindel.\" → Aelrindel mister én legendary action næste runde.\n\nMOMENT 2 — THE SIGIL: En helt viser Aelrindel's Rider Sigil (fra The Broken Saddle). Han tøver: \"That was mine. Before the crown. Before the oath. Before the hunt…\" → Hans næste angreb har disadvantage.\n\nMOMENT 3 — LIVING LIGHT: Aelrindel rammes af radiant skade eller healing. Det brænder ham som morgenlys gennem tåge. → CHA Save: 1. forsøg DC 15, 2. forsøg DC 13, 3. forsøg DC 11. Ved succes stopper kampen.\n\n═══ REDEMPTION-SLUTNING ═══\nLansen falder. Han ser på Nharessyth: \"How long?\" — Nharessyth: \"Too long.\" — Aelrindel lukker øjnene: \"I thought that if I let the war end, then all we lost would mean nothing. But I was the one keeping it alive.\" Han giver slip.\n\nVælger heltene kampvejen, kan de stadig vinde — men det føles koldere. Nharessyth bliver fri, men ikke hel.\n\n═══ LOOT ═══\nVED REDEMPTION gives loot som ARV. Ved drab findes det som GRAVGODS (koldere tone).\n\n• AELRINDEL'S LANCE (1d12 stik, reach, special): Magisk lanse +2. Mod drager: +2d8 force, ignorerer skæl-resistens. 1×/long rest Dragonbreaker Thrust — efter ramt mod drage: CON Save DC 16, fejl = ingen breath weapon til slut på dens næste tur.\n\n• CLAW OF TIAMAT (amulet, sort dragekløs med fem indlæg: hvid/sort/grøn/blå/rød): 1×/long rest, vælg acid/kulde/ild/lyn/gift — læg 1d4 af typen til et fysisk angreb ELLER få resistens mod typen i 3 ture. Bæreren forstår Draconic. FORBANDELSE: alle drager kan sanse amuletten; for onde drager er kløen en dødelig fornærmelse mod deres femhovedede dronning.\n\n• ARROWS OF DRAGON SLAYING (6 stk): Mod drage: CON Save DC 17. Succes = +6d10 stik. Fejl = halv ekstra skade.\n\n• CHROMATIC BREASTPLATE (+1, skælplader der skifter mellem fem farver): Når bæreren tager skade fra en drages breath, fås resistens mod den skadestype indtil næste long rest.\n\n═══ TONE ═══\nKrypten er ikke ond. Den er sørgende. Det værste hernede er ikke ondskab — det er en helt, der aldrig kunne give slip. Lad spillerne mærke forskellen på at TAGE magt fra de døde og at MODTAGE magt fra de døde."
+      }
+    },
+    {
+      "id": "b28",
+      "type": "statblock",
+      "data": {
+        "title": "Aelrindel Vaeruth — The Last Dragon Hunter",
+        "hp": "225 (phase shift 112)",
+        "ac": "18",
+        "speed": "40 ft.",
+        "cr": "10",
+        "str": 18,
+        "dex": 16,
+        "con": 16,
+        "int": 12,
+        "wis": 14,
+        "cha": 16,
+        "traits": "Resistens: nekrotisk skade, ikke-magiske våben.\nImmun: gift, charmed, frightened, exhaustion, poisoned.\nPhase Shift ved 112 HP: rytterbåndet flænger op, og Nharessyth tvinges ind i kampen.\nLegendary Actions (3 per runde): Rider's Step (flyt uden opportunity attacks) · Lance Strike (ét lanse-angreb) · Death Cry (koster 2 actions: 30 ft., WIS Save DC 15 eller frightened).",
+        "attacks": "Dragonhunter Lance: +8 to hit, reach 10 ft., 2d8+4 stik + 2d8 nekrotisk.\nSpectral Charge: bevæger han sig 20+ ft. lige før angreb: +3d8 skade og STR Save DC 15 eller prone."
+      }
+    },
+    {
+      "id": "b29",
+      "type": "hptracker",
+      "data": {
+        "combatants": [
+          {
+            "name": "Aelrindel",
+            "max": 225,
+            "cur": 225
+          },
+          {
+            "name": "Nharessyth (fase 2)",
+            "max": 127,
+            "cur": 127
+          }
+        ]
+      }
+    },
+    {
+      "id": "b30",
+      "type": "divider",
+      "data": {
+        "icon": "◆",
+        "transition": "fade"
+      }
+    },
+    {
+      "id": "b31",
+      "type": "narrative-dm",
+      "data": {
+        "heading": "Til Spillerne",
+        "text": "Krypten er stille nu. Sølvlinjerne i væggene lyser svagt, som om de trækker vejret for første gang i århundreder.\n\nEn helt, der aldrig kunne give slip — og en drage, der ventede på lov til at sørge.\n\nHvad tager I med jer op i lyset: en sejr, eller en fred?",
+        "dmNotes": "DETTE ER SESSIONENS KERNE-VALG. Lad det stå åbent og lad bordet mærke det.\n\nHold sidesporet kort og mytisk — ikke en stor dungeon. Spilrytme: descent → dragemøde → lille undead-encounter → hazard-bro → lore-rum → harness-encounter → boss/redemption.\n\nUDFALD:\n• Redemption: loot som arv, Nharessyth får fred, tonen er varm trods sorg.\n• Drab: loot som gravgods, Nharessyth bliver fri men ikke hel, tonen er kold.\n\nDette udstyr er heltenes anti-drage-forberedelse før Cryovain — men pointen er valget, ikke loot'et."
+      }
+    }
   ]
 }
