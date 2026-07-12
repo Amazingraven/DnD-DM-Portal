@@ -81,8 +81,18 @@
   }
   .empty-hint { font-style: italic; color: var(--ash); opacity: .8; padding: 1rem 0; }
 
-  .entry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+  .entry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.4rem; }
   .entry-card { background: var(--parch-mid); border: 1px solid var(--gold); border-radius: 4px; padding: 1rem 1.1rem; }
+  .entry-thumb { width: 100%; max-height: 150px; object-fit: cover; border-radius: 3px; border: 1px solid var(--gold); margin-bottom: .6rem; display: block; }
+  .entry-audio { width: 100%; margin: .4rem 0 .6rem; }
+  .group-heading {
+    font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); font-size: .9rem;
+    letter-spacing: .05em; text-transform: uppercase; margin: 0 0 .6rem; padding-bottom: .3rem;
+    border-bottom: 1px solid rgba(184,134,42,.35);
+  }
+  .upload-preview { display: block; max-width: 100%; max-height: 160px; border-radius: 3px; border: 1px solid var(--gold); margin-bottom: .5rem; }
+  .upload-preview-audio { display: block; width: 100%; margin-bottom: .5rem; }
+  .upload-hint { font-size: .68rem; opacity: .7; margin: .3rem 0 .4rem; line-height: 1.4; }
   .entry-name { font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); margin-bottom: .15rem; }
   .entry-meta { font-family: 'Cinzel', serif; font-size: .66rem; letter-spacing: .07em; text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; }
   .entry-desc { font-size: .9rem; line-height: 1.5; color: var(--ink); margin-bottom: .6rem; max-height: 4.6em; overflow: hidden; }
@@ -140,6 +150,24 @@
     <a class="btn-secondary" href="https://amazingraven.github.io/DnD-Portal/" target="_blank" style="text-decoration:none;">👁 Se live portal</a>
   </div>
 
+  <section class="scroll-panel" style="margin-bottom:1.5rem; padding:1.3rem 1.5rem;">
+    <div class="panel-actions" style="margin-bottom:.7rem;">
+      <h2 style="font-size:.95rem;">☁ Repo-sync (DnD-Portal)</h2>
+    </div>
+    <div id="repoTokenArea">
+      <input type="password" id="ghTokenInput"
+        placeholder="GitHub-token (kun DnD-Portal, Contents: Read and write)"
+        style="width:100%; font-family:'IM Fell English',Georgia,serif; font-size:.95rem; padding:.5rem .6rem; border:1px solid var(--gold); border-radius:3px; background:var(--parch-dark); margin-bottom:.6rem;">
+      <button class="btn-primary" id="btnSaveToken" style="width:100%;">Gem token</button>
+    </div>
+    <div id="repoActions" style="display:none;">
+      <div style="display:flex; gap:.6rem; flex-wrap:wrap; align-items:center;">
+        <button class="btn-primary" id="btnRepoPush">☁ Gem <span id="repoPushLabel"></span> i repo</button>
+        <button class="btn-ghost" id="btnClearToken" style="font-size:.62rem; opacity:.75;">Glem token</button>
+      </div>
+    </div>
+  </section>
+
   <nav class="tabs" id="tabs"></nav>
 
   <section class="scroll-panel">
@@ -148,6 +176,8 @@
       <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
         <button class="btn-ghost" id="btn-sync">🔄 Hent nyeste fra portal</button>
         <button class="btn-secondary" id="btn-export">⬇ Eksportér JSON</button>
+        <button class="btn-secondary" id="btn-import">⬆ Importér JSON</button>
+        <input type="file" id="import-file-input" accept="application/json" style="display:none;">
         <button class="btn-primary" id="btn-add">+ Tilføj</button>
       </div>
     </div>
@@ -172,9 +202,12 @@ const PORTAL_BASE = 'https://amazingraven.github.io/DnD-Portal/data/';
 
 const TYPES = {
   npcs: {
-    label: "NPC'er", file: 'npcs.json', wrapperKey: 'npcs',
+    label: 'Folk i kampagnen', file: 'npcs.json', wrapperKey: 'npcs',
+    groupBy: { key: 'kind', order: ['NPC', 'Spillerkarakter'],
+      headers: { 'NPC': 'NPC\'er', 'Spillerkarakter': 'Spillernes karakterer' } },
     fields: [
       { key: 'name', label: 'Navn', type: 'text', required: true },
+      { key: 'kind', label: 'Type', type: 'select', options: ['NPC', 'Spillerkarakter'], required: true },
       { key: 'title', label: 'Titel / rolle', type: 'text' },
       { key: 'location', label: 'Sted', type: 'text' },
       { key: 'description', label: 'Beskrivelse (spoiler-fri)', type: 'textarea' }
@@ -187,25 +220,14 @@ const TYPES = {
     label: 'Fund & genstande', file: 'items.json', wrapperKey: 'items',
     fields: [
       { key: 'name', label: 'Navn', type: 'text', required: true },
+      { key: 'image', label: 'Billede', type: 'image' },
       { key: 'rarity', label: 'Sjældenhed', type: 'text' },
-      { key: 'description', label: 'Beskrivelse', type: 'textarea' }
+      { key: 'description', label: 'Beskrivelse (valgfri)', type: 'textarea' }
     ],
     title: e => e.name,
     meta: e => e.rarity || '',
-    desc: e => e.description
-  },
-  podcasts: {
-    label: 'Podcasts', file: 'podcasts.json', wrapperKey: 'podcasts',
-    fields: [
-      { key: 'title', label: 'Titel', type: 'text', required: true },
-      { key: 'session_number', label: 'Session-nummer', type: 'number' },
-      { key: 'date', label: 'Dato', type: 'date' },
-      { key: 'description', label: 'Kort teaser', type: 'textarea' },
-      { key: 'url', label: 'Link (Spotify m.fl.)', type: 'text' }
-    ],
-    title: e => e.title,
-    meta: e => [e.session_number ? ('Session ' + e.session_number) : '', e.date].filter(Boolean).join(' · '),
-    desc: e => e.description
+    desc: e => e.description,
+    image: e => e.image
   },
   sessions: {
     label: 'Session-logs', file: 'sessions.json', wrapperKey: 'sessions',
@@ -214,11 +236,12 @@ const TYPES = {
       { key: 'number', label: 'Session-nummer', type: 'number' },
       { key: 'date', label: 'Dato', type: 'date' },
       { key: 'recap', label: 'Spoiler-fri opsummering', type: 'textarea' },
-      { key: 'podcast_url', label: 'Link til optagelse', type: 'text' }
+      { key: 'audio', label: 'Lydoptagelse', type: 'audio' }
     ],
     title: e => e.title,
     meta: e => [e.number ? ('Session ' + e.number) : '', e.date].filter(Boolean).join(' · '),
-    desc: e => e.recap
+    desc: e => e.recap,
+    audio: e => e.audio
   }
 };
 
@@ -257,6 +280,23 @@ function renderTabs() {
   nav.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => { activeType = btn.dataset.type; renderTabs(); renderList(); });
   });
+  const pushLabel = document.getElementById('repoPushLabel');
+  if (pushLabel) pushLabel.textContent = TYPES[activeType].label;
+}
+
+function entryCardHTML(t, e) {
+  return `
+    <div class="entry-card">
+      ${t.image && t.image(e) ? `<img class="entry-thumb" src="${esc(t.image(e))}" alt="">` : ''}
+      <div class="entry-name">${esc(t.title(e) || '(uden navn)')}</div>
+      ${t.meta(e) ? `<div class="entry-meta">${esc(t.meta(e))}</div>` : ''}
+      ${t.desc(e) ? `<div class="entry-desc">${esc(t.desc(e))}</div>` : ''}
+      ${t.audio && t.audio(e) ? `<audio class="entry-audio" controls src="${esc(t.audio(e))}"></audio>` : ''}
+      <div class="entry-actions">
+        <button class="btn-icon" data-edit="${e._id}" title="Rediger">✎</button>
+        <button class="btn-icon danger" data-del="${e._id}" title="Slet">✕</button>
+      </div>
+    </div>`;
 }
 
 function renderList() {
@@ -268,16 +308,21 @@ function renderList() {
     list.innerHTML = `<p class="empty-hint">Ingen ${esc(t.label.toLowerCase())} endnu. Klik "+ Tilføj", eller "🔄 Hent nyeste fra portal" hvis der allerede findes indhold på den live side.</p>`;
     return;
   }
-  list.innerHTML = `<div class="entry-grid">` + entries.map(e => `
-    <div class="entry-card">
-      <div class="entry-name">${esc(t.title(e) || '(uden navn)')}</div>
-      ${t.meta(e) ? `<div class="entry-meta">${esc(t.meta(e))}</div>` : ''}
-      ${t.desc(e) ? `<div class="entry-desc">${esc(t.desc(e))}</div>` : ''}
-      <div class="entry-actions">
-        <button class="btn-icon" data-edit="${e._id}" title="Rediger">✎</button>
-        <button class="btn-icon danger" data-del="${e._id}" title="Slet">✕</button>
-      </div>
-    </div>`).join('') + `</div>`;
+  if (t.groupBy) {
+    const g = t.groupBy;
+    const groups = {};
+    entries.forEach(e => {
+      const k = e[g.key] || g.order[0];
+      (groups[k] = groups[k] || []).push(e);
+    });
+    list.innerHTML = g.order.map(k => {
+      if (!groups[k] || !groups[k].length) return '';
+      return `<h3 class="group-heading">${esc(g.headers[k] || k)}</h3>
+        <div class="entry-grid">${groups[k].map(e => entryCardHTML(t, e)).join('')}</div>`;
+    }).join('');
+  } else {
+    list.innerHTML = `<div class="entry-grid">` + entries.map(e => entryCardHTML(t, e)).join('') + `</div>`;
+  }
   list.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openForm(activeType, b.dataset.edit)));
   list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
     if (!confirm('Slet denne post?')) return;
@@ -286,6 +331,54 @@ function renderList() {
     renderList();
     toast('Slettet');
   }));
+}
+
+function renderField(f, entry) {
+  const val = entry ? (entry[f.key] ?? '') : '';
+  if (f.type === 'textarea') {
+    return `<textarea data-key="${f.key}">${esc(val)}</textarea>`;
+  }
+  if (f.type === 'select') {
+    const opts = f.options.map(o => `<option value="${esc(o)}" ${val === o ? 'selected' : ''}>${esc(o)}</option>`).join('');
+    return `<select data-key="${f.key}">${opts}</select>`;
+  }
+  if (f.type === 'image' || f.type === 'audio') {
+    const accept = f.type === 'image' ? 'image/*' : 'audio/*';
+    const preview = f.type === 'image'
+      ? (val ? `<img src="${esc(val)}" class="upload-preview" alt="">` : '')
+      : (val ? `<audio src="${esc(val)}" controls class="upload-preview-audio"></audio>` : '');
+    return `${preview}
+      <input type="file" accept="${accept}" data-upload="${f.key}" data-uploadtype="${f.type}">
+      <div class="upload-hint">Vælg en fil for at uploade direkte til repoet (kræver gemt token) — eller indsæt et link manuelt herunder.</div>
+      <input type="text" data-key="${f.key}" value="${esc(val)}" placeholder="Link (udfyldes automatisk ved upload)">`;
+  }
+  return `<input type="${f.type}" data-key="${f.key}" value="${esc(val)}">`;
+}
+
+function attachUploadHandlers() {
+  document.querySelectorAll('[data-upload]').forEach(input => {
+    input.addEventListener('change', async () => {
+      const file = input.files[0];
+      if (!file) return;
+      const key = input.dataset.upload;
+      const kind = input.dataset.uploadtype;
+      const subdir = kind === 'image' ? 'images' : 'audio';
+      if (!ghToken()) {
+        alert('Gem en token først i "☁ Repo-sync" øverst på siden — upload kræver skriveadgang til DnD-Portal.');
+        input.value = '';
+        return;
+      }
+      const target = document.querySelector(`[data-key="${key}"]`);
+      try {
+        toast('Uploader…');
+        const url = await uploadAssetToRepo(file, subdir);
+        target.value = url;
+        toast((kind === 'image' ? 'Billede' : 'Lydfil') + ' uploadet ✓');
+      } catch (err) {
+        alert('Upload fejlede: ' + err.message);
+      }
+    });
+  });
 }
 
 function openForm(type, id) {
@@ -297,12 +390,11 @@ function openForm(type, id) {
   document.getElementById('form-fields').innerHTML = t.fields.map(f => `
     <div class="form-row">
       <label>${esc(f.label)}${f.required ? ' *' : ''}</label>
-      ${f.type === 'textarea'
-        ? `<textarea data-key="${f.key}">${esc(entry ? entry[f.key] : '')}</textarea>`
-        : `<input type="${f.type}" data-key="${f.key}" value="${esc(entry ? entry[f.key] : '')}">`}
+      ${renderField(f, entry)}
     </div>`).join('');
   document.getElementById('btn-delete').style.display = entry ? 'inline-flex' : 'none';
   document.getElementById('modal-overlay').classList.add('open');
+  attachUploadHandlers();
 }
 
 function closeForm() {
@@ -377,11 +469,140 @@ async function syncFromPortal() {
   }
 }
 
+/* ============================================================
+   REPO SYNC — pushes the active tab's entries to the DnD-Portal repo
+   (data/<file>.json), so the live spillerportal picks them up.
+   Token is stored in localStorage, SCOPED TO THIS ORIGIN ONLY.
+   Create it fresh at github.com/settings/tokens?type=beta with:
+   Repository access -> Only select repositories -> DnD-Portal
+   Permissions -> Contents: Read and write
+   ============================================================ */
+const GH_OWNER = 'Amazingraven', GH_REPO = 'DnD-Portal', GH_DIR = 'data';
+const GH_TOKEN_KEY = 'icespire-gh-token-portal';
+
+function ghToken() { return localStorage.getItem(GH_TOKEN_KEY) || ''; }
+function ghHeaders() { return { 'Authorization': 'Bearer ' + ghToken(), 'Accept': 'application/vnd.github+json' }; }
+function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
+function b64decode(b64) { return decodeURIComponent(escape(atob(b64))); }
+
+async function ghGetFile(path) {
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?_=${Date.now()}`;
+  const res = await fetch(url, { headers: ghHeaders() });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('GitHub-fejl ' + res.status + ' ved læsning af ' + path);
+  const data = await res.json();
+  return { sha: data.sha, text: b64decode(data.content || '') };
+}
+async function ghPutFile(path, contentText, message, sha) {
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const body = { message, content: b64encode(contentText) };
+  if (sha) body.sha = sha;
+  const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) { const t = await res.text(); throw new Error('GitHub-fejl ' + res.status + ': ' + t.slice(0, 140)); }
+  return res.json();
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1]); // strip "data:...;base64," prefix
+    r.onerror = () => reject(new Error('Kunne ikke læse filen'));
+    r.readAsDataURL(file);
+  });
+}
+
+// Uploads a binary asset (image/audio) straight to the repo as its own file
+// under data/<subdir>/, and returns the public GitHub Pages URL for it.
+async function uploadAssetToRepo(file, subdir) {
+  if (file.size > 20 * 1024 * 1024) {
+    throw new Error('Filen er over 20 MB — GitHub/Pages fungerer dårligt med så store filer. Komprimér eller brug et eksternt link i stedet.');
+  }
+  const safeName = file.name.toLowerCase().replace(/[^a-z0-9_.-]+/g, '-');
+  const path = `${GH_DIR}/${subdir}/${Date.now()}-${safeName}`;
+  const base64 = await fileToBase64(file);
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: ghHeaders(),
+    body: JSON.stringify({ message: 'Upload ' + safeName, content: base64 })
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error('GitHub-fejl ' + res.status + ': ' + t.slice(0, 140)); }
+  return `https://amazingraven.github.io/${GH_REPO}/${path}`;
+}
+
+function reflectTokenState() {
+  const has = !!ghToken();
+  document.getElementById('repoTokenArea').style.display = has ? 'none' : 'block';
+  document.getElementById('repoActions').style.display = has ? 'block' : 'none';
+}
+
+
+async function repoPushCurrent() {
+  const t = TYPES[activeType];
+  if (!ghToken()) { alert('Gem en token først.'); return; }
+  const entries = loadEntries(activeType).map(({ _id, ...rest }) => rest);
+  const btn = document.getElementById('btnRepoPush'); const old = btn.textContent;
+  btn.textContent = 'Gemmer…'; btn.disabled = true;
+  try {
+    const path = `${GH_DIR}/${t.file}`;
+    const payload = { [t.wrapperKey]: entries };
+    const existing = await ghGetFile(path);
+    await ghPutFile(path, JSON.stringify(payload, null, 2),
+      (existing ? 'Opdater' : 'Tilføj') + ' ' + t.label.toLowerCase(), existing ? existing.sha : null);
+    toast(t.label + ' gemt i repo ✓ (kan tage et minut før live)');
+  } catch (err) {
+    alert('Kunne ikke gemme i repo: ' + err.message);
+  } finally {
+    btn.textContent = old; btn.disabled = false;
+  }
+}
+
+document.getElementById('btnSaveToken').onclick = () => {
+  const v = document.getElementById('ghTokenInput').value.trim();
+  if (!v) { alert('Indsæt en token først.'); return; }
+  localStorage.setItem(GH_TOKEN_KEY, v);
+  document.getElementById('ghTokenInput').value = '';
+  reflectTokenState();
+  toast('Token gemt i denne browser');
+};
+document.getElementById('btnClearToken').onclick = () => {
+  if (!confirm('Fjern den gemte token fra denne browser?')) return;
+  localStorage.removeItem(GH_TOKEN_KEY); reflectTokenState(); toast('Token fjernet');
+};
+document.getElementById('btnRepoPush').onclick = repoPushCurrent;
+reflectTokenState();
+
 document.getElementById('btn-add').addEventListener('click', () => openForm(activeType, null));
 document.getElementById('btn-cancel').addEventListener('click', closeForm);
 document.getElementById('btn-save').addEventListener('click', saveForm);
 document.getElementById('btn-delete').addEventListener('click', deleteCurrent);
+function importCurrent(file) {
+  const t = TYPES[activeType];
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); }
+    catch (e) { alert('Ugyldig JSON-fil: ' + e.message); return; }
+    const list = data[t.wrapperKey];
+    if (!Array.isArray(list)) { alert(`Filen mangler nøglen "${t.wrapperKey}" — forventede { "${t.wrapperKey}": [...] }.`); return; }
+    const existing = loadEntries(activeType);
+    if (existing.length && !confirm(`Dette overskriver dine ${existing.length} lokale ${t.label.toLowerCase()}-poster med de ${list.length} fra filen. Fortsæt?`)) return;
+    const entries = list.map(e => ({ ...e, _id: 'c_' + Math.random().toString(36).slice(2) }));
+    saveEntries(activeType, entries);
+    renderList();
+    toast(list.length + ' ' + t.label.toLowerCase() + ' importeret — husk "☁ Gem i repo" for at gøre det live');
+  };
+  reader.onerror = () => alert('Kunne ikke læse filen.');
+  reader.readAsText(file);
+}
+
 document.getElementById('btn-export').addEventListener('click', exportCurrent);
+document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-file-input').click());
+document.getElementById('import-file-input').addEventListener('change', (ev) => {
+  const file = ev.target.files[0];
+  if (file) importCurrent(file);
+  ev.target.value = '';
+});
 document.getElementById('btn-sync').addEventListener('click', syncFromPortal);
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeForm(); });
 
