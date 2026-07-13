@@ -735,20 +735,46 @@ function renderAudioPreview(url) {
   return `<div class="upload-preview-audio" style="font-size:.8rem; opacity:.8;">🔗 Eksternt link (vises som "Lyt her"-knap på portalen): <a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a></div>`;
 }
 
+function normalizeAssetUrl(url) {
+  if (!url) return url;
+  let m = url.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/[^\/]+\/(.+?)(\?.*)?$/i);
+  if (m) return `https://${m[1].toLowerCase()}.github.io/${m[2]}/${m[3]}`;
+  m = url.match(/^https?:\/\/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/[^\/]+\/(.+?)(\?.*)?$/i);
+  if (m) return `https://${m[1].toLowerCase()}.github.io/${m[2]}/${m[3]}`;
+  return url;
+}
+
 function attachUploadHandlers() {
   document.querySelectorAll('[data-upload]').forEach(input => {
+    const key = input.dataset.upload;
+    const kind = input.dataset.uploadtype;
+    const target = document.querySelector(`[data-key="${key}"]`);
+    if (target) {
+      target.addEventListener('blur', () => {
+        const raw = target.value.trim();
+        const fixed = normalizeAssetUrl(raw);
+        if (fixed !== raw && fixed) {
+          target.value = fixed;
+          const slot = document.querySelector(`[data-preview-slot="${key}"]`);
+          if (slot) {
+            slot.innerHTML = kind === 'image'
+              ? `<img src="${esc(fixed)}" class="upload-preview" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                 <div class="upload-pending-note">Billedet kunne ikke indlæses lige nu — linket er rettet og gemt korrekt.</div>`
+              : renderAudioPreview(fixed);
+          }
+          toast('Link automatisk rettet til den korrekte adresse (var et GitHub-sidelink, ikke selve filen)');
+        }
+      });
+    }
     input.addEventListener('change', async () => {
       const file = input.files[0];
       if (!file) return;
-      const key = input.dataset.upload;
-      const kind = input.dataset.uploadtype;
       const subdir = kind === 'image' ? 'images' : 'audio';
       if (!ghToken()) {
         alert('Gem en token først i "☁ Repo-sync" øverst på siden — upload kræver skriveadgang til DnD-Portal.');
         input.value = '';
         return;
       }
-      const target = document.querySelector(`[data-key="${key}"]`);
       const slot = document.querySelector(`[data-preview-slot="${key}"]`);
       try {
         toast('Uploader…');
@@ -801,6 +827,7 @@ function saveForm() {
     const el = document.querySelector(`[data-key="${f.key}"]`);
     let val = el.value.trim();
     if (f.type === 'number') val = val === '' ? '' : Number(val);
+    if (f.type === 'image' || f.type === 'audio') val = normalizeAssetUrl(val);
     if (f.required && !val) missingRequired = true;
     values[f.key] = val;
   });
