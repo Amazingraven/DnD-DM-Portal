@@ -254,29 +254,6 @@
       }
     },
     {
-      "id": "b20",
-      "type": "narrative-dm",
-      "data": {
-        "heading": "The Broken Saddle",
-        "text": "Et rundt kammer med resterne af et enormt dragerideseletøj. Læderet er hårdt som sten. Sølvbeslagene er mørke. Spænderne er større end skjolde.\n\nVed siden af ligger en knækket lanseholder, en revnet sadelplade og et stykke sort skæl, poleret glat af hænder. På væggen hænger emblemet: en lanse over en sort vinge.\n\nDa I nærmer jer, bevæger seletøjet sig. Ikke som en levende ting. Som noget, der husker at blive brugt.",
-        "skills": [
-          {
-            "name": "ANIMAL HANDLING",
-            "desc": "Berolig seletøjet"
-          },
-          {
-            "name": "ARCANA",
-            "desc": "Find runen bag forsvaret"
-          },
-          {
-            "name": "PERSUASION",
-            "desc": "Tal ved navn"
-          }
-        ],
-        "dmNotes": "ENCOUNTER: The Bound Harness — en magisk forsvarsmekanisme, der forsøger at binde en uværdig rytter.\n\nMEKANIK: Vælg den helt, der går efter emblemet.\nDEX Save DC 14: undgå sølvremmene. Fejl = restrained.\nPå egen tur: Athletics DC 15 eller Acrobatics DC 15 for at slippe fri.\n\nFJENDER: 2-3 Animated Straps (se statblock). Svaghed: slashing. Immun: gift, psykisk.\n\nXP: 3 Animated Straps (CR 1/2, 100 XP hver) = ≈300 XP rå. Bruger du kun 2, ≈200 XP. Dette er en lille forhindrings-encounter, ikke en hovedkamp.\n\nUNDGÅ KAMP:\nAnimal Handling DC 15: behandl seletøjet som en panisk drageskabning.\nArcana DC 15: find runen, der holder forsvaret aktivt.\nPersuasion DC 16: tal til Aelrindel eller Nharessyth ved navn.\n\nNØGLEGENSTAND — Aelrindel's Rider Sigil:\nDette er IKKE loot. Det er en nøgle til redemption. Vises det til Aelrindel under bosskampen, tæller det som ét Moment of Clarity (se boss-scenen)."
-      }
-    },
-    {
       "id": "b21",
       "type": "statblock",
       "data": {
