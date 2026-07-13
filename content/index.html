@@ -122,6 +122,7 @@
   }
   .upload-preview { display: block; max-width: 100%; max-height: 160px; border-radius: 3px; border: 1px solid var(--gold); margin-bottom: .5rem; }
   .upload-preview-audio { display: block; width: 100%; margin-bottom: .5rem; }
+  .upload-pending-note { display: none; font-size: .75rem; opacity: .8; margin-bottom: .5rem; line-height: 1.4; }
   .upload-hint { font-size: .68rem; opacity: .7; margin: .3rem 0 .4rem; line-height: 1.4; }
   .entry-name { font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); margin-bottom: .15rem; }
   .entry-meta { font-family: 'Cinzel', serif; font-size: .66rem; letter-spacing: .07em; text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; }
@@ -193,6 +194,8 @@
     <div id="repoActions" style="display:none;">
       <div style="display:flex; gap:.6rem; flex-wrap:wrap; align-items:center;">
         <button class="btn-primary" id="btnRepoPush">☁ Gem <span id="repoPushLabel"></span> i repo</button>
+        <span id="dirtyIndicator" style="font-size:.68rem; opacity:.8;"></span>
+        <button class="btn-secondary" id="btnEditLabels">✎ Tilpas overskrifter</button>
         <button class="btn-ghost" id="btnClearToken" style="font-size:.62rem; opacity:.75;">Glem token</button>
       </div>
     </div>
@@ -234,7 +237,8 @@ const TYPES = {
   npcs: {
     label: 'Folk i kampagnen', file: 'npcs.json', wrapperKey: 'npcs',
     groupBy: { key: 'kind', order: ['NPC', 'Spillerkarakter'],
-      headers: { 'NPC': 'NPC\'er', 'Spillerkarakter': 'Spillernes karakterer' } },
+      headers: { 'NPC': 'NPC\'er', 'Spillerkarakter': 'Spillernes karakterer' },
+      labelKeys: { 'NPC': 'npcs_npc', 'Spillerkarakter': 'npcs_pc' } },
     fields: [
       { key: 'name', label: 'Navn', type: 'text', required: true },
       { key: 'kind', label: 'Type', type: 'select', options: ['NPC', 'Spillerkarakter'], required: true },
@@ -288,6 +292,40 @@ let toastTimer = null;
 
 function storageKey(type) { return 'icespire-portal-content-' + type; }
 const SHOPS_KEY = 'icespire-portal-content-shops';
+
+const LABELS_KEY = 'icespire-portal-content-labels';
+function loadCustomLabels() {
+  try { const raw = localStorage.getItem(LABELS_KEY); return raw ? JSON.parse(raw) : {}; }
+  catch { return {}; }
+}
+function saveCustomLabels(obj) { localStorage.setItem(LABELS_KEY, JSON.stringify(obj)); }
+function getLabel(typeKey) {
+  const custom = loadCustomLabels();
+  return (custom[typeKey] && custom[typeKey].trim()) || TYPES[typeKey].label;
+}
+function getGroupLabel(labelKey) {
+  if (!labelKey) return null;
+  const custom = loadCustomLabels();
+  return (custom[labelKey] && custom[labelKey].trim()) || null;
+}
+
+function currentSnapshot(type) {
+  return type === 'shops' ? loadShops() : loadEntries(type).map(({ _id, ...rest }) => rest);
+}
+function markSynced(type) {
+  localStorage.setItem('icespire-sync-marker-' + type, JSON.stringify(currentSnapshot(type)));
+}
+function isDirty(type) {
+  const marker = localStorage.getItem('icespire-sync-marker-' + type);
+  if (marker === null) return currentSnapshot(type).length > 0; // never synced, but has local data
+  return marker !== JSON.stringify(currentSnapshot(type));
+}
+function updateDirtyIndicator() {
+  const el = document.getElementById('dirtyIndicator');
+  if (!el) return;
+  el.textContent = isDirty(activeType) ? '● Ugemte ændringer — husk at gemme i repo' : '✓ Synkroniseret med repo';
+  el.style.color = isDirty(activeType) ? '#b5442f' : '#3f7a4f';
+}
 function loadShops() {
   try { const raw = localStorage.getItem(SHOPS_KEY); return raw ? JSON.parse(raw) : []; }
   catch { return []; }
@@ -320,13 +358,13 @@ function toast(msg) {
 function renderTabs() {
   const nav = document.getElementById('tabs');
   nav.innerHTML = Object.entries(TYPES).map(([key, t]) =>
-    `<button class="tab-btn ${key === activeType ? 'active' : ''}" data-type="${key}">${esc(t.label)}</button>`
+    `<button class="tab-btn ${key === activeType ? 'active' : ''}" data-type="${key}">${esc(getLabel(key))}</button>`
   ).join('');
   nav.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => { activeType = btn.dataset.type; renderTabs(); renderList(); });
   });
   const pushLabel = document.getElementById('repoPushLabel');
-  if (pushLabel) pushLabel.textContent = TYPES[activeType].label;
+  if (pushLabel) pushLabel.textContent = getLabel(activeType);
 }
 
 function entryCardHTML(t, e) {
@@ -346,6 +384,8 @@ function entryCardHTML(t, e) {
         ${t.desc(e) ? `<div class="entry-desc">${esc(t.desc(e))}</div>` : ''}
         ${audioHTML}
         <div class="entry-actions">
+          <button class="btn-icon" data-move-up="${e._id}" title="Flyt op">▲</button>
+          <button class="btn-icon" data-move-down="${e._id}" title="Flyt ned">▼</button>
           <button class="btn-icon" data-edit="${e._id}" title="Rediger">✎</button>
           <button class="btn-icon danger" data-del="${e._id}" title="Slet">✕</button>
         </div>
@@ -353,15 +393,42 @@ function entryCardHTML(t, e) {
     </div>`;
 }
 
+function moveEntry(type, id, dir) {
+  const entries = loadEntries(type);
+  const t = TYPES[type];
+  const idx = entries.findIndex(e => e._id === id);
+  if (idx === -1) return;
+  if (t.groupBy) {
+    const gKey = t.groupBy.key;
+    const groupVal = entries[idx][gKey] || t.groupBy.order[0];
+    const groupIndices = entries
+      .map((e, i) => ({ e, i }))
+      .filter(x => (x.e[gKey] || t.groupBy.order[0]) === groupVal)
+      .map(x => x.i);
+    const posInGroup = groupIndices.indexOf(idx);
+    const swapPos = posInGroup + dir;
+    if (swapPos < 0 || swapPos >= groupIndices.length) return;
+    const otherIdx = groupIndices[swapPos];
+    [entries[idx], entries[otherIdx]] = [entries[otherIdx], entries[idx]];
+  } else {
+    const swapIdx = idx + dir;
+    if (swapIdx < 0 || swapIdx >= entries.length) return;
+    [entries[idx], entries[swapIdx]] = [entries[swapIdx], entries[idx]];
+  }
+  saveEntries(type, entries);
+  renderList();
+}
+
 function renderList() {
   const t = TYPES[activeType];
-  document.getElementById('panel-title').textContent = t.label;
+  document.getElementById('panel-title').textContent = getLabel(activeType);
   document.getElementById('btn-add').textContent = activeType === 'shops' ? '+ Ny butik' : '+ Tilføj';
+  updateDirtyIndicator();
   if (activeType === 'shops') { renderShopsPanel(); return; }
   const entries = loadEntries(activeType);
   const list = document.getElementById('entry-list');
   if (!entries.length) {
-    list.innerHTML = `<p class="empty-hint">Ingen ${esc(t.label.toLowerCase())} endnu. Klik "+ Tilføj", eller "🔄 Hent nyeste fra portal" hvis der allerede findes indhold på den live side.</p>`;
+    list.innerHTML = `<p class="empty-hint">Ingen ${esc(getLabel(activeType).toLowerCase())} endnu. Klik "+ Tilføj", eller "🔄 Hent nyeste fra portal" hvis der allerede findes indhold på den live side.</p>`;
     return;
   }
   if (t.groupBy) {
@@ -373,12 +440,14 @@ function renderList() {
     });
     list.innerHTML = g.order.map(k => {
       if (!groups[k] || !groups[k].length) return '';
-      return `<h3 class="group-heading">${esc(g.headers[k] || k)}</h3>
+      return `<h3 class="group-heading">${esc(getGroupLabel(g.labelKeys && g.labelKeys[k]) || g.headers[k] || k)}</h3>
         <div class="entry-list">${groups[k].map(e => entryCardHTML(t, e)).join('')}</div>`;
     }).join('');
   } else {
     list.innerHTML = `<div class="entry-list">` + entries.map(e => entryCardHTML(t, e)).join('') + `</div>`;
   }
+  list.querySelectorAll('[data-move-up]').forEach(b => b.addEventListener('click', () => moveEntry(activeType, b.dataset.moveUp, -1)));
+  list.querySelectorAll('[data-move-down]').forEach(b => b.addEventListener('click', () => moveEntry(activeType, b.dataset.moveDown, 1)));
   list.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openForm(activeType, b.dataset.edit)));
   list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
     if (!confirm('Slet denne post?')) return;
@@ -408,6 +477,8 @@ function renderShopsPanel() {
           <div class="entry-meta">${shop.items.length} varer${soldOut ? ' · ' + soldOut + ' udsolgt' : ''}</div>
         </div>
         <div class="shop-card-actions">
+          <button class="btn-icon" data-shop-up="${shop.id}" title="Flyt op">▲</button>
+          <button class="btn-icon" data-shop-down="${shop.id}" title="Flyt ned">▼</button>
           <button class="btn-toggle ${disabled ? 'off' : 'on'}" data-toggle="${shop.id}">${disabled ? 'Skjult' : 'Aktiv'}</button>
           <button class="btn-icon" data-editshop="${shop.id}" title="Rediger butik">✎</button>
           <button class="btn-icon danger" data-delshop="${shop.id}" title="Slet butik">✕</button>
@@ -421,6 +492,8 @@ function renderShopsPanel() {
     expandedShopId = expandedShopId === el.dataset.open ? null : el.dataset.open;
     renderShopsPanel();
   }));
+  list.querySelectorAll('[data-shop-up]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); moveShop(btn.dataset.shopUp, -1); }));
+  list.querySelectorAll('[data-shop-down]').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); moveShop(btn.dataset.shopDown, 1); }));
   list.querySelectorAll('[data-toggle]').forEach(btn => btn.addEventListener('click', (e) => {
     e.stopPropagation();
     const s2 = loadShops();
@@ -446,6 +519,16 @@ function renderShopsPanel() {
   wireShopDetailEvents();
 }
 
+function moveShop(id, dir) {
+  const shops = loadShops();
+  const idx = shops.findIndex(s => s.id === id);
+  const swapIdx = idx + dir;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= shops.length) return;
+  [shops[idx], shops[swapIdx]] = [shops[swapIdx], shops[idx]];
+  saveShops(shops);
+  renderShopsPanel();
+}
+
 function renderShopDetail(shop) {
   if (!shop) return '';
   const inStock = shop.items.filter(i => i.qty > 0).length;
@@ -468,6 +551,8 @@ function renderShopDetail(shop) {
               <td>${esc(item.type || '')}</td>
               <td>${esc(item.price || '')}</td>
               <td>
+                <button class="btn-icon" data-item-up="${shop.id}|${item.id}" title="Flyt op">▲</button>
+                <button class="btn-icon" data-item-down="${shop.id}|${item.id}" title="Flyt ned">▼</button>
                 <button class="btn-icon" data-sell="${shop.id}|${item.id}" title="Solgt (−1)" ${item.qty === 0 ? 'disabled' : ''}>−</button>
                 <button class="btn-icon" data-restock="${shop.id}|${item.id}" title="Genopfyld (+1)">+</button>
                 <button class="btn-icon" data-edititem="${shop.id}|${item.id}" title="Rediger">✎</button>
@@ -483,6 +568,14 @@ function renderShopDetail(shop) {
 function wireShopDetailEvents() {
   const list = document.getElementById('entry-list');
   list.querySelectorAll('[data-additem]').forEach(btn => btn.addEventListener('click', () => openShopItemForm(btn.dataset.additem, null)));
+  list.querySelectorAll('[data-item-up]').forEach(btn => btn.addEventListener('click', () => {
+    const [shopId, itemId] = btn.dataset.itemUp.split('|');
+    moveShopItem(shopId, itemId, -1);
+  }));
+  list.querySelectorAll('[data-item-down]').forEach(btn => btn.addEventListener('click', () => {
+    const [shopId, itemId] = btn.dataset.itemDown.split('|');
+    moveShopItem(shopId, itemId, 1);
+  }));
   list.querySelectorAll('[data-sell]').forEach(btn => btn.addEventListener('click', () => adjustShopItemQty(btn.dataset.sell, -1)));
   list.querySelectorAll('[data-restock]').forEach(btn => btn.addEventListener('click', () => adjustShopItemQty(btn.dataset.restock, 1)));
   list.querySelectorAll('[data-edititem]').forEach(btn => btn.addEventListener('click', () => {
@@ -507,6 +600,17 @@ function adjustShopItemQty(key, delta) {
   const shop = shops.find(s => s.id === shopId);
   const item = shop.items.find(i => i.id === itemId);
   item.qty = Math.max(0, (item.qty || 0) + delta);
+  saveShops(shops);
+  renderShopsPanel();
+}
+
+function moveShopItem(shopId, itemId, dir) {
+  const shops = loadShops();
+  const shop = shops.find(s => s.id === shopId);
+  const idx = shop.items.findIndex(i => i.id === itemId);
+  const swapIdx = idx + dir;
+  if (idx === -1 || swapIdx < 0 || swapIdx >= shop.items.length) return;
+  [shop.items[idx], shop.items[swapIdx]] = [shop.items[swapIdx], shop.items[idx]];
   saveShops(shops);
   renderShopsPanel();
 }
@@ -610,7 +714,7 @@ function renderField(f, entry) {
   if (f.type === 'image' || f.type === 'audio') {
     const accept = f.type === 'image' ? 'image/*' : 'audio/*';
     const preview = f.type === 'image'
-      ? (val ? `<img src="${esc(val)}" class="upload-preview" alt="">` : '')
+      ? (val ? `<img src="${esc(val)}" class="upload-preview" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="upload-pending-note">Billedet kunne ikke indlæses lige nu (kan skyldes at det lige er uploadet) — linket er gemt korrekt.</div>` : '')
       : (val ? renderAudioPreview(val) : '');
     const hint = f.type === 'image'
       ? 'Vælg en fil for at uploade direkte til repoet (kræver gemt token) — eller indsæt et billed-link manuelt herunder.'
@@ -652,10 +756,11 @@ function attachUploadHandlers() {
         target.value = url;
         if (slot) {
           slot.innerHTML = kind === 'image'
-            ? `<img src="${esc(url)}" class="upload-preview" alt="">`
+            ? `<img src="${esc(url)}" class="upload-preview" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+               <div class="upload-pending-note">✓ Uploadet til repoet. Billedet kan tage et minuts tid om at blive tilgængeligt via GitHub Pages — luk og genåbn formularen om lidt for at se det.</div>`
             : renderAudioPreview(url);
         }
-        toast((kind === 'image' ? 'Billede' : 'Lydfil') + ' uploadet ✓');
+        toast((kind === 'image' ? 'Billede' : 'Lydfil') + ' uploadet ✓ (kan tage et minut før det er synligt)');
       } catch (err) {
         alert('Upload fejlede: ' + err.message);
       }
@@ -742,8 +847,8 @@ function exportCurrent() {
 
 async function syncFromPortal() {
   const t = TYPES[activeType];
-  const hasLocal = activeType === 'shops' ? loadShops().length : loadEntries(activeType).length;
-  if (hasLocal && !confirm('Dette overskriver dine lokale ændringer for ' + t.label + ' med det, der ligger live på portalen. Fortsæt?')) return;
+  const dirty = isDirty(activeType);
+  if (dirty && !confirm('⚠️ ADVARSEL: Du har ugemte ændringer for ' + getLabel(activeType) + ' (inkl. evt. billeder/lyd), som ikke er pushet til repoet endnu. Dette SLETTER dem og erstatter dem med det, der ligger LIVE på portalen.\n\nKlik "Annuller" og tryk "☁ Gem ' + getLabel(activeType) + ' i repo" FØRST, hvis du vil beholde dine ændringer.\n\nFortsæt og overskriv?')) return;
   try {
     const res = await fetch(PORTAL_BASE + t.file + '?_=' + Date.now());
     if (!res.ok) throw new Error('Kunne ikke hente ' + t.file);
@@ -755,6 +860,7 @@ async function syncFromPortal() {
       const entries = (data[t.wrapperKey] || []).map(e => ({ ...e, _id: 'c_' + Math.random().toString(36).slice(2) }));
       saveEntries(activeType, entries);
     }
+    markSynced(activeType);
     renderList();
     toast('Hentet fra portalen');
   } catch (err) {
@@ -842,8 +948,10 @@ async function repoPushCurrent() {
     const path = `${GH_DIR}/${t.file}`;
     const existing = await ghGetFile(path);
     await ghPutFile(path, JSON.stringify(payload, null, 2),
-      (existing ? 'Opdater' : 'Tilføj') + ' ' + t.label.toLowerCase(), existing ? existing.sha : null);
-    toast(t.label + ' gemt i repo ✓ (kan tage et minut før live)');
+      (existing ? 'Opdater' : 'Tilføj') + ' ' + getLabel(activeType).toLowerCase(), existing ? existing.sha : null);
+    markSynced(activeType);
+    updateDirtyIndicator();
+    toast(getLabel(activeType) + ' gemt i repo ✓ (kan tage et minut før live)');
   } catch (err) {
     alert('Kunne ikke gemme i repo: ' + err.message);
   } finally {
@@ -874,12 +982,63 @@ document.getElementById('btn-cancel').addEventListener('click', closeForm);
 document.getElementById('btn-save').addEventListener('click', () => {
   if (formMode === 'shop') saveShopForm();
   else if (formMode === 'shopItem') saveShopItemForm();
+  else if (formMode === 'labels') saveLabelsForm();
   else saveForm();
 });
 document.getElementById('btn-delete').addEventListener('click', () => {
   if (formMode === 'entry') deleteCurrent();
   // shop/shopItem deletion happens inline via the ✕ buttons in the panel, not this modal button
 });
+document.getElementById('btnEditLabels').addEventListener('click', openLabelsForm);
+
+const LABEL_FIELDS = [
+  { key: 'npcs', label: 'Fanenavn: "Folk i kampagnen"', type: 'text' },
+  { key: 'npcs_npc', label: '↳ Undergruppe: "NPC\'er"', type: 'text' },
+  { key: 'npcs_pc', label: '↳ Undergruppe: "Spillernes karakterer"', type: 'text' },
+  { key: 'items', label: 'Fanenavn: "Fund & genstande"', type: 'text' },
+  { key: 'sessions', label: 'Fanenavn: "Session-logs"', type: 'text' },
+  { key: 'shops', label: 'Fanenavn: "Butikker"', type: 'text' }
+];
+
+function openLabelsForm() {
+  const custom = loadCustomLabels();
+  formMode = 'labels';
+  document.getElementById('modal-title').textContent = 'Tilpas overskrifter';
+  document.getElementById('form-fields').innerHTML =
+    `<p style="font-size:.8rem; opacity:.8; margin-bottom:.8rem;">Disse navne bruges både her i editoren og som overskrifter på selve spillerportalen. Lad et felt stå tomt for at bruge standardnavnet.</p>` +
+    LABEL_FIELDS.map(f => `
+      <div class="form-row">
+        <label>${esc(f.label)}</label>
+        <input type="text" data-key="${f.key}" value="${esc(custom[f.key] || '')}" placeholder="${esc(f.key === 'npcs' ? TYPES.npcs.label : (TYPES[f.key] ? TYPES[f.key].label : ''))}">
+      </div>`).join('');
+  document.getElementById('btn-delete').style.display = 'none';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+async function saveLabelsForm() {
+  const values = {};
+  LABEL_FIELDS.forEach(f => {
+    const el = document.querySelector(`[data-key="${f.key}"]`);
+    values[f.key] = el.value.trim();
+  });
+  saveCustomLabels(values);
+  renderTabs();
+  renderList();
+  closeForm();
+  toast('Overskrifter gemt lokalt…');
+  if (!ghToken()) {
+    toast('Husk: gem en token for at gøre det synligt for spillerne også');
+    return;
+  }
+  try {
+    const path = `${GH_DIR}/labels.json`;
+    const existing = await ghGetFile(path);
+    await ghPutFile(path, JSON.stringify(values, null, 2), 'Opdater overskrifter', existing ? existing.sha : null);
+    toast('Overskrifter gemt og pushet til portalen ✓');
+  } catch (err) {
+    alert('Kunne ikke gemme overskrifter i repo: ' + err.message + '\n\n(De er stadig gemt lokalt her i editoren.)');
+  }
+}
 function importCurrent(file) {
   const t = TYPES[activeType];
   const reader = new FileReader();
@@ -900,11 +1059,11 @@ function importCurrent(file) {
     const list = data[t.wrapperKey];
     if (!Array.isArray(list)) { alert(`Filen mangler nøglen "${t.wrapperKey}" — forventede { "${t.wrapperKey}": [...] }.`); return; }
     const existing = loadEntries(activeType);
-    if (existing.length && !confirm(`Dette overskriver dine ${existing.length} lokale ${t.label.toLowerCase()}-poster med de ${list.length} fra filen. Fortsæt?`)) return;
+    if (existing.length && !confirm(`Dette overskriver dine ${existing.length} lokale ${getLabel(activeType).toLowerCase()}-poster med de ${list.length} fra filen. Fortsæt?`)) return;
     const entries = list.map(e => ({ ...e, _id: 'c_' + Math.random().toString(36).slice(2) }));
     saveEntries(activeType, entries);
     renderList();
-    toast(list.length + ' ' + t.label.toLowerCase() + ' importeret — husk "☁ Gem i repo" for at gøre det live');
+    toast(list.length + ' ' + getLabel(activeType).toLowerCase() + ' importeret — husk "☁ Gem i repo" for at gøre det live');
   };
   reader.onerror = () => alert('Kunne ikke læse filen.');
   reader.readAsText(file);
