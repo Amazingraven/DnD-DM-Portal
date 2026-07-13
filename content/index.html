@@ -3,611 +3,542 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phandalin — Portal Content Manager</title>
+<title>Dragons of Icespire Peak — Spillerportal</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0a05;
     --ink: #1a1208;
-    --parch: #f2e8c9;
-    --parch-dark: #e8d9a8;
-    --parch-mid: #ede0b5;
+    --parchment: #f2e8c9;
+    --parchment-dark: #e8d9a8;
+    --parchment-mid: #ede0b5;
     --gold: #b8862a;
     --gold-light: #d4a843;
     --rust: #8b2e0a;
     --ash: #3d3020;
+    --ember: #c44a0a;
+    --shadow: rgba(20, 10, 0, 0.55);
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; }
   body {
-    background: var(--bg); color: var(--ink);
+    margin: 0;
+    background: #0d0a05;
+    color: var(--ink);
     font-family: 'IM Fell English', Georgia, serif;
-    min-height: 100vh; padding-bottom: 5rem;
+    min-height: 100vh;
   }
   body::before {
-    content: ''; position: fixed; inset: 0;
+    content: '';
+    position: fixed;
+    inset: 0;
     background:
-      radial-gradient(ellipse at 30% 20%, rgba(180,90,10,.15) 0%, transparent 60%),
-      radial-gradient(ellipse at 75% 80%, rgba(150,60,5,.10) 0%, transparent 50%);
-    pointer-events: none; z-index: 0;
+      radial-gradient(ellipse at 30% 20%, rgba(180,90,10,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse at 75% 80%, rgba(150,60,5,0.12) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: candleflicker 6s ease-in-out infinite alternate;
   }
-  .page { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; }
-  header { text-align: center; padding: 2.5rem 1.5rem 1.5rem; border-bottom: 1px solid rgba(184,134,42,.2); }
-  .header-sub {
-    font-family: 'Cinzel', serif; font-size: .72rem; letter-spacing: .35em;
-    color: var(--gold); text-transform: uppercase; margin-bottom: .6rem;
+  @keyframes candleflicker {
+    0%   { opacity: 0.8; }
+    30%  { opacity: 1.0; }
+    60%  { opacity: 0.85; }
+    100% { opacity: 1.0; }
   }
-  header h1 {
-    font-family: 'Cinzel Decorative', serif; font-weight: 700;
-    font-size: clamp(1.6rem, 4.5vw, 2.6rem); color: var(--parch);
-    text-shadow: 0 0 24px rgba(180,100,20,.35);
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-  .session-badge {
-    display: inline-block; margin-top: .8rem; font-family: 'Cinzel', serif;
-    font-size: .7rem; letter-spacing: .12em; text-transform: uppercase;
-    color: var(--gold-light); border: 1px solid var(--gold); border-radius: 3px;
-    padding: .3rem .9rem;
+  .page-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 6rem;
+    position: relative;
+    z-index: 1;
   }
-  .toolrow {
-    display: flex; justify-content: center; gap: .7rem; margin: 1.8rem 0; flex-wrap: wrap;
+  header.site-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 1s 0.2s forwards;
   }
-  .btn-secondary, .btn-primary, .btn-ghost {
-    font-family: 'Cinzel', serif; font-size: .72rem; letter-spacing: .08em;
-    text-transform: uppercase; padding: .55rem 1rem; border-radius: 3px; cursor: pointer;
-    border: 1px solid var(--gold); background: var(--parch-mid); color: var(--ash);
-    text-decoration: none; display: inline-flex; align-items: center;
+  .kicker {
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold-light);
   }
-  .btn-primary { background: var(--rust); color: var(--parch); border-color: var(--rust); }
-  .btn-ghost { background: transparent; color: var(--gold-light); }
-  .btn-danger { border-color: #c0392b; color: #c0392b; background: transparent; }
+  h1.site-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    color: var(--parchment);
+    margin: 0.4rem 0 0.3rem;
+    text-shadow: 0 0 20px rgba(180,100,20,0.4);
+  }
+  .site-mood {
+    font-style: italic;
+    color: var(--gold-light);
+    font-size: 1rem;
+  }
 
-  nav.tabs { display: flex; justify-content: center; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-  .tab-btn {
-    font-family: 'Cinzel', serif; font-weight: 600; font-size: .72rem; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--parch-dark);
-    background: linear-gradient(180deg, var(--rust), #6b2308); border: none;
-    padding: .65rem 1rem .8rem; cursor: pointer;
-    clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%);
+  /* Ribbon-bookmark tab navigation — the signature element */
+  nav.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 2.2rem 0 0;
+    opacity: 0;
+    animation: fadeUp 1s 0.4s forwards;
   }
-  .tab-btn.active { background: linear-gradient(180deg, #c44a0a, var(--rust)); color: var(--parch); }
+  .tab-btn {
+    position: relative;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--parchment-dark);
+    background: linear-gradient(180deg, var(--rust), #6b2308);
+    border: none;
+    padding: 0.7rem 1.1rem 0.9rem;
+    cursor: pointer;
+    clip-path: polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%);
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .tab-btn:hover { transform: translateY(2px); }
+  .tab-btn.active {
+    background: linear-gradient(180deg, var(--ember), var(--rust));
+    color: var(--parchment);
+  }
 
   .scroll-panel {
-    background: radial-gradient(ellipse at 50% 0%, var(--parch) 0%, var(--parch-dark) 100%);
-    border: 1px solid var(--gold); border-radius: 6px; padding: 1.6rem 1.8rem;
-    box-shadow: 0 4px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3);
+    background: radial-gradient(ellipse at 50% 0%, var(--parchment) 0%, var(--parchment-dark) 100%);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    padding: 2rem 2.2rem;
+    margin: 2rem 0 2.5rem;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
+    position: relative;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.1s forwards;
   }
-  .panel-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: .6rem; }
-  .panel-actions h2 {
-    font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); font-size: 1.1rem;
+  .panel-heading {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: clamp(1rem, 3vw, 1.4rem);
+    color: var(--rust);
+    margin-top: 0;
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.2rem;
   }
-  .empty-hint { font-style: italic; color: var(--ash); opacity: .8; padding: 1rem 0; }
+  .empty-state {
+    font-style: italic;
+    color: var(--ash);
+    opacity: 0.8;
+  }
 
-  .entry-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.4rem; }
-  .entry-card { background: var(--parch-mid); border: 1px solid var(--gold); border-radius: 4px; padding: 1rem 1.1rem; }
-  .entry-thumb { width: 100%; max-height: 150px; object-fit: cover; border-radius: 3px; border: 1px solid var(--gold); margin-bottom: .6rem; display: block; }
-  .entry-audio { width: 100%; margin: .4rem 0 .6rem; }
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.1rem;
+  }
+  .card {
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+    background: var(--parchment-mid);
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    padding: 1rem 1.2rem;
+  }
+  .card-media {
+    flex: 0 0 130px;
+    width: 130px;
+    height: 92px;
+    object-fit: cover;
+    border-radius: 3px;
+    border: 1px solid var(--gold);
+    cursor: zoom-in;
+    transition: opacity 0.15s ease;
+  }
+  .card-media:hover {
+    opacity: 0.85;
+  }
+  .lightbox-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12, 9, 6, 0.93);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    cursor: zoom-out;
+  }
+  .lightbox-overlay.open {
+    display: flex;
+  }
+  .lightbox-img {
+    max-width: 92vw;
+    max-height: 92vh;
+    object-fit: contain;
+    border-radius: 4px;
+    box-shadow: 0 10px 45px rgba(0, 0, 0, 0.65);
+  }
+  .card-body {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .card-name {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    color: var(--rust);
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+  .card-meta {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+  .card-desc {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+  .card-audio {
+    display: block;
+    width: 100%;
+    margin-top: 0.7rem;
+  }
+  .audio-link-btn {
+    display: inline-block;
+    margin-top: 0.7rem;
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--parchment);
+    background: var(--rust);
+    padding: 0.45rem 0.9rem;
+    border-radius: 3px;
+    text-decoration: none;
+  }
+  .audio-link-btn:hover {
+    opacity: 0.88;
+  }
   .group-heading {
-    font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); font-size: .9rem;
-    letter-spacing: .05em; text-transform: uppercase; margin: 0 0 .6rem; padding-bottom: .3rem;
-    border-bottom: 1px solid rgba(184,134,42,.35);
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0 0 0.8rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(184,134,42,0.4);
   }
-  .upload-preview { display: block; max-width: 100%; max-height: 160px; border-radius: 3px; border: 1px solid var(--gold); margin-bottom: .5rem; }
-  .upload-preview-audio { display: block; width: 100%; margin-bottom: .5rem; }
-  .upload-hint { font-size: .68rem; opacity: .7; margin: .3rem 0 .4rem; line-height: 1.4; }
-  .entry-name { font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); margin-bottom: .15rem; }
-  .entry-meta { font-family: 'Cinzel', serif; font-size: .66rem; letter-spacing: .07em; text-transform: uppercase; color: var(--gold); margin-bottom: .4rem; }
-  .entry-desc { font-size: .9rem; line-height: 1.5; color: var(--ink); margin-bottom: .6rem; max-height: 4.6em; overflow: hidden; }
-  .entry-actions { display: flex; gap: .4rem; }
-  .btn-icon {
-    border: 1px solid var(--gold); background: var(--parch); color: var(--ash);
-    border-radius: 3px; padding: .25rem .55rem; cursor: pointer; font-size: .85rem;
-  }
-  .btn-icon.danger { border-color: #c0392b; color: #c0392b; }
 
-  /* modal */
-  .overlay {
-    display: none; position: fixed; inset: 0; background: rgba(10,6,2,.72);
-    z-index: 100; align-items: center; justify-content: center; padding: 1.5rem;
+  .shop-card {
+    display: block;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.12s ease, border-color 0.12s ease;
   }
-  .overlay.open { display: flex; }
-  .modal {
-    background: var(--parch); border: 1px solid var(--gold); border-radius: 6px;
-    max-width: 520px; width: 100%; padding: 1.6rem 1.8rem; max-height: 88vh; overflow-y: auto;
-  }
-  .modal-title { font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); font-size: 1.1rem; margin-bottom: 1rem; }
-  .form-row { margin-bottom: .9rem; }
-  .form-row label {
-    display: block; font-family: 'Cinzel', serif; font-size: .68rem; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--ash); margin-bottom: .3rem;
-  }
-  .form-row input, .form-row textarea {
-    width: 100%; font-family: 'IM Fell English', Georgia, serif; font-size: 1rem;
-    padding: .5rem .6rem; border: 1px solid var(--gold); border-radius: 3px; background: var(--parch-dark);
-  }
-  .form-row textarea { min-height: 5rem; resize: vertical; }
-  .modal-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+  .shop-card:hover { transform: translateY(-2px); border-color: var(--ember); }
+  .shop-card.active { border-color: var(--ember); background: var(--parchment-dark); }
+  .shop-card .shop-icon { font-size: 1.8rem; margin-bottom: 0.3rem; }
+  .shop-card .card-name { margin-bottom: 0; }
+  .shop-card .card-meta { margin-bottom: 0; }
 
-  #toast {
-    display: none; position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
-    background: var(--rust); color: var(--parch); font-family: 'Cinzel', serif; font-size: .75rem;
-    letter-spacing: .1em; text-transform: uppercase; padding: .6rem 1.2rem; border-radius: 3px;
-    z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,.5);
+  #shop-detail { margin-top: 1.5rem; }
+  .shop-detail-title {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    color: var(--rust);
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 0.5rem;
+  }
+  .shop-detail-title .keeper {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ash);
+    font-size: 0.95rem;
+  }
+  table.shop-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  table.shop-table th {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--gold);
+  }
+  table.shop-table td {
+    padding: 0.55rem 0.6rem;
+    border-bottom: 1px solid rgba(184,134,42,0.25);
+    vertical-align: top;
+  }
+  table.shop-table tr.sold-out { opacity: 0.55; }
+  .item-name { font-weight: 600; color: var(--ink); }
+  .item-rules { font-size: 0.82rem; color: var(--ash); margin-top: 0.2rem; line-height: 1.4; }
+  .qty-badge {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+  }
+  .qty-ok { background: rgba(74,124,89,0.18); color: #3d6b48; }
+  .qty-low { background: rgba(199,126,37,0.2); color: #a05f1a; }
+  .qty-sold { background: rgba(192,57,43,0.18); color: #a5312a; }
+  .item-price { font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); white-space: nowrap; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 2.5rem 0;
+    opacity: 0.7;
+    color: var(--gold);
+    font-size: 0.9rem;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+
+  footer {
+    text-align: center;
+    color: var(--gold-light);
+    font-style: italic;
+    opacity: 0.75;
+    margin-top: 3rem;
   }
 </style>
 </head>
 <body>
+<div class="page-wrap">
 
-<div id="toast"></div>
+  <header class="site-header">
+    <div class="kicker">Dragons of Icespire Peak</div>
+    <h1 class="site-title">Phandalins Krønike</h1>
+    <div class="site-mood">Folk, fund og fortællinger fra ekspeditionen</div>
+  </header>
 
-<header>
-  <div class="header-sub">Dragons of Icespire Peak · Phandalin</div>
-  <h1>Portal Content Manager</h1>
-  <div class="session-badge">Redigér spillerportalens indhold</div>
-</header>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="sessions">Session-logs</button>
+    <button class="tab-btn" data-tab="npcs">Folk vi har mødt</button>
+    <button class="tab-btn" data-tab="items">Fund &amp; genstande</button>
+    <button class="tab-btn" data-tab="shops">Butikker</button>
+  </nav>
 
-<div class="page">
-  <div class="toolrow">
-    <a class="btn-secondary" href="../" style="text-decoration:none;">⚔ Til Builder</a>
-    <a class="btn-secondary" href="https://amazingraven.github.io/DnD-Portal/" target="_blank" style="text-decoration:none;">👁 Se live portal</a>
-  </div>
-
-  <section class="scroll-panel" style="margin-bottom:1.5rem; padding:1.3rem 1.5rem;">
-    <div class="panel-actions" style="margin-bottom:.7rem;">
-      <h2 style="font-size:.95rem;">☁ Repo-sync (DnD-Portal)</h2>
-    </div>
-    <div id="repoTokenArea">
-      <input type="password" id="ghTokenInput"
-        placeholder="GitHub-token (kun DnD-Portal, Contents: Read and write)"
-        style="width:100%; font-family:'IM Fell English',Georgia,serif; font-size:.95rem; padding:.5rem .6rem; border:1px solid var(--gold); border-radius:3px; background:var(--parch-dark); margin-bottom:.6rem;">
-      <button class="btn-primary" id="btnSaveToken" style="width:100%;">Gem token</button>
-    </div>
-    <div id="repoActions" style="display:none;">
-      <div style="display:flex; gap:.6rem; flex-wrap:wrap; align-items:center;">
-        <button class="btn-primary" id="btnRepoPush">☁ Gem <span id="repoPushLabel"></span> i repo</button>
-        <button class="btn-ghost" id="btnClearToken" style="font-size:.62rem; opacity:.75;">Glem token</button>
-      </div>
-    </div>
+  <section id="tab-sessions" class="tab-panel scroll-panel">
+    <h2 class="panel-heading">Session-logs</h2>
+    <div id="sessions-list"><p class="empty-state">Ingen sessions lagt op endnu.</p></div>
   </section>
 
-  <nav class="tabs" id="tabs"></nav>
-
-  <section class="scroll-panel">
-    <div class="panel-actions">
-      <h2 id="panel-title"></h2>
-      <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-        <button class="btn-ghost" id="btn-sync">🔄 Hent nyeste fra portal</button>
-        <button class="btn-secondary" id="btn-export">⬇ Eksportér JSON</button>
-        <button class="btn-secondary" id="btn-import">⬆ Importér JSON</button>
-        <input type="file" id="import-file-input" accept="application/json" style="display:none;">
-        <button class="btn-primary" id="btn-add">+ Tilføj</button>
-      </div>
-    </div>
-    <div id="entry-list"></div>
+  <section id="tab-npcs" class="tab-panel scroll-panel" style="display:none;">
+    <h2 class="panel-heading">Folk vi har mødt</h2>
+    <div id="npcs-list"><p class="empty-state">Ingen indgange lagt op endnu.</p></div>
   </section>
+
+  <section id="tab-items" class="tab-panel scroll-panel" style="display:none;">
+    <h2 class="panel-heading">Fund &amp; genstande</h2>
+    <div id="items-list"></div>
+  </section>
+
+  <section id="tab-shops" class="tab-panel scroll-panel" style="display:none;">
+    <h2 class="panel-heading">Butikker</h2>
+    <div id="shops-grid" class="card-grid"></div>
+    <div id="shop-detail"></div>
+  </section>
+
+  <div class="divider">⚔</div>
+  <footer>Fortsættes...</footer>
 </div>
 
-<div class="overlay" id="modal-overlay">
-  <div class="modal">
-    <div class="modal-title" id="modal-title">Tilføj</div>
-    <div id="form-fields"></div>
-    <div class="modal-actions">
-      <button class="btn-secondary btn-danger" id="btn-delete" style="display:none;">Slet</button>
-      <button class="btn-secondary" id="btn-cancel">Annuller</button>
-      <button class="btn-primary" id="btn-save">Gem</button>
-    </div>
-  </div>
+<div id="lightbox-overlay" class="lightbox-overlay">
+  <img id="lightbox-img" class="lightbox-img" src="" alt="">
 </div>
 
 <script>
-const PORTAL_BASE = 'https://amazingraven.github.io/DnD-Portal/data/';
-
-const TYPES = {
-  npcs: {
-    label: 'Folk i kampagnen', file: 'npcs.json', wrapperKey: 'npcs',
-    groupBy: { key: 'kind', order: ['NPC', 'Spillerkarakter'],
-      headers: { 'NPC': 'NPC\'er', 'Spillerkarakter': 'Spillernes karakterer' } },
-    fields: [
-      { key: 'name', label: 'Navn', type: 'text', required: true },
-      { key: 'kind', label: 'Type', type: 'select', options: ['NPC', 'Spillerkarakter'], required: true },
-      { key: 'title', label: 'Titel / rolle', type: 'text' },
-      { key: 'location', label: 'Sted', type: 'text' },
-      { key: 'description', label: 'Beskrivelse (spoiler-fri)', type: 'textarea' }
-    ],
-    title: e => e.name,
-    meta: e => [e.title, e.location].filter(Boolean).join(' · '),
-    desc: e => e.description
-  },
-  items: {
-    label: 'Fund & genstande', file: 'items.json', wrapperKey: 'items',
-    fields: [
-      { key: 'name', label: 'Navn', type: 'text', required: true },
-      { key: 'image', label: 'Billede', type: 'image' },
-      { key: 'rarity', label: 'Sjældenhed', type: 'text' },
-      { key: 'description', label: 'Beskrivelse (valgfri)', type: 'textarea' }
-    ],
-    title: e => e.name,
-    meta: e => e.rarity || '',
-    desc: e => e.description,
-    image: e => e.image
-  },
-  sessions: {
-    label: 'Session-logs', file: 'sessions.json', wrapperKey: 'sessions',
-    fields: [
-      { key: 'title', label: 'Titel', type: 'text', required: true },
-      { key: 'number', label: 'Session-nummer', type: 'number' },
-      { key: 'date', label: 'Dato', type: 'date' },
-      { key: 'recap', label: 'Spoiler-fri opsummering', type: 'textarea' },
-      { key: 'audio', label: 'Lydoptagelse', type: 'audio' }
-    ],
-    title: e => e.title,
-    meta: e => [e.number ? ('Session ' + e.number) : '', e.date].filter(Boolean).join(' · '),
-    desc: e => e.recap,
-    audio: e => e.audio
-  }
-};
-
-let activeType = 'npcs';
-let editState = null; // { type, id, isNew }
-let toastTimer = null;
-
-function storageKey(type) { return 'icespire-portal-content-' + type; }
-
-function loadEntries(type) {
-  try {
-    const raw = localStorage.getItem(storageKey(type));
-    return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
-}
-function saveEntries(type, entries) {
-  localStorage.setItem(storageKey(type), JSON.stringify(entries));
-}
-function esc(str) {
-  const d = document.createElement('div');
-  d.textContent = str ?? '';
-  return d.innerHTML;
-}
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.style.display = 'block';
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.style.display = 'none'; }, 2200);
-}
-
-function renderTabs() {
-  const nav = document.getElementById('tabs');
-  nav.innerHTML = Object.entries(TYPES).map(([key, t]) =>
-    `<button class="tab-btn ${key === activeType ? 'active' : ''}" data-type="${key}">${esc(t.label)}</button>`
-  ).join('');
-  nav.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => { activeType = btn.dataset.type; renderTabs(); renderList(); });
-  });
-  const pushLabel = document.getElementById('repoPushLabel');
-  if (pushLabel) pushLabel.textContent = TYPES[activeType].label;
-}
-
-function entryCardHTML(t, e) {
-  return `
-    <div class="entry-card">
-      ${t.image && t.image(e) ? `<img class="entry-thumb" src="${esc(t.image(e))}" alt="">` : ''}
-      <div class="entry-name">${esc(t.title(e) || '(uden navn)')}</div>
-      ${t.meta(e) ? `<div class="entry-meta">${esc(t.meta(e))}</div>` : ''}
-      ${t.desc(e) ? `<div class="entry-desc">${esc(t.desc(e))}</div>` : ''}
-      ${t.audio && t.audio(e) ? `<audio class="entry-audio" controls src="${esc(t.audio(e))}"></audio>` : ''}
-      <div class="entry-actions">
-        <button class="btn-icon" data-edit="${e._id}" title="Rediger">✎</button>
-        <button class="btn-icon danger" data-del="${e._id}" title="Slet">✕</button>
-      </div>
-    </div>`;
-}
-
-function renderList() {
-  const t = TYPES[activeType];
-  document.getElementById('panel-title').textContent = t.label;
-  const entries = loadEntries(activeType);
-  const list = document.getElementById('entry-list');
-  if (!entries.length) {
-    list.innerHTML = `<p class="empty-hint">Ingen ${esc(t.label.toLowerCase())} endnu. Klik "+ Tilføj", eller "🔄 Hent nyeste fra portal" hvis der allerede findes indhold på den live side.</p>`;
-    return;
-  }
-  if (t.groupBy) {
-    const g = t.groupBy;
-    const groups = {};
-    entries.forEach(e => {
-      const k = e[g.key] || g.order[0];
-      (groups[k] = groups[k] || []).push(e);
+  const tabs = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.tab-panel');
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabs.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      panels.forEach(p => p.style.display = 'none');
+      document.getElementById('tab-' + btn.dataset.tab).style.display = 'block';
     });
-    list.innerHTML = g.order.map(k => {
-      if (!groups[k] || !groups[k].length) return '';
-      return `<h3 class="group-heading">${esc(g.headers[k] || k)}</h3>
-        <div class="entry-grid">${groups[k].map(e => entryCardHTML(t, e)).join('')}</div>`;
+  });
+
+  async function loadJSON(path) {
+    try {
+      const res = await fetch(path);
+      if (!res.ok) throw new Error('not found');
+      return await res.json();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str ?? '';
+    return d.innerHTML;
+  }
+
+  loadJSON('data/npcs.json').then(data => {
+    if (!data || !data.npcs || !data.npcs.length) return;
+    const groups = { 'NPC': [], 'Spillerkarakter': [] };
+    data.npcs.forEach(n => (groups[n.kind] || groups['NPC']).push(n));
+    const renderGroup = (label, list) => {
+      if (!list.length) return '';
+      return `<h3 class="group-heading">${esc(label)}</h3><div class="card-list" style="margin-bottom:1.6rem;">` +
+        list.map(n => `
+          <div class="card">
+            ${n.image ? `<img class="card-media" src="${esc(n.image)}" alt="">` : ''}
+            <div class="card-body">
+              <div class="card-name">${esc(n.name)}</div>
+              <div class="card-meta">${esc(n.title || '')}${n.location ? ' · ' + esc(n.location) : ''}</div>
+              <div class="card-desc">${esc(n.description || '')}</div>
+            </div>
+          </div>`).join('') + `</div>`;
+    };
+    document.getElementById('npcs-list').innerHTML =
+      renderGroup('NPC\u2019er', groups['NPC']) + renderGroup('Spillernes karakterer', groups['Spillerkarakter']);
+  });
+
+  loadJSON('data/items.json').then(data => {
+    if (!data || !data.items || !data.items.length) return;
+    document.getElementById('items-list').innerHTML = `<div class="card-list">` + data.items.map(i => `
+      <div class="card">
+        ${i.image ? `<img class="card-media" src="${esc(i.image)}" alt="">` : ''}
+        <div class="card-body">
+          <div class="card-name">${esc(i.name)}</div>
+          <div class="card-meta">${esc(i.rarity || '')}</div>
+          ${i.description ? `<div class="card-desc">${esc(i.description)}</div>` : ''}
+        </div>
+      </div>`).join('') + `</div>`;
+  });
+
+  function isDirectAudioFile(url) {
+    return /\.(mp3|wav|ogg|m4a|aac|flac|opus)(\?.*)?$/i.test(url || '');
+  }
+
+  function renderAudioBlock(url) {
+    if (!url) return '';
+    if (isDirectAudioFile(url)) {
+      return `<audio class="card-audio" controls src="${esc(url)}"></audio>`;
+    }
+    return `<a class="audio-link-btn" href="${esc(url)}" target="_blank" rel="noopener">🔗 Lyt til optagelsen ▶</a>`;
+  }
+
+  loadJSON('data/sessions.json').then(data => {
+    if (!data || !data.sessions || !data.sessions.length) return;
+    document.getElementById('sessions-list').innerHTML = `<div class="card-list">` + data.sessions.map(s => `
+      <div class="card">
+        <div class="card-body">
+          <div class="card-name">${esc(s.title)}</div>
+          <div class="card-meta">${s.number ? 'Session ' + esc(String(s.number)) : ''}${s.date ? ' · ' + esc(s.date) : ''}</div>
+          <div class="card-desc">${esc(s.recap || '')}</div>
+          ${renderAudioBlock(s.audio)}
+        </div>
+      </div>`).join('') + `</div>`;
+  });
+
+  let shopsData = [];
+  let activeShopId = null;
+
+  function renderShopGrid() {
+    document.getElementById('shops-grid').innerHTML = shopsData.map(shop => {
+      const soldOut = shop.items.filter(i => i.qty === 0).length;
+      return `
+        <div class="card shop-card ${shop.id === activeShopId ? 'active' : ''}" data-shop="${esc(shop.id)}">
+          <div class="shop-icon">${esc(shop.icon || '🏪')}</div>
+          <div class="card-name">${esc(shop.name)}</div>
+          <div class="card-meta">${esc(shop.keeper || '')}</div>
+          <div class="card-desc">${shop.items.length} varer${soldOut ? ' · ' + soldOut + ' udsolgt' : ''}</div>
+        </div>`;
     }).join('');
-  } else {
-    list.innerHTML = `<div class="entry-grid">` + entries.map(e => entryCardHTML(t, e)).join('') + `</div>`;
-  }
-  list.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => openForm(activeType, b.dataset.edit)));
-  list.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
-    if (!confirm('Slet denne post?')) return;
-    const remaining = loadEntries(activeType).filter(e => e._id !== b.dataset.del);
-    saveEntries(activeType, remaining);
-    renderList();
-    toast('Slettet');
-  }));
-}
-
-function renderField(f, entry) {
-  const val = entry ? (entry[f.key] ?? '') : '';
-  if (f.type === 'textarea') {
-    return `<textarea data-key="${f.key}">${esc(val)}</textarea>`;
-  }
-  if (f.type === 'select') {
-    const opts = f.options.map(o => `<option value="${esc(o)}" ${val === o ? 'selected' : ''}>${esc(o)}</option>`).join('');
-    return `<select data-key="${f.key}">${opts}</select>`;
-  }
-  if (f.type === 'image' || f.type === 'audio') {
-    const accept = f.type === 'image' ? 'image/*' : 'audio/*';
-    const preview = f.type === 'image'
-      ? (val ? `<img src="${esc(val)}" class="upload-preview" alt="">` : '')
-      : (val ? `<audio src="${esc(val)}" controls class="upload-preview-audio"></audio>` : '');
-    return `${preview}
-      <input type="file" accept="${accept}" data-upload="${f.key}" data-uploadtype="${f.type}">
-      <div class="upload-hint">Vælg en fil for at uploade direkte til repoet (kræver gemt token) — eller indsæt et link manuelt herunder.</div>
-      <input type="text" data-key="${f.key}" value="${esc(val)}" placeholder="Link (udfyldes automatisk ved upload)">`;
-  }
-  return `<input type="${f.type}" data-key="${f.key}" value="${esc(val)}">`;
-}
-
-function attachUploadHandlers() {
-  document.querySelectorAll('[data-upload]').forEach(input => {
-    input.addEventListener('change', async () => {
-      const file = input.files[0];
-      if (!file) return;
-      const key = input.dataset.upload;
-      const kind = input.dataset.uploadtype;
-      const subdir = kind === 'image' ? 'images' : 'audio';
-      if (!ghToken()) {
-        alert('Gem en token først i "☁ Repo-sync" øverst på siden — upload kræver skriveadgang til DnD-Portal.');
-        input.value = '';
-        return;
-      }
-      const target = document.querySelector(`[data-key="${key}"]`);
-      try {
-        toast('Uploader…');
-        const url = await uploadAssetToRepo(file, subdir);
-        target.value = url;
-        toast((kind === 'image' ? 'Billede' : 'Lydfil') + ' uploadet ✓');
-      } catch (err) {
-        alert('Upload fejlede: ' + err.message);
-      }
+    document.querySelectorAll('.shop-card').forEach(card => {
+      card.addEventListener('click', () => {
+        activeShopId = activeShopId === card.dataset.shop ? null : card.dataset.shop;
+        renderShopGrid();
+        renderShopDetail();
+      });
     });
-  });
-}
-
-function openForm(type, id) {
-  const t = TYPES[type];
-  const entries = loadEntries(type);
-  const entry = id ? entries.find(e => e._id === id) : null;
-  editState = { type, id, isNew: !entry };
-  document.getElementById('modal-title').textContent = entry ? 'Rediger' : 'Tilføj ny';
-  document.getElementById('form-fields').innerHTML = t.fields.map(f => `
-    <div class="form-row">
-      <label>${esc(f.label)}${f.required ? ' *' : ''}</label>
-      ${renderField(f, entry)}
-    </div>`).join('');
-  document.getElementById('btn-delete').style.display = entry ? 'inline-flex' : 'none';
-  document.getElementById('modal-overlay').classList.add('open');
-  attachUploadHandlers();
-}
-
-function closeForm() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  editState = null;
-}
-
-function saveForm() {
-  const t = TYPES[editState.type];
-  const values = {};
-  let missingRequired = false;
-  t.fields.forEach(f => {
-    const el = document.querySelector(`[data-key="${f.key}"]`);
-    let val = el.value.trim();
-    if (f.type === 'number') val = val === '' ? '' : Number(val);
-    if (f.required && !val) missingRequired = true;
-    values[f.key] = val;
-  });
-  if (missingRequired) { alert('Udfyld de påkrævede felter (*)'); return; }
-
-  const entries = loadEntries(editState.type);
-  if (editState.isNew) {
-    values._id = 'c_' + Date.now();
-    entries.push(values);
-    toast('Tilføjet');
-  } else {
-    const idx = entries.findIndex(e => e._id === editState.id);
-    entries[idx] = { ...entries[idx], ...values };
-    toast('Gemt');
   }
-  saveEntries(editState.type, entries);
-  closeForm();
-  renderList();
-}
 
-function deleteCurrent() {
-  if (!editState || editState.isNew) return;
-  if (!confirm('Slet denne post?')) return;
-  const entries = loadEntries(editState.type).filter(e => e._id !== editState.id);
-  saveEntries(editState.type, entries);
-  closeForm();
-  renderList();
-  toast('Slettet');
-}
-
-function exportCurrent() {
-  const t = TYPES[activeType];
-  const entries = loadEntries(activeType).map(({ _id, ...rest }) => rest);
-  const payload = { [t.wrapperKey]: entries };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = t.file;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast(t.file + ' eksporteret — send den til Claude for at opdatere portalen');
-}
-
-async function syncFromPortal() {
-  const t = TYPES[activeType];
-  if (loadEntries(activeType).length && !confirm('Dette overskriver dine lokale ændringer for ' + t.label + ' med det, der ligger live på portalen. Fortsæt?')) return;
-  try {
-    const res = await fetch(PORTAL_BASE + t.file + '?_=' + Date.now());
-    if (!res.ok) throw new Error('Kunne ikke hente ' + t.file);
-    const data = await res.json();
-    const entries = (data[t.wrapperKey] || []).map(e => ({ ...e, _id: 'c_' + Math.random().toString(36).slice(2) }));
-    saveEntries(activeType, entries);
-    renderList();
-    toast('Hentet fra portalen');
-  } catch (err) {
-    alert('Kunne ikke hente fra portalen: ' + err.message);
+  function renderShopDetail() {
+    const detail = document.getElementById('shop-detail');
+    const shop = shopsData.find(s => s.id === activeShopId);
+    if (!shop) { detail.innerHTML = ''; return; }
+    detail.innerHTML = `
+      <div class="shop-detail-title">${esc(shop.icon || '')} ${esc(shop.name)} <span class="keeper">— ${esc(shop.keeper || '')}</span></div>
+      <table class="shop-table">
+        <thead><tr><th>Genstand</th><th>Type</th><th>Pris</th><th>Antal</th></tr></thead>
+        <tbody>
+          ${shop.items.map(item => `
+            <tr class="${item.qty === 0 ? 'sold-out' : ''}">
+              <td>
+                <div class="item-name">${esc(item.name)}</div>
+                ${item.rules ? `<div class="item-rules">${esc(item.rules)}</div>` : ''}
+              </td>
+              <td>${esc(item.type || '')}</td>
+              <td class="item-price">${esc(item.price || '')}</td>
+              <td><span class="qty-badge ${item.qty === 0 ? 'qty-sold' : item.qty <= 2 ? 'qty-low' : 'qty-ok'}">${item.qty === 0 ? 'Udsolgt' : '×' + item.qty}</span></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
   }
-}
 
-/* ============================================================
-   REPO SYNC — pushes the active tab's entries to the DnD-Portal repo
-   (data/<file>.json), so the live spillerportal picks them up.
-   Token is stored in localStorage, SCOPED TO THIS ORIGIN ONLY.
-   Create it fresh at github.com/settings/tokens?type=beta with:
-   Repository access -> Only select repositories -> DnD-Portal
-   Permissions -> Contents: Read and write
-   ============================================================ */
-const GH_OWNER = 'Amazingraven', GH_REPO = 'DnD-Portal', GH_DIR = 'data';
-const GH_TOKEN_KEY = 'icespire-gh-token-portal';
-
-function ghToken() { return localStorage.getItem(GH_TOKEN_KEY) || ''; }
-function ghHeaders() { return { 'Authorization': 'Bearer ' + ghToken(), 'Accept': 'application/vnd.github+json' }; }
-function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
-function b64decode(b64) { return decodeURIComponent(escape(atob(b64))); }
-
-async function ghGetFile(path) {
-  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?_=${Date.now()}`;
-  const res = await fetch(url, { headers: ghHeaders() });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error('GitHub-fejl ' + res.status + ' ved læsning af ' + path);
-  const data = await res.json();
-  return { sha: data.sha, text: b64decode(data.content || '') };
-}
-async function ghPutFile(path, contentText, message, sha) {
-  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
-  const body = { message, content: b64encode(contentText) };
-  if (sha) body.sha = sha;
-  const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
-  if (!res.ok) { const t = await res.text(); throw new Error('GitHub-fejl ' + res.status + ': ' + t.slice(0, 140)); }
-  return res.json();
-}
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(String(r.result).split(',')[1]); // strip "data:...;base64," prefix
-    r.onerror = () => reject(new Error('Kunne ikke læse filen'));
-    r.readAsDataURL(file);
+  loadJSON('data/shops.json').then(data => {
+    if (!data || !Array.isArray(data) || !data.length) {
+      document.getElementById('shops-grid').innerHTML = '<p class="empty-state">Ingen butikker lagt op endnu.</p>';
+      return;
+    }
+    shopsData = data;
+    renderShopGrid();
   });
-}
 
-// Uploads a binary asset (image/audio) straight to the repo as its own file
-// under data/<subdir>/, and returns the public GitHub Pages URL for it.
-async function uploadAssetToRepo(file, subdir) {
-  if (file.size > 20 * 1024 * 1024) {
-    throw new Error('Filen er over 20 MB — GitHub/Pages fungerer dårligt med så store filer. Komprimér eller brug et eksternt link i stedet.');
-  }
-  const safeName = file.name.toLowerCase().replace(/[^a-z0-9_.-]+/g, '-');
-  const path = `${GH_DIR}/${subdir}/${Date.now()}-${safeName}`;
-  const base64 = await fileToBase64(file);
-  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: ghHeaders(),
-    body: JSON.stringify({ message: 'Upload ' + safeName, content: base64 })
+  // Klik på et vare-/portræt-billede åbner det i fuld størrelse
+  const lightbox = document.getElementById('lightbox-overlay');
+  const lightboxImg = document.getElementById('lightbox-img');
+  document.addEventListener('click', (e) => {
+    const img = e.target.closest('img.card-media');
+    if (img) {
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt || '';
+      lightbox.classList.add('open');
+    }
   });
-  if (!res.ok) { const t = await res.text(); throw new Error('GitHub-fejl ' + res.status + ': ' + t.slice(0, 140)); }
-  return `https://amazingraven.github.io/${GH_REPO}/${path}`;
-}
-
-function reflectTokenState() {
-  const has = !!ghToken();
-  document.getElementById('repoTokenArea').style.display = has ? 'none' : 'block';
-  document.getElementById('repoActions').style.display = has ? 'block' : 'none';
-}
-
-
-async function repoPushCurrent() {
-  const t = TYPES[activeType];
-  if (!ghToken()) { alert('Gem en token først.'); return; }
-  const entries = loadEntries(activeType).map(({ _id, ...rest }) => rest);
-  const btn = document.getElementById('btnRepoPush'); const old = btn.textContent;
-  btn.textContent = 'Gemmer…'; btn.disabled = true;
-  try {
-    const path = `${GH_DIR}/${t.file}`;
-    const payload = { [t.wrapperKey]: entries };
-    const existing = await ghGetFile(path);
-    await ghPutFile(path, JSON.stringify(payload, null, 2),
-      (existing ? 'Opdater' : 'Tilføj') + ' ' + t.label.toLowerCase(), existing ? existing.sha : null);
-    toast(t.label + ' gemt i repo ✓ (kan tage et minut før live)');
-  } catch (err) {
-    alert('Kunne ikke gemme i repo: ' + err.message);
-  } finally {
-    btn.textContent = old; btn.disabled = false;
-  }
-}
-
-document.getElementById('btnSaveToken').onclick = () => {
-  const v = document.getElementById('ghTokenInput').value.trim();
-  if (!v) { alert('Indsæt en token først.'); return; }
-  localStorage.setItem(GH_TOKEN_KEY, v);
-  document.getElementById('ghTokenInput').value = '';
-  reflectTokenState();
-  toast('Token gemt i denne browser');
-};
-document.getElementById('btnClearToken').onclick = () => {
-  if (!confirm('Fjern den gemte token fra denne browser?')) return;
-  localStorage.removeItem(GH_TOKEN_KEY); reflectTokenState(); toast('Token fjernet');
-};
-document.getElementById('btnRepoPush').onclick = repoPushCurrent;
-reflectTokenState();
-
-document.getElementById('btn-add').addEventListener('click', () => openForm(activeType, null));
-document.getElementById('btn-cancel').addEventListener('click', closeForm);
-document.getElementById('btn-save').addEventListener('click', saveForm);
-document.getElementById('btn-delete').addEventListener('click', deleteCurrent);
-function importCurrent(file) {
-  const t = TYPES[activeType];
-  const reader = new FileReader();
-  reader.onload = () => {
-    let data;
-    try { data = JSON.parse(reader.result); }
-    catch (e) { alert('Ugyldig JSON-fil: ' + e.message); return; }
-    const list = data[t.wrapperKey];
-    if (!Array.isArray(list)) { alert(`Filen mangler nøglen "${t.wrapperKey}" — forventede { "${t.wrapperKey}": [...] }.`); return; }
-    const existing = loadEntries(activeType);
-    if (existing.length && !confirm(`Dette overskriver dine ${existing.length} lokale ${t.label.toLowerCase()}-poster med de ${list.length} fra filen. Fortsæt?`)) return;
-    const entries = list.map(e => ({ ...e, _id: 'c_' + Math.random().toString(36).slice(2) }));
-    saveEntries(activeType, entries);
-    renderList();
-    toast(list.length + ' ' + t.label.toLowerCase() + ' importeret — husk "☁ Gem i repo" for at gøre det live');
-  };
-  reader.onerror = () => alert('Kunne ikke læse filen.');
-  reader.readAsText(file);
-}
-
-document.getElementById('btn-export').addEventListener('click', exportCurrent);
-document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-file-input').click());
-document.getElementById('import-file-input').addEventListener('change', (ev) => {
-  const file = ev.target.files[0];
-  if (file) importCurrent(file);
-  ev.target.value = '';
-});
-document.getElementById('btn-sync').addEventListener('click', syncFromPortal);
-document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeForm(); });
-
-renderTabs();
-renderList();
+  lightbox.addEventListener('click', () => {
+    lightbox.classList.remove('open');
+    lightboxImg.src = '';
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { lightbox.classList.remove('open'); lightboxImg.src = ''; }
+  });
 </script>
 </body>
 </html>
