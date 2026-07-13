@@ -280,7 +280,9 @@ const TYPES = {
   }
 };
 
-let activeType = 'npcs';
+const urlParams = new URLSearchParams(location.search);
+const requestedTab = urlParams.get('tab');
+let activeType = (requestedTab && TYPES[requestedTab]) ? requestedTab : 'npcs';
 let editState = null; // { type, id, isNew }
 let toastTimer = null;
 
@@ -613,7 +615,7 @@ function renderField(f, entry) {
     const hint = f.type === 'image'
       ? 'Vælg en fil for at uploade direkte til repoet (kræver gemt token) — eller indsæt et billed-link manuelt herunder.'
       : 'Vælg en fil for direkte upload (kræver gemt token) — eller indsæt ET VILKÅRLIGT LINK herunder (NotebookLM, Spotify, direkte mp3-URL m.fl.). Direkte lydfiler afspilles indlejret; andre links vises som en "Lyt her"-knap.';
-    return `${preview}
+    return `<div class="upload-preview-slot" data-preview-slot="${f.key}">${preview}</div>
       <input type="file" accept="${accept}" data-upload="${f.key}" data-uploadtype="${f.type}">
       <div class="upload-hint">${hint}</div>
       <input type="text" data-key="${f.key}" value="${esc(val)}" placeholder="Link (udfyldes automatisk ved upload, eller indsæt selv)">`;
@@ -643,10 +645,16 @@ function attachUploadHandlers() {
         return;
       }
       const target = document.querySelector(`[data-key="${key}"]`);
+      const slot = document.querySelector(`[data-preview-slot="${key}"]`);
       try {
         toast('Uploader…');
         const url = await uploadAssetToRepo(file, subdir);
         target.value = url;
+        if (slot) {
+          slot.innerHTML = kind === 'image'
+            ? `<img src="${esc(url)}" class="upload-preview" alt="">`
+            : renderAudioPreview(url);
+        }
         toast((kind === 'image' ? 'Billede' : 'Lydfil') + ' uploadet ✓');
       } catch (err) {
         alert('Upload fejlede: ' + err.message);
