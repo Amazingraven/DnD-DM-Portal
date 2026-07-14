@@ -397,6 +397,23 @@ body::before {
   </div>
 
   <div class="panel">
+    <h2>☁ Repo-sync (DnD-DM-Portal)</h2>
+    <div id="lobbyTokenArea">
+      <p style="font-size:0.85rem; opacity:0.75; margin-bottom:0.6rem;">Samme token som din Session Builder bruger (scoped til DnD-DM-Portal) — indsæt den her hvis den ikke allerede er gemt i denne browser.</p>
+      <input type="password" id="lobbyTokenInput" placeholder="GitHub-token (DnD-DM-Portal, Contents: Read and write)"
+        style="width:100%; font-family:'IM Fell English',Georgia,serif; font-size:0.95rem; padding:0.5rem 0.7rem; border:1px solid var(--gold); border-radius:4px; background:var(--parchment-mid); color:var(--ink); margin-bottom:0.6rem;">
+      <button class="btn ghost" id="btnLobbySaveToken">Gem token</button>
+    </div>
+    <div id="lobbyRepoActions" style="display:none;">
+      <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
+        <button class="btn ghost" id="btnLobbyPull">📁 Hent fra repo</button>
+        <button class="btn primary" id="btnLobbyPush">☁ Gem i repo</button>
+        <span id="lobbyDirtyIndicator" style="font-family:'Cinzel',serif; font-size:0.72rem;"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
     <h2>Billeder & quests</h2>
     <div class="dropzone" id="dropzone">
       <p class="big">⚔ Træk billeder herind — eller klik for at vælge</p>
@@ -568,6 +585,7 @@ async function addFiles(fileList) {
 }
 
 function renderSlides() {
+  if (typeof updateLobbyDirtyIndicator === 'function') updateLobbyDirtyIndicator();
   slides.sort((a,b) => a.order - b.order);
   const list = document.getElementById('slidesList');
   if (slides.length === 0) {
@@ -630,6 +648,114 @@ dz.addEventListener('drop', e => {
   e.preventDefault(); dz.classList.remove('drag');
   if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
 });
+
+/* ---------- GitHub repo-sync (samme repo som Session Builder) ---------- */
+const GH_OWNER = 'Amazingraven', GH_REPO = 'DnD-DM-Portal', GH_DIR = 'lobby';
+const GH_TOKEN_KEY = 'icespire-gh-token'; // bevidst samme nøgle som Session Builder — samme repo-scope
+const LOBBY_PATH = `${GH_DIR}/startsoon.json`;
+const LOBBY_SYNC_MARKER = 'icespire-lobby-sync-marker';
+
+function ghToken() { return localStorage.getItem(GH_TOKEN_KEY) || ''; }
+function ghHeaders() { return { 'Authorization': 'Bearer ' + ghToken(), 'Accept': 'application/vnd.github+json' }; }
+function b64encode(str) { return btoa(unescape(encodeURIComponent(str))); }
+function b64decode(b64) { return decodeURIComponent(escape(atob(b64))); }
+
+async function ghGetFile(path) {
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?_=${Date.now()}`;
+  const res = await fetch(url, { headers: ghHeaders() });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('GitHub-fejl ' + res.status + ' ved læsning af ' + path);
+  const data = await res.json();
+  return { sha: data.sha, text: b64decode(data.content || '') };
+}
+async function ghPutFile(path, contentText, message, sha) {
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const body = { message, content: b64encode(contentText) };
+  if (sha) body.sha = sha;
+  const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) { const t = await res.text(); throw new Error('GitHub-fejl ' + res.status + ': ' + t.slice(0, 140)); }
+  return res.json();
+}
+
+function reflectLobbyTokenState() {
+  const has = !!ghToken();
+  document.getElementById('lobbyTokenArea').style.display = has ? 'none' : 'block';
+  document.getElementById('lobbyRepoActions').style.display = has ? 'block' : 'none';
+}
+
+function lobbySnapshot() {
+  return { slides, settings: JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') };
+}
+function markLobbySynced() {
+  localStorage.setItem(LOBBY_SYNC_MARKER, JSON.stringify(lobbySnapshot()));
+}
+function isLobbyDirty() {
+  const marker = localStorage.getItem(LOBBY_SYNC_MARKER);
+  const current = JSON.stringify(lobbySnapshot());
+  if (marker === null) return slides.length > 0;
+  return marker !== current;
+}
+function updateLobbyDirtyIndicator() {
+  const el = document.getElementById('lobbyDirtyIndicator');
+  if (!el) return;
+  el.textContent = isLobbyDirty() ? '● Ugemte ændringer' : '✓ Synkroniseret med repo';
+  el.style.color = isLobbyDirty() ? '#c44a0a' : '#4a7c59';
+}
+
+async function pushLobbyToRepo() {
+  if (!ghToken()) { alert('Gem en token først.'); return; }
+  const payload = lobbySnapshot();
+  const sizeMB = new Blob([JSON.stringify(payload)]).size / (1024 * 1024);
+  if (sizeMB > 50) {
+    alert('Denne opstartsskærm fylder ' + sizeMB.toFixed(1) + ' MB samlet (alle billeder indlejret) — det er over den anbefalede grænse for GitHub. Sænk billedkvaliteten (Indstillinger → Billedkvalitet) eller fjern nogle billeder, og prøv igen.');
+    return;
+  }
+  const btn = document.getElementById('btnLobbyPush'); const old = btn.textContent;
+  btn.textContent = 'Gemmer…'; btn.disabled = true;
+  try {
+    const existing = await ghGetFile(LOBBY_PATH);
+    await ghPutFile(LOBBY_PATH, JSON.stringify(payload, null, 2),
+      (existing ? 'Opdater' : 'Tilføj') + ' opstartsskærm', existing ? existing.sha : null);
+    markLobbySynced();
+    updateLobbyDirtyIndicator();
+    alert('Opstartsskærm gemt i repo ✓ (' + sizeMB.toFixed(1) + ' MB)');
+  } catch (err) {
+    alert('Kunne ikke gemme i repo: ' + err.message);
+  } finally {
+    btn.textContent = old; btn.disabled = false;
+  }
+}
+
+async function pullLobbyFromRepo() {
+  const dirty = isLobbyDirty();
+  if (dirty && !confirm('⚠️ Du har ugemte ændringer, som ikke er gemt i repoet endnu. Dette overskriver dem med det, der allerede ligger i repoet. Fortsæt?')) return;
+  try {
+    const file = await ghGetFile(LOBBY_PATH);
+    if (!file) { alert('Ingen opstartsskærm fundet i repoet endnu. Gem én først med "☁ Gem i repo".'); return; }
+    const data = JSON.parse(file.text);
+    if (data.settings) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(data.settings)); loadSettings(); }
+    for (const s of slides) await dbDelete(s.id);
+    slides = Array.isArray(data.slides) ? data.slides : [];
+    for (const s of slides) await dbPut(s);
+    renderSlides();
+    markLobbySynced();
+    updateLobbyDirtyIndicator();
+    alert('Hentet fra repo ✓');
+  } catch (err) {
+    alert('Kunne ikke hente fra repo: ' + err.message);
+  }
+}
+
+document.getElementById('btnLobbySaveToken').addEventListener('click', () => {
+  const v = document.getElementById('lobbyTokenInput').value.trim();
+  if (!v) { alert('Indsæt en token først.'); return; }
+  localStorage.setItem(GH_TOKEN_KEY, v);
+  document.getElementById('lobbyTokenInput').value = '';
+  reflectLobbyTokenState();
+});
+document.getElementById('btnLobbyPull').addEventListener('click', pullLobbyFromRepo);
+document.getElementById('btnLobbyPush').addEventListener('click', pushLobbyToRepo);
+reflectLobbyTokenState();
 
 /* ---------- Backup ---------- */
 document.getElementById('exportBtn').addEventListener('click', () => {
