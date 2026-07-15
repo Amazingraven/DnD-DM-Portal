@@ -794,10 +794,20 @@ const KB = ['kbZoomIn','kbZoomOut','kbPanLeft','kbPanRight','kbPanUp','kbDiag'];
 
 let front = 0, curIdx = 0, slideTimer = null, cdTimer = null, cdRemaining = 0, paused = false;
 let intervalMs = 10000, hintTimeout = null;
+let playOrder = [];
+
+function shuffleArray(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 function startPresent() {
   if (slides.length === 0) return;
-  slides.sort((a,b)=>a.order-b.order);
+  playOrder = shuffleArray(slides); // ny tilfældig rækkefølge hver gang, uden at røre den gemte redigeringsrækkefølge
   saveSettings();
 
   intervalMs = Math.max(3, parseInt(document.getElementById('set-interval').value)||10) * 1000;
@@ -826,7 +836,7 @@ function startPresent() {
 }
 
 function showSlide(i, immediate) {
-  const s = slides[i];
+  const s = playOrder[i];
   const back = 1 - front;
   const layer = layers[back];
   layer.img.style.backgroundImage = `url('${s.imageData}')`;
@@ -852,11 +862,11 @@ function showSlide(i, immediate) {
 }
 
 function nextSlide() {
-  curIdx = (curIdx + 1) % slides.length;
+  curIdx = (curIdx + 1) % playOrder.length;
   showSlide(curIdx);
 }
 function prevSlide() {
-  curIdx = (curIdx - 1 + slides.length) % slides.length;
+  curIdx = (curIdx - 1 + playOrder.length) % playOrder.length;
   showSlide(curIdx);
 }
 function manualNav(dir) {
