@@ -20,11 +20,12 @@
       }
     },
     {
-      "id": "5205wep",
-      "type": "narrative",
+      "id": "4d4qen9",
+      "type": "narrative-dm",
       "data": {
         "heading": "",
         "text": "Zentarim er talstærkt tilstede foran Town Masters Hall med knive ved struben af Norbus og Dazlyn, der sidder bundet på deres knæ midt på torvet. \n\nOverfor Zentarim står Garaeale, Tolbin og Elyra...",
+        "dmNotes": "Casardas — THE GREED\n\nEn skygge med genkendelige guldtænder taler fra kanten af hans syn: Abbathor forventer, at Norbus dør, og tilbyder Casardas pladsen som sin nye udvalgte. Rør amuletten direkte, accepter gaven, og han vil blive ført mod rigdom, magt og sin største skat.\n\nBrutus — Ember of the Last Heirs\n\nTherons tunge hånd og Seraphinas lette hånd lægges på hans skuldre: “Gå til hende. Få hende til at se dig.” Brutus genkender varmen fra infernoet, der drev Cryovain på flugt—mister Elyra kontrollen nu, kan hele pladsen dø. Han bliver Heroically Inspired.\n\nZaptor — Heart of Thunder\n\nMens han ser Norbus og Dazlyn knæle i mudderet med knive mod struben, brager Talos gennem hans baghoved: “ET VÆRDIGT OFFER!” Talos vil have Zaptor til at acceptere deres mulige død og dedikere deres sjæle til Heart of Thunder.",
         "skills": []
       }
     }
