@@ -85,6 +85,7 @@
   .entry-card { display: flex; gap: 1.1rem; align-items: flex-start; background: var(--parch-mid); border: 1px solid var(--gold); border-radius: 4px; padding: 1rem 1.1rem; }
   .entry-card.entry-hidden { opacity: 0.6; border-style: dashed; border-color: var(--ash); background: repeating-linear-gradient(135deg, var(--parch-mid), var(--parch-mid) 10px, rgba(61,48,32,.06) 10px, rgba(61,48,32,.06) 20px); }
   .entry-media { flex: 0 0 130px; width: 130px; height: 92px; object-fit: cover; border-radius: 3px; border: 1px solid var(--gold); }
+  .entry-media-item { flex: 0 0 150px; width: 150px; height: auto; max-height: 210px; object-fit: contain; background: rgba(61,48,32,.07); }
   .entry-body { flex: 1 1 auto; min-width: 0; }
   .entry-audio { width: 100%; margin: .4rem 0 .6rem; }
   .entry-audio-link { font-size: .85rem; margin: .4rem 0 .6rem; }
@@ -282,7 +283,8 @@ const TYPES = {
     title: e => e.name,
     meta: e => [e.rarity, e.owner ? ('Ejes af ' + e.owner) : '', e.visibility === 'Skjult' ? '🙈 Skjult for spillerne' : ''].filter(Boolean).join(' · '),
     desc: e => e.description,
-    image: e => e.image
+    image: e => e.image,
+    imageClass: 'entry-media-item'
   },
   sessions: {
     label: 'Session-logs', file: 'sessions.json', wrapperKey: 'sessions',
@@ -417,7 +419,7 @@ function renderTabs() {
 }
 
 function entryCardHTML(t, e) {
-  const media = t.image && t.image(e) ? `<img class="entry-media" src="${esc(t.image(e))}" alt="">` : '';
+  const media = t.image && t.image(e) ? `<img class="entry-media ${t.imageClass || ''}" src="${esc(t.image(e))}" alt="">` : '';
   const audioVal = t.audio && t.audio(e);
   const audioHTML = audioVal
     ? (isDirectAudioFile(audioVal)
