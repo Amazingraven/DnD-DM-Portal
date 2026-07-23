@@ -215,6 +215,7 @@
     <div id="repoActions" style="display:none;">
       <div style="display:flex; gap:.6rem; flex-wrap:wrap; align-items:center;">
         <button class="btn-primary" id="btnRepoPush">☁ Gem <span id="repoPushLabel"></span> i repo</button>
+        <button class="btn-primary" id="btnRepoPushAll" title="Gemmer alle faner i repo med ét klik">☁☁ Gem ALT i repo</button>
         <span id="dirtyIndicator" style="font-size:.68rem; opacity:.8;"></span>
         <button class="btn-secondary" id="btnEditLabels">✎ Tilpas overskrifter</button>
         <button class="btn-ghost" id="btnClearToken" style="font-size:.62rem; opacity:.75;">Glem token</button>
@@ -1216,6 +1217,45 @@ async function repoPushCurrent() {
   }
 }
 
+async function pushAllToRepo() {
+  if (!ghToken()) { alert('Gem en token først.'); return; }
+  const btn = document.getElementById('btnRepoPushAll'); const old = btn.textContent;
+  btn.textContent = 'Gemmer alt…'; btn.disabled = true;
+  const results = [];
+  for (const key of Object.keys(TYPES)) {
+    const t = TYPES[key];
+    try {
+      const payload = key === 'shops' ? loadShops()
+        : key === 'map' ? loadMapData()
+        : { [t.wrapperKey]: loadEntries(key).map(({ _id, ...rest }) => rest) };
+      const path = `${GH_DIR}/${t.file}`;
+      const existing = await ghGetFile(path);
+      await ghPutFile(path, JSON.stringify(payload, null, 2),
+        'Gem alt: opdater ' + getLabel(key).toLowerCase(), existing ? existing.sha : null);
+      markSynced(key);
+      results.push('✓ ' + getLabel(key));
+    } catch (err) {
+      results.push('✗ ' + getLabel(key) + ' — ' + err.message);
+    }
+  }
+  try {
+    const customLabels = loadCustomLabels();
+    if (Object.keys(customLabels).length) {
+      const path = `${GH_DIR}/labels.json`;
+      const existing = await ghGetFile(path);
+      await ghPutFile(path, JSON.stringify(customLabels, null, 2),
+        'Gem alt: opdater overskrifter', existing ? existing.sha : null);
+      results.push('✓ Overskrifter');
+    }
+  } catch (err) {
+    results.push('✗ Overskrifter — ' + err.message);
+  }
+  btn.textContent = old; btn.disabled = false;
+  updateDirtyIndicator();
+  const failed = results.some(r => r.startsWith('✗'));
+  alert((failed ? '⚠️ Gem alt afsluttet med fejl:\n\n' : '☁ Alt gemt i repo ✓\n\n') + results.join('\n') + (failed ? '' : '\n\n(kan tage et minut før ændringerne er synlige live)'));
+}
+
 document.getElementById('btnSaveToken').onclick = () => {
   const v = document.getElementById('ghTokenInput').value.trim();
   if (!v) { alert('Indsæt en token først.'); return; }
@@ -1229,6 +1269,7 @@ document.getElementById('btnClearToken').onclick = () => {
   localStorage.removeItem(GH_TOKEN_KEY); reflectTokenState(); toast('Token fjernet');
 };
 document.getElementById('btnRepoPush').onclick = repoPushCurrent;
+document.getElementById('btnRepoPushAll').onclick = pushAllToRepo;
 reflectTokenState();
 
 /* ---- Træk-og-slip af steder på kortet (ét-gangs lyttere på document) ---- */
