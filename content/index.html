@@ -315,12 +315,14 @@ const TYPES = {
       { key: 'title', label: 'Titel', type: 'text', required: true },
       { key: 'content', label: 'Indhold', type: 'textarea' },
       { key: 'image', label: 'Billede (fx et scannet brev)', type: 'image' },
+      { key: 'pdf', label: 'PDF-dokument', type: 'pdf' },
       { key: 'date', label: 'Dato / session', type: 'text' }
     ],
     title: e => e.title,
     meta: e => [e.character, e.kind, e.date].filter(Boolean).join(' · '),
     desc: e => e.content,
-    image: e => e.image
+    image: e => e.image,
+    pdf: e => e.pdf
   },
   shops: {
     label: 'Butikker', file: 'shops.json', custom: 'shops'
@@ -432,6 +434,8 @@ function entryCardHTML(t, e) {
         ? `<audio class="entry-audio" controls src="${esc(audioVal)}"></audio>`
         : `<div class="entry-audio-link">🔗 <a href="${esc(audioVal)}" target="_blank" rel="noopener">Eksternt link til optagelsen</a></div>`)
     : '';
+  const pdfVal = t.pdf && t.pdf(e);
+  const pdfHTML = pdfVal ? `<div class="entry-audio-link">📄 <a href="${esc(pdfVal)}" target="_blank" rel="noopener">Åbn PDF</a></div>` : '';
   return `
     <div class="entry-card ${e.visibility === 'Skjult' ? 'entry-hidden' : ''}">
       ${media}
@@ -440,6 +444,7 @@ function entryCardHTML(t, e) {
         ${t.meta(e) ? `<div class="entry-meta">${esc(t.meta(e))}</div>` : ''}
         ${t.desc(e) ? `<div class="entry-desc">${esc(t.desc(e))}</div>` : ''}
         ${audioHTML}
+        ${pdfHTML}
         <div class="entry-actions">
           <button class="btn-icon" data-move-up="${e._id}" title="Flyt op">▲</button>
           <button class="btn-icon" data-move-down="${e._id}" title="Flyt ned">▼</button>
@@ -913,14 +918,17 @@ function renderField(f, entry) {
     return `<select data-key="${f.key}">${opts}</select>` +
       (pins.length === 0 ? '<div class="upload-hint">Ingen steder oprettet endnu — tilføj dem under "Kort".</div>' : '');
   }
-  if (f.type === 'image' || f.type === 'audio') {
-    const accept = f.type === 'image' ? 'image/*' : 'audio/*';
+  if (f.type === 'image' || f.type === 'audio' || f.type === 'pdf') {
+    const accept = f.type === 'image' ? 'image/*' : f.type === 'audio' ? 'audio/*' : 'application/pdf';
     const preview = f.type === 'image'
       ? (val ? `<img src="${esc(val)}" class="upload-preview" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"><div class="upload-pending-note">Billedet kunne ikke indlæses lige nu (kan skyldes at det lige er uploadet) — linket er gemt korrekt.</div>` : '')
-      : (val ? renderAudioPreview(val) : '');
+      : f.type === 'audio' ? (val ? renderAudioPreview(val) : '')
+      : (val ? `<div class="upload-pending-note">📄 PDF gemt: <a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a></div>` : '');
     const hint = f.type === 'image'
       ? 'Vælg en fil for at uploade direkte til repoet (kræver gemt token) — eller indsæt et billed-link manuelt herunder.'
-      : 'Vælg en fil for direkte upload (kræver gemt token) — eller indsæt ET VILKÅRLIGT LINK herunder (NotebookLM, Spotify, direkte mp3-URL m.fl.). Direkte lydfiler afspilles indlejret; andre links vises som en "Lyt her"-knap.';
+      : f.type === 'audio'
+      ? 'Vælg en fil for direkte upload (kræver gemt token) — eller indsæt ET VILKÅRLIGT LINK herunder (NotebookLM, Spotify, direkte mp3-URL m.fl.). Direkte lydfiler afspilles indlejret; andre links vises som en "Lyt her"-knap.'
+      : 'Vælg en PDF-fil for at uploade direkte til repoet (kræver gemt token) — eller indsæt et link manuelt herunder. Vises som en indlejret PDF-fremviser på portalen.';
     return `<div class="upload-preview-slot" data-preview-slot="${f.key}">${preview}</div>
       <input type="file" accept="${accept}" data-upload="${f.key}" data-uploadtype="${f.type}">
       <div class="upload-hint">${hint}</div>
@@ -958,12 +966,7 @@ function attachUploadHandlers() {
         if (fixed !== raw && fixed) {
           target.value = fixed;
           const slot = document.querySelector(`[data-preview-slot="${key}"]`);
-          if (slot) {
-            slot.innerHTML = kind === 'image'
-              ? `<img src="${esc(fixed)}" class="upload-preview" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                 <div class="upload-pending-note">Billedet kunne ikke indlæses lige nu — linket er rettet og gemt korrekt.</div>`
-              : renderAudioPreview(fixed);
-          }
+          if (slot) slot.innerHTML = assetPreviewHTML(kind, fixed, true);
           toast('Link automatisk rettet til den korrekte adresse (var et GitHub-sidelink, ikke selve filen)');
         }
       });
@@ -971,7 +974,7 @@ function attachUploadHandlers() {
     input.addEventListener('change', async () => {
       const file = input.files[0];
       if (!file) return;
-      const subdir = kind === 'image' ? 'images' : 'audio';
+      const subdir = kind === 'image' ? 'images' : kind === 'audio' ? 'audio' : 'documents';
       if (!ghToken()) {
         alert('Gem en token først i "☁ Repo-sync" øverst på siden — upload kræver skriveadgang til DnD-Portal.');
         input.value = '';
@@ -982,18 +985,25 @@ function attachUploadHandlers() {
         toast('Uploader…');
         const url = await uploadAssetToRepo(file, subdir);
         target.value = url;
-        if (slot) {
-          slot.innerHTML = kind === 'image'
-            ? `<img src="${esc(url)}" class="upload-preview" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-               <div class="upload-pending-note">✓ Uploadet til repoet. Billedet kan tage et minuts tid om at blive tilgængeligt via GitHub Pages — luk og genåbn formularen om lidt for at se det.</div>`
-            : renderAudioPreview(url);
-        }
-        toast((kind === 'image' ? 'Billede' : 'Lydfil') + ' uploadet ✓ (kan tage et minut før det er synligt)');
+        if (slot) slot.innerHTML = assetPreviewHTML(kind, url, false);
+        const kindLabel = kind === 'image' ? 'Billede' : kind === 'audio' ? 'Lydfil' : 'PDF';
+        toast(kindLabel + ' uploadet ✓ (kan tage et minut før det er synligt)');
       } catch (err) {
         alert('Upload fejlede: ' + err.message);
       }
     });
   });
+}
+
+function assetPreviewHTML(kind, url, justFixed) {
+  if (kind === 'image') {
+    const note = justFixed ? 'Billedet kunne ikke indlæses lige nu — linket er rettet og gemt korrekt.' : '✓ Uploadet til repoet. Billedet kan tage et minuts tid om at blive tilgængeligt via GitHub Pages — luk og genåbn formularen om lidt for at se det.';
+    return `<img src="${esc(url)}" class="upload-preview" alt="" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+      <div class="upload-pending-note">${note}</div>`;
+  }
+  if (kind === 'audio') return renderAudioPreview(url);
+  if (kind === 'pdf') return `<div class="upload-pending-note">📄 PDF gemt: <a href="${esc(url)}" target="_blank" rel="noopener">Åbn i ny fane</a> (kan tage et minuts tid før tilgængelig)</div>`;
+  return '';
 }
 
 function openForm(type, id) {
@@ -1029,7 +1039,7 @@ function saveForm() {
     const el = document.querySelector(`[data-key="${f.key}"]`);
     let val = el.value.trim();
     if (f.type === 'number') val = val === '' ? '' : Number(val);
-    if (f.type === 'image' || f.type === 'audio') val = normalizeAssetUrl(val);
+    if (f.type === 'image' || f.type === 'audio' || f.type === 'pdf') val = normalizeAssetUrl(val);
     if (f.required && !val) missingRequired = true;
     values[f.key] = val;
   });
