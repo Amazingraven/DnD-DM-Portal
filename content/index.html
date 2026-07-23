@@ -131,7 +131,9 @@
   }
   .map-pin-list { border-top: 1px solid rgba(184,134,42,.3); padding-top: .8rem; }
   .map-pin-row { display: flex; justify-content: space-between; align-items: center; padding: .4rem 0; border-bottom: 1px solid rgba(184,134,42,.15); }
-  .map-pin-row-actions { display: flex; gap: .3rem; }
+  .map-pin-row-actions { display: flex; gap: .3rem; align-items: center; }
+  .map-pin.map-pin-hidden { opacity: .55; }
+  .map-pin.map-pin-hidden .map-pin-dot { background: var(--ash); border-style: dashed; }
   .group-heading {
     font-family: 'Cinzel', serif; font-weight: 600; color: var(--rust); font-size: .9rem;
     letter-spacing: .05em; text-transform: uppercase; margin: 0 0 .6rem; padding-bottom: .3rem;
@@ -268,7 +270,8 @@ const TYPES = {
     title: e => e.name,
     meta: e => [e.title, e.location].filter(Boolean).join(' · '),
     desc: e => e.description,
-    image: e => e.image
+    image: e => e.image,
+    imageClass: 'entry-media-item'
   },
   items: {
     label: 'Fund & genstande', file: 'items.json', wrapperKey: 'items',
@@ -293,13 +296,16 @@ const TYPES = {
       { key: 'number', label: 'Session-nummer', type: 'number' },
       { key: 'date', label: 'Dato', type: 'date' },
       { key: 'mapPin', label: 'Sted på kortet (valgfri)', type: 'pin-select' },
+      { key: 'image', label: 'Billede (establishing shot / backdrop)', type: 'image' },
       { key: 'recap', label: 'Spoiler-fri opsummering', type: 'textarea' },
       { key: 'audio', label: 'Lydoptagelse', type: 'audio' }
     ],
     title: e => e.title,
     meta: e => [e.number ? ('Session ' + e.number) : '', e.date].filter(Boolean).join(' · '),
     desc: e => e.recap,
-    audio: e => e.audio
+    audio: e => e.audio,
+    image: e => e.image,
+    imageClass: 'entry-media-item'
   },
   personal: {
     label: 'Personligt', file: 'personal.json', wrapperKey: 'personal',
@@ -524,7 +530,7 @@ function renderShopsPanel() {
     return `
       <div class="shop-card ${shop.id === expandedShopId ? 'active' : ''} ${disabled ? 'shop-disabled' : ''}">
         <div class="shop-card-main" data-open="${shop.id}">
-          <div class="shop-icon">${esc(shop.icon || '🏪')}</div>
+          <div class="shop-icon">${esc(shop.icon || '⚖️')}</div>
           <div class="entry-name">${esc(shop.name)}</div>
           <div class="entry-meta">${esc(shop.keeper || '')}</div>
           <div class="entry-meta">${shop.items.length} varer${soldOut ? ' · ' + soldOut + ' udsolgt' : ''}</div>
@@ -610,9 +616,9 @@ function renderMapPanel() {
     <div class="map-wrap" id="mapWrap" style="cursor:${(mapPlacingMode || mapMovingPinId) ? 'crosshair' : 'default'};">
       <img src="${esc(data.image)}" class="map-image" alt="Kort" draggable="false">
       ${data.pins.map(p => `
-        <div class="map-pin" data-pin-id="${p.id}" style="left:${p.x}%; top:${p.y}%;">
+        <div class="map-pin ${p.hidden ? 'map-pin-hidden' : ''}" data-pin-id="${p.id}" style="left:${p.x}%; top:${p.y}%;">
           <span class="map-pin-dot"></span>
-          <span class="map-pin-label">${esc(p.name)}</span>
+          <span class="map-pin-label">${esc(p.name)}${p.hidden ? ' 🙈' : ''}</span>
         </div>`).join('')}
     </div>
     <div class="map-pin-list">
@@ -621,6 +627,7 @@ function renderMapPanel() {
         <div class="map-pin-row">
           <span class="entry-name" style="font-size:.9rem;">${esc(p.name)}</span>
           <span class="map-pin-row-actions">
+            <button class="btn-toggle ${p.hidden ? 'off' : 'on'}" data-pin-toggle="${p.id}">${p.hidden ? 'Skjult' : 'Synlig'}</button>
             <button class="btn-icon" data-pin-move="${p.id}" title="Flyt">⇅</button>
             <button class="btn-icon" data-pin-rename="${p.id}" title="Omdøb">✎</button>
             <button class="btn-icon danger" data-pin-delete="${p.id}" title="Slet">✕</button>
@@ -650,7 +657,7 @@ function renderMapPanel() {
     } else if (mapPlacingMode) {
       const name = prompt('Navn på stedet:');
       if (name && name.trim()) {
-        d.pins.push({ id: 'pin_' + Math.random().toString(36).slice(2), name: name.trim(), x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10 });
+        d.pins.push({ id: 'pin_' + Math.random().toString(36).slice(2), name: name.trim(), x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, hidden: false });
         saveMapData(d);
       }
       mapPlacingMode = false;
@@ -664,6 +671,15 @@ function renderMapPanel() {
     saveMapData(d);
     renderMapPanel();
     toast('Sted slettet');
+  }));
+  document.querySelectorAll('[data-pin-toggle]').forEach(btn => btn.addEventListener('click', () => {
+    const d = loadMapData();
+    const pin = d.pins.find(p => p.id === btn.dataset.pinToggle);
+    if (!pin) return;
+    pin.hidden = !pin.hidden;
+    saveMapData(d);
+    renderMapPanel();
+    toast(esc(pin.name) + (pin.hidden ? ' skjult for spillerne' : ' gjort synligt'));
   }));
   document.querySelectorAll('[data-pin-rename]').forEach(btn => btn.addEventListener('click', () => {
     const d = loadMapData();
@@ -784,7 +800,8 @@ function moveShopItem(shopId, itemId, dir) {
 const SHOP_FIELDS = [
   { key: 'name', label: 'Navn', type: 'text', required: true },
   { key: 'keeper', label: 'Butiksholder', type: 'text' },
-  { key: 'icon', label: 'Ikon (emoji)', type: 'text' }
+  { key: 'icon', label: 'Ikon (emoji)', type: 'text' },
+  { key: 'mapPin', label: 'Sted på kortet (valgfri)', type: 'pin-select' }
 ];
 const SHOP_ITEM_FIELDS = [
   { key: 'name', label: 'Navn', type: 'text', required: true },
@@ -816,13 +833,14 @@ function saveShopForm() {
   if (!name) { alert('Navn er påkrævet.'); return; }
   const keeper = document.querySelector('[data-key="keeper"]').value.trim();
   const icon = document.querySelector('[data-key="icon"]').value.trim();
+  const mapPin = document.querySelector('[data-key="mapPin"]').value.trim();
   const shops = loadShops();
   if (shopEditState.isNew) {
-    shops.push({ id: 'shop_' + Math.random().toString(36).slice(2), name, keeper, icon, enabled: true, items: [] });
+    shops.push({ id: 'shop_' + Math.random().toString(36).slice(2), name, keeper, icon, mapPin, enabled: true, items: [] });
     toast('Butik oprettet');
   } else {
     const shop = shops.find(s => s.id === shopEditState.id);
-    shop.name = name; shop.keeper = keeper; shop.icon = icon;
+    shop.name = name; shop.keeper = keeper; shop.icon = icon; shop.mapPin = mapPin;
     toast('Butik opdateret');
   }
   saveShops(shops);
