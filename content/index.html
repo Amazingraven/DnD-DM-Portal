@@ -218,6 +218,7 @@
         <button class="btn-primary" id="btnRepoPushAll" title="Gemmer alle faner i repo med ét klik">☁☁ Gem ALT i repo</button>
         <span id="dirtyIndicator" style="font-size:.68rem; opacity:.8;"></span>
         <button class="btn-secondary" id="btnEditLabels">✎ Tilpas overskrifter</button>
+        <button class="btn-secondary" id="btnMigratePlayers" title="Flyt eksisterende spillerkarakterer fra Folk i kampagnen til deres egen fane">↪ Flyt spillerkarakterer til egen fane</button>
         <button class="btn-ghost" id="btnClearToken" style="font-size:.62rem; opacity:.75;">Glem token</button>
       </div>
     </div>
@@ -258,12 +259,24 @@ const PORTAL_BASE = 'https://amazingraven.github.io/DnD-Portal/data/';
 const TYPES = {
   npcs: {
     label: 'Folk i kampagnen', file: 'npcs.json', wrapperKey: 'npcs',
-    groupBy: { key: 'kind', order: ['NPC', 'Spillerkarakter'],
-      headers: { 'NPC': 'NPC\'er', 'Spillerkarakter': 'Spillernes karakterer' },
-      labelKeys: { 'NPC': 'npcs_npc', 'Spillerkarakter': 'npcs_pc' } },
     fields: [
       { key: 'name', label: 'Navn', type: 'text', required: true },
-      { key: 'kind', label: 'Type', type: 'select', options: ['NPC', 'Spillerkarakter'], required: true },
+      { key: 'image', label: 'Portræt', type: 'image' },
+      { key: 'title', label: 'Titel / rolle', type: 'text' },
+      { key: 'location', label: 'Sted (fritekst, til beskrivelsen)', type: 'text' },
+      { key: 'mapPin', label: 'Sted på kortet (valgfri, kobler til Kort-fanen)', type: 'pin-select' },
+      { key: 'description', label: 'Beskrivelse (spoiler-fri)', type: 'textarea' }
+    ],
+    title: e => e.name,
+    meta: e => [e.title, e.location].filter(Boolean).join(' · '),
+    desc: e => e.description,
+    image: e => e.image,
+    imageClass: 'entry-media-item'
+  },
+  players: {
+    label: 'Spillerkarakterer', file: 'players.json', wrapperKey: 'players',
+    fields: [
+      { key: 'name', label: 'Navn', type: 'text', required: true },
       { key: 'image', label: 'Portræt', type: 'image' },
       { key: 'title', label: 'Titel / rolle', type: 'text' },
       { key: 'location', label: 'Sted (fritekst, til beskrivelsen)', type: 'text' },
@@ -917,14 +930,12 @@ function renderField(f, entry) {
     return `<select data-key="${f.key}">${opts}</select>`;
   }
   if (f.type === 'character-select') {
-    const characters = [...new Set(
-      loadEntries('npcs').filter(e => e.kind === 'Spillerkarakter').map(e => e.name).filter(Boolean)
-    )];
+    const characters = [...new Set(loadEntries('players').map(e => e.name).filter(Boolean))];
     const opts = [''].concat(characters).map(o =>
       `<option value="${esc(o)}" ${val === o ? 'selected' : ''}>${o ? esc(o) : '— Ingen / ikke tildelt —'}</option>`
     ).join('');
     return `<select data-key="${f.key}">${opts}</select>` +
-      (characters.length === 0 ? '<div class="upload-hint">Ingen spillerkarakterer fundet endnu — opret dem først under "Folk i kampagnen".</div>' : '');
+      (characters.length === 0 ? '<div class="upload-hint">Ingen spillerkarakterer fundet endnu — opret dem først under "Spillerkarakterer".</div>' : '');
   }
   if (f.type === 'pin-select') {
     const pins = (loadMapData().pins || []).map(p => p.name).filter(Boolean);
@@ -1217,6 +1228,40 @@ async function repoPushCurrent() {
   }
 }
 
+function migratePlayersFromNpcs() {
+  const npcs = loadEntries('npcs');
+  const toMove = npcs.filter(e => e.kind === 'Spillerkarakter');
+  if (!toMove.length) {
+    alert('Ingen spillerkarakterer fundet i "Folk i kampagnen" — enten er de allerede flyttet, eller også er der ingen at migrere.');
+    return;
+  }
+  if (!confirm(`Flyt ${toMove.length} spillerkarakter(er) til den nye "Spillerkarakterer"-fane?\n\n${toMove.map(e => '- ' + e.name).join('\n')}\n\nDe fjernes fra "Folk i kampagnen" og oprettes i "Spillerkarakterer" i stedet. Fortsæt?`)) return;
+
+  const existingPlayers = loadEntries('players');
+  const existingNames = new Set(existingPlayers.map(e => (e.name || '').trim().toLowerCase()));
+  let added = 0, skipped = 0;
+  toMove.forEach(e => {
+    const key = (e.name || '').trim().toLowerCase();
+    if (existingNames.has(key)) { skipped++; return; }
+    const { kind, _id, ...rest } = e;
+    existingPlayers.push({ ...rest, _id: 'c_' + Math.random().toString(36).slice(2) });
+    added++;
+  });
+  saveEntries('players', existingPlayers);
+
+  const remainingNpcs = npcs.filter(e => e.kind !== 'Spillerkarakter').map(e => {
+    const { kind, ...rest } = e;
+    return rest;
+  });
+  saveEntries('npcs', remainingNpcs);
+
+  renderTabs();
+  renderList();
+  alert('Migrering fuldført:\n' + added + ' spillerkarakter(er) flyttet til Spillerkarakterer' +
+    (skipped ? '\n' + skipped + ' sprunget over (fandtes allerede der)' : '') +
+    '\n\nHusk at gemme begge faner i repo bagefter ("☁ Gem ALT i repo" er nemmest).');
+}
+
 async function pushAllToRepo() {
   if (!ghToken()) { alert('Gem en token først.'); return; }
   const btn = document.getElementById('btnRepoPushAll'); const old = btn.textContent;
@@ -1327,14 +1372,14 @@ document.getElementById('btn-delete').addEventListener('click', () => {
   // shop/shopItem deletion happens inline via the ✕ buttons in the panel, not this modal button
 });
 document.getElementById('btnEditLabels').addEventListener('click', openLabelsForm);
+document.getElementById('btnMigratePlayers').addEventListener('click', migratePlayersFromNpcs);
 
 const LABEL_FIELDS = [
   { key: 'site_kicker', label: 'Sidehoved: overskrift over titlen (fx "Dragons of Icespire Peak")', type: 'text', fallback: 'Dragons of Icespire Peak' },
   { key: 'site_title', label: 'Sidehoved: hovedtitel (fx "Phandalins Krønike")', type: 'text', fallback: 'Phandalins Krønike' },
   { key: 'site_mood', label: 'Sidehoved: undertekst (fx "Folk, fund og fortællinger...")', type: 'text', fallback: 'Folk, fund og fortællinger fra ekspeditionen' },
   { key: 'npcs', label: 'Fanenavn: "Folk i kampagnen"', type: 'text', fallback: TYPES.npcs.label },
-  { key: 'npcs_npc', label: '↳ Undergruppe: "NPC\'er"', type: 'text', fallback: 'NPC\'er' },
-  { key: 'npcs_pc', label: '↳ Undergruppe: "Spillernes karakterer"', type: 'text', fallback: 'Spillernes karakterer' },
+  { key: 'players', label: 'Fanenavn: "Spillerkarakterer"', type: 'text', fallback: TYPES.players.label },
   { key: 'items', label: 'Fanenavn: "Fund & genstande"', type: 'text', fallback: TYPES.items.label },
   { key: 'sessions', label: 'Fanenavn: "Session-logs"', type: 'text', fallback: TYPES.sessions.label },
   { key: 'personal', label: 'Fanenavn: "Personligt"', type: 'text', fallback: TYPES.personal.label },
