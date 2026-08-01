@@ -24,7 +24,7 @@
       "type": "narrative",
       "data": {
         "heading": "The Road to Axeholm",
-        "text": "For første gang i menneskers minde kan man se Axeholm på lang afstand. Den forbandede grønne tåge, der i 15 år lå tungt som en sygdom kilometervis rundt om borgen, er væk. \n\nPå trods af en besværlig, men lige strækning fra Phandalin til Axeholm, er der intet til at skjule de valgfarne fra oven - Cryovain har skabt kaos på de åbne veje og folk er sprædt over store afstande og kæmper for at rede hinanden, indfange kvæg og  få deres vogne fri fra is, grus og sublandskab. ",
+        "text": "For første gang i 15 år kan man se Axeholm på lang afstand. Den forbandede grønne tåge, der lå tungt som en sygdom kilometervis rundt om borgen, er væk. \n\nPå trods af en besværlig, men lige strækning fra Phandalin til Axeholm, er der intet til at skjule de valgfarne fra oven - Cryovain har skabt kaos på de åbne veje og folk er sprædt over store afstande og kæmper for at rede hinanden, indfange kvæg og  få deres vogne fri fra is, grus og sublandskab. ",
         "skills": [
           {
             "name": "Investigation",
@@ -91,8 +91,8 @@
         "int": 7,
         "wis": 10,
         "cha": 6,
-        "traits": "Damage Immunities: gift. Condition Immunities: charmed, exhaustion, poisoned. Senses: darkvision 60 ft., passiv Perception 10. Languages: Common.",
-        "attacks": "Bite: melee +2, reach 5 ft. Ramt: 9 (2d6+2) stik. Claws: melee +4, reach 5 ft. Ramt: 7 (2d4+2) flæng. Hvis målet ikke er elver eller undead: DC 10 CON-save eller lammet 1 min. (gentag save ved slutningen af hver tur)."
+        "traits": "Damage Immunities: gift. \nCondition Immunities: charmed, exhaustion, poisoned. \nSenses: darkvision 60 ft., \npassiv Perception 10.\nLanguages: Common.",
+        "attacks": "Bite: melee +2, reach 5 ft. Ramt: (2d6+2)  \nClaws: melee +4, reach 5 ft. Ramt: (2d4+2) \nBliver man ramt af et angreb men er ikke elver eller undead: DC 10 CON-save eller lammet (gentag save ved slutningen af hver tur for at komme fjerne lammet-effekt)."
       }
     },
     {
@@ -162,7 +162,7 @@
       "type": "narrative-dm",
       "data": {
         "heading": "The Untethered Gather",
-        "text": "Skabninger, der har fulgt det gamle ligspor i årevis, tørre og forvredne, med sult, der aldrig fik ende, mens tågen stod, bevæger sig med list rundt i udkanten af folkemængden.",
+        "text": "Skabninger, der plejede at æde resterne af tågens dødelige effekt på dyr, mennesker og andre leverende skabning, bevæger sig med list rundt i udkanten af folkemængden.",
         "dmNotes": "Sammensætning (vælg én): 2 Ghasts + 4 Ghouls, ELLER 1 Carrion Crawler + 5 Ghouls. ≈1700 XP rå.\nTrigger: ~2 runder efter bølge 1 er ryddet — ingen pause, attritionen skal bide.\nDel styrken: halvdelen mod heltene, halvdelen mod bagtroppen. Tvinger gruppen til at splitte deres ild.\nGhast fjerner elver-immuniteten mod lammelse — nu bider klørene på hele gruppen."
       }
     },
@@ -223,6 +223,11 @@
             "name": "Carrion Crawler",
             "max": "51",
             "cur": "51"
+          },
+          {
+            "name": "Carrion Crawler",
+            "max": "51",
+            "cur": "51"
           }
         ]
       }
@@ -257,8 +262,8 @@
       "type": "statblock",
       "data": {
         "title": "Wraith",
-        "hp": "67 ",
-        "ac": "13",
+        "hp": "120",
+        "ac": "17",
         "speed": "0 ft., fly 60 ft. (hover)",
         "cr": "5",
         "str": 6,
@@ -297,8 +302,8 @@
         "combatants": [
           {
             "name": "Wraith ",
-            "max": 67,
-            "cur": 67
+            "max": "120",
+            "cur": "120"
           },
           {
             "name": "Specter #1",
