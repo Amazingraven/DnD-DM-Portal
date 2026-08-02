@@ -342,7 +342,7 @@
       "type": "statblock",
       "data": {
         "title": "Aelrindel Vaeruth — The Last Dragon Hunter",
-        "hp": "225 (phase shift 112)",
+        "hp": "225 ",
         "ac": "18",
         "speed": "40 ft.",
         "cr": "10",
@@ -352,8 +352,8 @@
         "int": 12,
         "wis": 14,
         "cha": 16,
-        "traits": "Resistens: nekrotisk skade, ikke-magiske våben.\nImmun: gift, charmed, frightened, exhaustion, poisoned.\nPhase Shift ved 112 HP: rytterbåndet flænger op, og Nharessyth tvinges ind i kampen.\nLegendary Actions (3 per runde): Rider's Step (flyt uden opportunity attacks) · Lance Strike (ét lanse-angreb) · Death Cry (koster 2 actions: 30 ft., WIS Save DC 15 eller frightened).",
-        "attacks": "Dragonhunter Lance: +8 to hit, reach 10 ft., 2d8+4 stik + 2d8 nekrotisk.\nSpectral Charge: bevæger han sig 20+ ft. lige før angreb: +3d8 skade og STR Save DC 15 eller prone."
+        "traits": "Resistens: nekrotisk skade, ikke-magiske våben.\nImmun: charmed, frightened, exhaustion, poisoned.\nLegendary Actions (3 per runde): Rider's Step (flyt uden opportunity attacks) · Lance Strike (ét lanse-angreb) · Death Cry (koster 2 actions: 30 ft., WIS Save DC 15 eller frightened).",
+        "attacks": "Dragonhunter Lance: +8 to hit, reach 10 ft., 2d8+4 stik + 2d8 nekrotisk.\nSpectral Charge: bevæger sig optil 20 ft. i en lige linje i et angreb (flytter ham over kløfter og kan ramme flere spillere samtidig): +3d8 skade og STR Save DC 15 eller prone."
       }
     },
     {
