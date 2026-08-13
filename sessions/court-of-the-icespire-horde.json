@@ -192,6 +192,24 @@
       }
     },
     {
+      "id": "o9szqzd",
+      "type": "hptracker",
+      "data": {
+        "combatants": [
+          {
+            "name": "Orc guard",
+            "max": "32",
+            "cur": "32"
+          },
+          {
+            "name": "Orc guard",
+            "max": "32",
+            "cur": "32"
+          }
+        ]
+      }
+    },
+    {
       "id": "b16",
       "type": "narrative-dm",
       "data": {
@@ -339,9 +357,28 @@
       "type": "narrative-dm",
       "data": {
         "heading": "Court of the Icespire Horde",
-        "text": "\n\nFinalen skal være et åbent RP-encounter. Ingen skjult Influence-score. Ingen fast samtale. Spillerne skal kunne vinde rummet gennem egne argumenter, intuition og karaktervalg. DM har kun brug for klare NPC-motivationer og grænser.\n\nVarkhul Iceblood — Icespire Warchief:\n- Identitet: Krigskonge, ikke kultleder.\n- Primær motivation: Få sit folk hjem til Icespire Hold.\n- Sekundær motivation: Bevare styrke, ære og clanens fremtid.\n- Cryovain er hans reelle fjende.\n- Han bruger Talos fordi Talos har givet horden styrke, men er ikke religiøs fanatiker.\n- Han respekterer styrke, resultater, mod og konkrete løsninger.\n- Han hader at blive behandlet som dum barbar.\n- Han kan forhandles med — hvis heltene tilbyder en troværdig vej tilbage til Icespire Hold, har de noget han faktisk ønsker.\n\nThunder-Speaker Karga — Voice of Talos:\n- Identitet: Talos-shaman og ideologisk magtcenter ved hoffet.\n- Primær motivation: Grand Sacrifice skal gennemføres.\n- Han mener at lidelse, offer og torden er vejen til sejr.\n- Han accepterer gerne at horden bløder, hvis Talos' magt vokser.\n- Han ser diplomati med heltene som forgiftning af Warchiefens vilje.\n- Han kan argumentere og manipulere, men ikke reelt forhandles væk fra Talos.\n- Hvis Warchiefen vender sig væk fra Talos, mister Karga både religiøs og politisk magt.\n- Når Karga vurderer at han har mistet Warchiefens øre, er vold et naturligt sidste træk.",
-        "dmNotes": "DM-guidance — kun til DM, aldrig scriptet:\n- Lad spillerne tale frit. Afbryd ikke med mekanik medmindre en konkret handling kræver et roll.\n- Varkhul vil høre hvorfor de kom gennem en hel hær for at tale i stedet for at dræbe.\n- Karga vil forsøge at frame dem som svage mennesker/elvere, løgnere og fjender af orkernes gud.\n- Karga ønsker at gøre spørgsmålet religiøst: Talos har samlet horden og vil give dem sejr.\n- Varkhul ønsker et praktisk svar: Hvordan får han sit folk hjem, og hvad sker der med Cryovain?\n- Hvis heltene bruger Grand Sacrifice imod Karga, skal det ramme spørgsmålet om hvor mange ork-liv han er villig til at bruge som brændstof.\n- Hvis spillerne vinder Warchiefens tillid, kan horden omdirigeres mod Icespire Hold/Cryovain.\n- Hvis Karga mister Warchiefens øre, kan han eskalere til combat. Det er en konsekvens af hans motivation, ikke en obligatorisk scripted trigger.\n- Varkhul og hans warriors bør ikke automatisk hjælpe heltene i kampen mod Karga. Det kan være stærkere at lade Court se på og lade Talos forsvare sin egen stemme.\n- Hvis spillerne vælger at angribe Varkhul eller hele Court, skal situationen føles åbenlyst selvmorderisk. Statblocket eksisterer, men sessionen er ikke designet som en fair bossfight mod hele rummet.",
+        "text": "I tronsalen sidder Varkhul - Ork Warchief af Icespire klanen. Han er omgivet af vagter og foran Varkul står en Talos shaman.\n\nAudiensen er højlydt og på ingen måde venlig i tonen.\n\nVarkul: \"I får ikke flere ofre til jeres ritual, Karga.. fortæl dit overhoved at vi allerede har ofret Talos rigeligt\"\nKarga: \"Siden DU! mislykkedes med at generhverve Heart of Thunder, mangler vi fortsat tusinde sjæle.. så hvis ikke du tilføjer dele af din hær til bålet får I ALDRIG muligheden for at genvinde Icespire Hold\"",
+        "dmNotes": "Finalen skal være et åbent RP-encounter. Ingen skjult Influence-score. Ingen fast samtale. Spillerne skal kunne vinde rummet gennem egne argumenter, intuition og karaktervalg. DM har kun brug for klare NPC-motivationer og grænser.\n\nVarkhul Iceblood — Icespire Warchief:\n- Identitet: Krigskonge, ikke kultleder.\n- Primær motivation: Få sit folk hjem til Icespire Hold.\n- Sekundær motivation: Bevare styrke, ære og clanens fremtid.\n- Cryovain er hans reelle fjende.\n- Han bruger Talos fordi Talos har givet horden styrke, men er ikke religiøs fanatiker.\n- Han respekterer styrke, resultater, mod og konkrete løsninger.\n- Han hader at blive behandlet som dum barbar.\n- Han kan forhandles med — hvis heltene tilbyder en troværdig vej tilbage til Icespire Hold, har de noget han faktisk ønsker.\n\nThunder-Speaker Karga — Voice of Talos:\n- Identitet: Talos-shaman og ideologisk magtcenter ved hoffet.\n- Primær motivation: Grand Sacrifice skal gennemføres.\n- Han mener at lidelse, offer og torden er vejen til sejr.\n- Han accepterer gerne at horden bløder, hvis Talos' magt vokser.\n- Han ser diplomati med heltene som forgiftning af Warchiefens vilje.\n- Han kan argumentere og manipulere, men ikke reelt forhandles væk fra Talos.\n- Hvis Warchiefen vender sig væk fra Talos, mister Karga både religiøs og politisk magt.\n- Når Karga vurderer at han har mistet Warchiefens øre, er vold et naturligt sidste træk.\n\nDM-guidance — kun til DM, aldrig scriptet:\n- Lad spillerne tale frit. Afbryd ikke med mekanik medmindre en konkret handling kræver et roll.\n- Varkhul vil høre hvorfor de kom gennem en hel hær for at tale i stedet for at dræbe.\n- Karga vil forsøge at frame dem som svage mennesker/elvere, løgnere og fjender af orkernes gud.\n- Karga ønsker at gøre spørgsmålet religiøst: Talos har samlet horden og vil give dem sejr.\n- Varkhul ønsker et praktisk svar: Hvordan får han sit folk hjem, og hvad sker der med Cryovain?\n- Hvis heltene bruger Grand Sacrifice imod Karga, skal det ramme spørgsmålet om hvor mange ork-liv han er villig til at bruge som brændstof.\n- Hvis spillerne vinder Warchiefens tillid, kan horden omdirigeres mod Icespire Hold/Cryovain.\n- Hvis Karga mister Warchiefens øre, kan han eskalere til combat. Det er en konsekvens af hans motivation, ikke en obligatorisk scripted trigger.\n- Varkhul og hans warriors bør ikke automatisk hjælpe heltene i kampen mod Karga. Det kan være stærkere at lade Court se på og lade Talos forsvare sin egen stemme.\n- Hvis spillerne vælger at angribe Varkhul eller hele Court, skal situationen føles åbenlyst selvmorderisk. Statblocket eksisterer, men sessionen er ikke designet som en fair bossfight mod hele rummet.",
         "skills": []
+      }
+    },
+    {
+      "id": "b33",
+      "type": "statblock",
+      "data": {
+        "title": "Thunder-Speaker Karga — Cleric of Talos",
+        "hp": "210",
+        "ac": "18",
+        "speed": "30 ft.",
+        "cr": "—",
+        "str": "13",
+        "dex": "15",
+        "con": 16,
+        "int": "20",
+        "wis": 18,
+        "cha": "18",
+        "traits": "Saving Throws: CON +6, WIS +7, CHA +5. Resistance: lightning, thunder.\nTalos WILL Hear Me — 1/Encounter: Når Karga når 50 HP eller færre, rammer lyn ham fra loftet. Han tager ingen damage. Creatures inden for 10 ft. tager 2d8 lightning, DC 14 DEX half. Karga får 20 Temporary HP.\nStorm Step — Bonus Action, 3/day: Teleport 20 ft. Creatures adjacent til startpositionen tager 3 lightning damage.",
+        "attacks": "Multiattack x 2 (1 basic + 1 special or 2 basic)\n\nBasic:\nStorm Mace (extended reach - 10 feat): +6 to hit. (1d8+3) bludgeoning + (1d8+3) lightning. STR Save 15 or prone. \nThunderbolt: Ranged Spell Attack +7, range 90 ft. Hit: (3d8) lightning.\n\nSpecial:\nChain Lightning — Recharge 5–6: Ét creature inden for 60 ft., derefter op til to targets inden for 20 ft. af første target. DC 15 DEX Save. (4d8) lightning, half on success.\nThunderclap — Recharge 4–6: Creatures inden for 15 ft. DC 15 CON. Failure: (3d8) thunder + pushed 10 ft. + Prone. Success: half damage.\n\nLegendary Actions x 2\nLightning speed - Move half speed with no opportunity Attacks\nBasic attack"
       }
     },
     {
@@ -364,26 +401,20 @@
       }
     },
     {
-      "id": "b33",
-      "type": "statblock",
+      "id": "b34",
+      "type": "hptracker",
       "data": {
-        "title": "Thunder-Speaker Karga — Cleric of Talos",
-        "hp": "170",
-        "ac": "18",
-        "speed": "30 ft.",
-        "cr": "—",
-        "str": "",
-        "dex": "",
-        "con": 16,
-        "int": "",
-        "wis": 18,
-        "cha": "",
-        "traits": "Saving Throws: CON +6, WIS +7, CHA +5. Resistance: lightning, thunder.\nTalos WILL Hear Me — 1/Encounter: Når Karga når 50 HP eller færre, rammer lyn ham fra loftet. Han tager ingen damage. Creatures inden for 10 ft. tager 2d8 lightning, DC 14 DEX half. Karga får 20 Temporary HP.\nStorm Step — Bonus Action, 3/day: Teleport 20 ft. Creatures adjacent til startpositionen tager 3 lightning damage.",
-        "attacks": "Multiattack x 2 (1 basic + 1 special or 2 basic)\nStorm Mace: +6 to hit. (1d8+3) bludgeoning + (1d8) lightning. STR Save 15 or prone. \nThunderbolt: Ranged Spell Attack +7, range 90 ft. Hit: (3d8) lightning.\nChain Lightning — Recharge 5–6: Ét creature inden for 60 ft., derefter op til to targets inden for 20 ft. af første target. DC 15 DEX Save. (4d8) lightning, half on success.\nThunderclap — Recharge 4–6: Creatures inden for 15 ft. DC 15 CON. Failure: (3d8) thunder + pushed 10 ft. + Prone. Success: half damage.\n\nLegendary Actions x 2\nLightning speed - Move half speed with on opportunity Attacks\nBasic attack"
+        "combatants": [
+          {
+            "name": "Thunder-Speaker Karga",
+            "max": "210",
+            "cur": "210"
+          }
+        ]
       }
     },
     {
-      "id": "b34",
+      "id": "u1epifi",
       "type": "hptracker",
       "data": {
         "combatants": [
@@ -393,47 +424,36 @@
             "cur": "250"
           },
           {
-            "name": "Thunder-Speaker Karga",
-            "max": "170",
-            "cur": "170"
+            "name": "Orc guard",
+            "max": "32",
+            "cur": "32"
+          },
+          {
+            "name": "Orc guard",
+            "max": "32",
+            "cur": "32"
+          },
+          {
+            "name": "Orc guard",
+            "max": "32",
+            "cur": "32"
+          },
+          {
+            "name": "Orc guard",
+            "max": "32",
+            "cur": "32"
+          },
+          {
+            "name": "Orc guard",
+            "max": "32",
+            "cur": "32"
+          },
+          {
+            "name": "Orc guard",
+            "max": "32",
+            "cur": "32"
           }
         ]
-      }
-    },
-    {
-      "id": "b35",
-      "type": "divider",
-      "data": {
-        "icon": "◆",
-        "transition": "fade"
-      }
-    },
-    {
-      "id": "b36",
-      "type": "narrative-dm",
-      "data": {
-        "heading": "Escape State",
-        "text": "Aktiveres kun hvis situationen reelt kollapser, og kun hvis Escape Route blev etableret.\n\nDa I rammer fængslet, hører I råbet før I ser åbningen.\n\n\"HER!\"\n\nHvor muren før var en massiv bunke sten, er der nu et hul.\n\nBlodige hænder trækker de sidste murbrokker væk.\n\nBag jer kommer orkernes fodtrin nærmere.\n\nHarl råber:\n\n\"MOVE!\"",
-        "dmNotes": "- Escape-ruten er payoff, ikke redning fra DM.\n- Hvis heltene ikke hjalp fangerne, skal denne løsning ikke materialisere sig.\n- Flugten kan køre som skill challenge, chase eller ren narrativ sekvens afhængigt af tiden ved bordet.",
-        "skills": []
-      }
-    },
-    {
-      "id": "b37",
-      "type": "divider",
-      "data": {
-        "icon": "◆",
-        "transition": "fade"
-      }
-    },
-    {
-      "id": "b38",
-      "type": "narrative-dm",
-      "data": {
-        "heading": "DM Reference — Image Package, Priorities & Canon Guardrails",
-        "text": "Image Package:\n1. Court of the Icespire Horde — Establishing Shot: Session opener; viser borg + enorm hær.\n2. The Forgotten Tunnels: Atmosfære og overgang fra krig til klaustrofobi.\n3. The Spider Warrens: Encounter reveal; webs, lofter, indpakkede orker.\n4. The Prison Beneath the Keep: Narrativ discovery + Harl + mulig escape route.\n5. The Horde Marches / Falcon's Diversion: Visuelt payoff på distraktionen og hærens skala.\n6. Gormak the Cleaver: Character/action image til køkkenkampen.\n7. The Elf Keep Defiled: Miljøfortælling om elverborg, Icespire-symboler og Talos' voksende indflydelse.\n8. Court of the Icespire Horde — Throne Room: Finalens hovedbackdrop.\n9. Varkhul Iceblood — Portrait: Krigskonge, Icespire-look, ingen Talos-ikonografi.\n10. Thunder-Speaker Karga — Portrait: Talos-symboler, forkullede ritualmærker, tydelig religiøs magt.",
-        "dmNotes": "HTML Priorities:\n- Player-facing tekst skal være kort og stemningsbåret.\n- DM-noter skal rumme næsten al baggrund, branching, mechanics og motivation.\n- Statblocks skal være nemme at scanne under combat.\n- Billedmarkører skal stå tydeligt ved scenens start.\n- Ingen permanent HUD eller synlig mission-logik i player-facing materiale.\n- Court-finalen må ikke omskrives til et social-combat minigame. Bevar den åben.\n- Heat-systemet må gerne ligge som diskret DM-værktøj.\n- Escape Route må kun være tilgængelig hvis fangerne faktisk blev befriet og sat til at rydde passagen.\n- Dungeonens mål er attrition og spænding, ikke at slå partyet ihjel før Court.\n- Karga er sessionens sandsynlige combat-climax; Varkhul er sessionens narrative climax.\n\nNarrative Safety / Canon Guardrails:\n- Warchiefen er pragmatiker, ikke Talos-fanatiker.\n- Hans kerneønske er Icespire Hold og hans folks fremtid.\n- Talos-shamanen er den ideologiske modpol og kan ikke forhandles væk fra sin tro.\n- Grand Sacrifice må plantes, men Circle of Thunders præcise lokation må ikke afsløres gennem Harl.\n- Falcons distraktion skal koste noget; hans folk er allerede pressede.\n- Orkernes hær skal føles for stor til direkte konfrontation.\n- Elverborgen skal føles som et ældre sted, som orkerne har erobret og tilpasset — ikke en borg de selv byggede.\n- Spillerne skal eje finalens retning. DM simulerer NPC'ernes motivationer og konsekvenser.",
-        "skills": []
       }
     }
   ]
