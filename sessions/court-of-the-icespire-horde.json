@@ -23,8 +23,8 @@
       "id": "b3",
       "type": "narrative-dm",
       "data": {
-        "heading": "The Grand Army",
-        "text": "Først ser I borgen - Så ser I hæren.\n\nTeltene fortsætter mellem træerne, længere end øjet kan følge. Bål brænder mellem palisaderne. Ogres bevæger sig mellem formationer af orker, og gamle elviske tårne rejser sig over lejren som knogler fra en anden tidsalder.\n\nFalcon lader jer se det et øjeblik - Så peger han - \"Der.\" Hans finger rammer et punkt uden for murene - \"afvent signalet også sign jer mod nedgangen - husk at nederlag ikke er en mulighed\". Falcon forsvinder ind i skovens dyb.",
+        "heading": "Army of the Icespire Clan",
+        "text": "Først ser I den gamle ruin - Så ser I hæren. Teltene fortsætter mellem træerne, længere end øjet kan følge. Bål brænder mellem palisaderne.\n\nFalcon lader jer se det et øjeblik - Så peger han - \"Der.\" Hans finger rammer et punkt lige inden for orkernes lejer \"afvent signalet også snig jer mod nedgangen - husk at nederlag ikke er en mulighed\". \n\nFalcon forsvinder ind i skovens dyb.",
         "dmNotes": "Falcons plan:\n- Falcon kan ikke få heltene gennem lejren. Han kan kun skabe et vindue.\n- Rangers og Kryptgarden-elverne angriber den modsatte side med kontrollerede eksplosioner, brændende pile og gamle Neverwinter-horn.\n- De lader bannere, silhuetter og bevægelser blive set, så horden tror at Neverwinters hær er ankommet.\n- Falcon ved ikke præcist hvad der findes i tunnellerne eller hvor de ender.\n- Planen vil koste Falcon styrker og materiel. Det er ikke en gratis distraktion.\n- Falcon gør klart, at når retræten begynder, kan han ikke vende tilbage efter heltene.",
         "skills": []
       }
@@ -50,20 +50,20 @@
       "type": "narrative-dm",
       "data": {
         "heading": "The Forgotten Path Ways",
-        "text": "Først hornene - så eksplosionerne.\n\nSå tusinder af fødder over jeres hoveder.\n\nJo længere I bevæger jer ind under ruinen, desto mere forsvinder verden ovenfor.\n\nTil sidst er der kun vandet omkring jeres støvler.\n\nOg noget, der bevæger sig langt foran jer i mørket.",
+        "text": "Først hornene - så eksplosionerne - så tusinder af fødder over jeres hoveder - hæren er ved at mobalisere.\n\nJo længere I bevæger jer ind under ruinen, desto mere forsvinder verden ovenfor - indtil der til sidst kun er lyden af jeres støvler mod de glatte sten.",
         "dmNotes": "Exploration:\n- Survival DC 13: Find den mest sandsynlige vej mod borgens fundament.\n- History DC 13: Tunnellerne er ældre end orkernes besættelse og ligner service-/evakueringspassager.\n- Perception DC 14: Gamle orkiske fodspor stopper konsekvent før områder dækket af tykke hvide tråde.\n- Fail-forward: Fejl koster tid, positionering eller resources. Missionen må ikke bryde på ét check.",
         "skills": [
           {
             "name": "Survival",
-            "desc": "DC 13 — find vejen mod borgens fundament"
+            "desc": ""
           },
           {
             "name": "History",
-            "desc": "DC 13 — tunnellerne er ældre end besættelsen"
+            "desc": ""
           },
           {
             "name": "Perception",
-            "desc": "DC 14 — fodspor stopper før hvide tråde"
+            "desc": ""
           }
         ]
       }
@@ -74,16 +74,6 @@
       "data": {
         "icon": "◆",
         "transition": "fade"
-      }
-    },
-    {
-      "id": "b8",
-      "type": "narrative-dm",
-      "data": {
-        "heading": "Scene 3 — The Spider Warrens",
-        "text": "Encounter: 3 Giant Tunnel Spiders + 2 Broodlings. Klaustrofobisk og resource-drænende — ikke en miniboss.",
-        "dmNotes": "Terrain:\n- Hanging Webs: Difficult Terrain.\n- Burn the Web: AC 10; 5 fire damage ødelægger en 5-ft. sektion.\n- Wrapped Corpses: Creature skubbet ind i dem laver DC 12 DEX eller bliver Restrained indtil en Action bruges på at frigøre sig.\n- Ceiling Attack: Første Giant Spider starter skjult på loftet.",
-        "skills": []
       }
     },
     {
