@@ -7,7 +7,7 @@
       "type": "header",
       "data": {
         "kicker": "DRAGONS OF ICESPIRE PEAK",
-        "title": "Court of the Icespire Horde",
+        "title": "Court of the Icespire Clan",
         "mood": ""
       }
     },
@@ -23,7 +23,7 @@
       "id": "b3",
       "type": "narrative-dm",
       "data": {
-        "heading": "Army of the Icespire Clan",
+        "heading": "The Army of Icespire",
         "text": "Først ser I den gamle ruin - Så ser I hæren. Teltene fortsætter mellem træerne, længere end øjet kan følge. Bål brænder mellem palisaderne.\n\nFalcon lader jer se det et øjeblik - Så peger han - \"Der.\" Hans finger rammer et punkt lige inden for orkernes lejer \"afvent signalet også snig jer mod nedgangen - husk at nederlag ikke er en mulighed\". \n\nFalcon forsvinder ind i skovens dyb.",
         "dmNotes": "Falcons plan:\n- Falcon kan ikke få heltene gennem lejren. Han kan kun skabe et vindue.\n- Rangers og Kryptgarden-elverne angriber den modsatte side med kontrollerede eksplosioner, brændende pile og gamle Neverwinter-horn.\n- De lader bannere, silhuetter og bevægelser blive set, så horden tror at Neverwinters hær er ankommet.\n- Falcon ved ikke præcist hvad der findes i tunnellerne eller hvor de ender.\n- Planen vil koste Falcon styrker og materiel. Det er ikke en gratis distraktion.\n- Falcon gør klart, at når retræten begynder, kan han ikke vende tilbage efter heltene.",
         "skills": []
@@ -85,12 +85,12 @@
         "ac": "14",
         "speed": "30 ft., climb 30 ft.",
         "cr": "—",
-        "str": "",
-        "dex": "",
-        "con": "",
-        "int": "",
-        "wis": "",
-        "cha": "",
+        "str": "12",
+        "dex": "15",
+        "con": "10",
+        "int": "8",
+        "wis": "8",
+        "cha": "5",
         "traits": "Spider Climb. Kan bevæge sig på vægge og lofter uden checks.\nWeb Walker. Ignorerer movement restrictions fra webs.",
         "attacks": "Bite: +5 to hit, reach 5 ft. Hit: 7 (1d8+3) piercing + 7 (2d6) poison. DC 12 CON Save for half poison.\nWeb — Recharge 5–6: Ranged attack, range 30/60 ft. Target bliver Restrained. DC 12 STR som Action for at slippe fri."
       }
@@ -104,12 +104,12 @@
         "ac": "13",
         "speed": "30 ft., climb 30 ft.",
         "cr": "—",
-        "str": "",
-        "dex": "",
-        "con": "",
-        "int": "",
-        "wis": "",
-        "cha": "",
+        "str": "8",
+        "dex": "13",
+        "con": "12",
+        "int": "7",
+        "wis": "5",
+        "cha": "0",
         "traits": "Skitter. Opportunity Attacks mod Broodling foretages med Disadvantage.",
         "attacks": "Bite: +4 to hit. Hit: 5 (1d6+2) piercing."
       }
@@ -251,7 +251,7 @@
       "type": "narrative-dm",
       "data": {
         "heading": "The Warchief's Kitchen",
-        "text": "I har tydeligvis nået borgens køkkenfaciliteter - 3 yderst overraskede orker  ser direkte på jer.\nKøkkenchefen er ikke til at tage fejl af - en kæmpe ork fastner sit greb om en overdreven meat cleaver - i har få sekunder til at reagere.",
+        "text": "I har nået borgens køkkenfaciliteter - tre yderst overraskede orker ser direkte på jer...\n\nKøkkenchefen er ikke til at tage fejl af - en kæmpe ork fæstner sit greb om en overdreven meat cleaver.",
         "dmNotes": "Kitchen Terrain:\n- Boiling Cauldron: Creature pushed into it tager 2d8 fire damage.\n- Grease: DC 12 DEX eller Prone.\n- Hanging Hooks: DC 13 DEX hvis pushed gennem området; 1d8 piercing og movement stopper.\n- Open Hearth: 1d8 fire ved entry/start.\n- Encounterets funktion er attrition. Gormak er ikke sessionens boss.",
         "skills": [
           {
@@ -293,12 +293,12 @@
         "ac": "13",
         "speed": "30 ft.",
         "cr": "—",
-        "str": "",
-        "dex": "",
-        "con": "",
-        "int": "",
-        "wis": "",
-        "cha": "",
+        "str": "15",
+        "dex": "11",
+        "con": "16",
+        "int": "9",
+        "wis": "8",
+        "cha": "10",
         "traits": "",
         "attacks": "Multiattack x 2\nCleaver: +4 to hit, (1d6 damage +4 slashing)."
       }
