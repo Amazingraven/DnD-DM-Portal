@@ -144,7 +144,7 @@
       "data": {
         "title": "Manticore — arena-variant",
         "hp": "68 hver",
-        "ac": "14 (natural armor)",
+        "ac": "14",
         "speed": "30 ft., fly 50 ft. (arenaens net begrænser højden til 25–30 ft.)",
         "cr": "3",
         "str": 17,
@@ -153,8 +153,8 @@
         "int": 7,
         "wis": 12,
         "cha": 8,
-        "traits": "Tail Spikes: kun 6 tilbage per Manticore. Multiattack: ét Bite og to Claws, eller tre Tail Spike attacks.",
-        "attacks": "Bite: +5 to hit; 7 (1d8 + 3) piercing.\nClaw: +5 to hit; 6 (1d6 + 3) slashing.\nTail Spike: +5 to hit; range 100/200 ft.; 7 (1d8 + 3) piercing."
+        "traits": "Tail Spikes: kun 6 tilbage per Manticore. \nMultiattack x 3: ét Bite og to Claws, eller tre Tail Spike attacks.",
+        "attacks": "Bite: +5 to hit; 1d8 + 3 piercing.\nClaw: +5 to hit; 1d6 + 3 slashing.\nTail Spike: +5 to hit; range 100/200 ft.; 1d8 + 3 piercing."
       }
     },
     {
