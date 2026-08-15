@@ -716,13 +716,13 @@ window.__hpSet = function(rid, max){
 function renderPageBlocks(session, includeDM){
   let activeTransition = 'fade';
   let pageIdx = 0;
-  return session.blocks.map(b=>{
+  return session.blocks.map((b, orderIdx)=>{
     if(b.type === 'divider'){
       // Dividers are DM-only scene markers now — like DM-notes, players never
       // see them. They still drive the page count, so that always has to run
       // regardless of whether we render a visible indicator for the DM.
       const indicator = includeDM
-        ? `<div class="pblock divider-indicator" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="0" data-btype="divider">${renderBlockContent(b, true)}</div>`
+        ? `<div class="pblock divider-indicator" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="0" data-btype="divider" data-order="${orderIdx}">${renderBlockContent(b, true)}</div>`
         : '';
       activeTransition = (b.data && b.data.transition) || 'fade';
       pageIdx++;
@@ -730,7 +730,12 @@ function renderPageBlocks(session, includeDM){
     }
     const c = renderBlockContent(b, includeDM);
     if(!c) return '';
-    const wrap = `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="${b.pinned?1:0}" data-btype="${esc(b.type)}" data-transition="${esc(activeTransition)}">${c}</div>`;
+    // data-order records the block's ORIGINAL authoring position. Once a
+    // block is moved into #two-col-right, its DOM position no longer
+    // reflects that original order (the wrapper itself sits wherever it was
+    // first created) — data-order lets us re-sort correctly every time
+    // instead of drifting based on DOM traversal order.
+    const wrap = `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="${b.pinned?1:0}" data-btype="${esc(b.type)}" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${c}</div>`;
     return wrap;
   }).join('');
 }
@@ -1105,11 +1110,14 @@ function installPresentControls(win, doc){
       var rightCol = doc.getElementById('two-col-right');
       if(twoColActive){
         if(!rightCol){ rightCol = doc.createElement('div'); rightCol.id = 'two-col-right'; wrap.appendChild(rightCol); }
+        var candidates = [];
         for(var j=0;j<ch.length;j++){
           var el2 = ch[j];
           var t2 = el2.getAttribute('data-btype');
-          if(el2.style.display!=='none' && t2!=='header' && t2!=='image'){ rightCol.appendChild(el2); }
+          if(el2.style.display!=='none' && t2!=='header' && t2!=='image'){ candidates.push(el2); }
         }
+        candidates.sort(function(a,b){ return (parseInt(a.getAttribute('data-order')||'0',10)) - (parseInt(b.getAttribute('data-order')||'0',10)); });
+        candidates.forEach(function(el2){ rightCol.appendChild(el2); });
       } else if(rightCol){
         while(rightCol.firstChild){ wrap.insertBefore(rightCol.firstChild, rightCol); }
         rightCol.remove();
@@ -1424,10 +1432,13 @@ function buildStandaloneHTML(s, includeDM){
         var rightCol = document.getElementById('two-col-right');
         if(twoColActive){
           if(!rightCol){ rightCol=document.createElement('div'); rightCol.id='two-col-right'; wrap.appendChild(rightCol); }
+          var candidates=[];
           for(var j=0;j<ch.length;j++){
             var el2=ch[j], t2=el2.getAttribute('data-btype');
-            if(el2.style.display!=='none' && t2!=='header' && t2!=='image'){ rightCol.appendChild(el2); }
+            if(el2.style.display!=='none' && t2!=='header' && t2!=='image'){ candidates.push(el2); }
           }
+          candidates.sort(function(a,b){ return (parseInt(a.getAttribute('data-order')||'0',10)) - (parseInt(b.getAttribute('data-order')||'0',10)); });
+          candidates.forEach(function(el2){ rightCol.appendChild(el2); });
         } else if(rightCol){
           while(rightCol.firstChild){ wrap.insertBefore(rightCol.firstChild, rightCol); }
           rightCol.remove();
