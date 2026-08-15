@@ -1132,13 +1132,25 @@ function installPresentControls(win, doc){
     // Pass 1: for each block type, find the most recent pinned block whose
     // own page has been reached (<=idx). A later pin of the same type
     // (e.g. a new pinned image) automatically takes over from the previous one.
+    // IMPORTANT: "most recent" must be decided by data-order (the block's
+    // fixed, original authoring position), NOT by iteration order over ch —
+    // once a block has been reparented into #two-col-right (which always
+    // sits at the end of .page-wrap), it starts appearing LAST in document
+    // traversal order on later calls regardless of its actual page, which
+    // would otherwise make an OLDER pin incorrectly win over a newer one.
     var latestPinnedByType = {};
+    var latestPinnedOrder = {};
     for(var i=0;i<ch.length;i++){
       var el=ch[i];
       var p=parseInt(el.getAttribute('data-page')||'0',10);
       if(p>idx) continue;
       if(el.getAttribute('data-pinned')==='1'){
-        latestPinnedByType[el.getAttribute('data-btype')||''] = el;
+        var pt = el.getAttribute('data-btype')||'';
+        var pord = parseInt(el.getAttribute('data-order')||'0',10);
+        if(!(pt in latestPinnedOrder) || pord > latestPinnedOrder[pt]){
+          latestPinnedOrder[pt] = pord;
+          latestPinnedByType[pt] = el;
+        }
       }
     }
     // Pass 2: apply visibility. Individual objects fade in as they appear —
@@ -1464,12 +1476,18 @@ function buildStandaloneHTML(s, includeDM){
       var max=__maxPage();
       idx = Math.max(0, Math.min(max, idx));
       var latestPinnedByType = {};
+      var latestPinnedOrder = {};
       for(var i=0;i<ch.length;i++){
         var el=ch[i];
         var p=parseInt(el.getAttribute('data-page')||'0',10);
         if(p>idx) continue;
         if(el.getAttribute('data-pinned')==='1'){
-          latestPinnedByType[el.getAttribute('data-btype')||''] = el;
+          var pt=el.getAttribute('data-btype')||'';
+          var pord=parseInt(el.getAttribute('data-order')||'0',10);
+          if(!(pt in latestPinnedOrder) || pord>latestPinnedOrder[pt]){
+            latestPinnedOrder[pt]=pord;
+            latestPinnedByType[pt]=el;
+          }
         }
       }
       for(var i=0;i<ch.length;i++){
