@@ -106,6 +106,8 @@ body {
 
 /* Editor block wrapper */
 .eblock { position: relative; margin-bottom: 1.6rem; }
+.eblock.is-pinned{ outline:2px solid var(--gold,#b8862a); outline-offset:3px; border-radius:8px; }
+.tool-btn.pinned{ background:var(--gold,#b8862a); color:#221a0e; }
 .eblock-tools {
   position: absolute; top: -0.7rem; right: 0.3rem; z-index: 5;
   display: flex; gap: 0.25rem; background: #16110a;
@@ -263,6 +265,32 @@ const SHARED_CSS = `
 }
 .divider{ display:flex; align-items:center; gap:1rem; margin:2.2rem 0; opacity:.7; color:var(--gold); font-size:.9rem; }
 .divider::before,.divider::after{ content:''; flex:1; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
+/* ===== Two-column scene layout — only kicks in on TV/export while a pinned
+   image is active on the page. Builder canvas is unaffected (stays linear
+   for easy editing). Columns sized ~40%/40% per Rasmus's measurements, with
+   the remaining ~20% as gap + outer margin so the background stays visible.
+   Image box is a fixed 4:5 ratio, object-fit:contain (nothing is ever
+   cropped), top-aligned so it flushes with the header — matches the
+   session-builder-schema pin-adfærd notes. */
+.present-body .page-wrap.two-col{
+  display:grid; grid-template-columns:40% 40%; column-gap:5%; row-gap:1.6rem;
+  justify-content:center; align-items:start;
+}
+.present-body .page-wrap.two-col .pblock[data-btype="header"]{ grid-column:1 / -1; }
+.present-body .page-wrap.two-col .pblock[data-btype="image"]{ grid-column:1; }
+.present-body .page-wrap.two-col .pblock:not([data-btype="header"]):not([data-btype="image"]){ grid-column:2; }
+.present-body .page-wrap.two-col .scene-figure{ margin:0; }
+.present-body .page-wrap.two-col .figure-frame{
+  aspect-ratio:4/5; overflow:hidden;
+  background:rgba(0,0,0,.18); border:1px solid var(--gold); border-radius:6px;
+}
+.present-body .page-wrap.two-col .figure-frame img{
+  width:100%; height:100%; object-fit:contain; object-position:top center;
+  border:none; box-shadow:none; border-radius:0; margin:0; display:block;
+}
+.present-body .page-wrap.two-col .scene-figure figcaption{
+  margin-top:.5rem;
+}
 .skill-checks{ display:flex; flex-wrap:wrap; gap:.6rem; margin:1.3rem 0; }
 .skill-badge{
   display:inline-block; font-family:'Cinzel',serif; font-weight:600; font-size:.85rem;
@@ -551,7 +579,7 @@ function renderBlockContent(block, includeDM){
     case 'image':
       if(!d.imageData) return includeDM?`<div class="scroll-panel"><em>(billede mangler)</em></div>`:'';
       return `<figure class="scene-figure">
-        <img src="${d.imageData}" alt="">
+        <div class="figure-frame"><img src="${d.imageData}" alt=""></div>
         ${d.caption?`<figcaption>${esc(d.caption)}</figcaption>`:''}
       </figure>`;
     case 'divider':
@@ -633,6 +661,17 @@ window.__hpUpdateBar = function(rid, max, val){
   const pct = (val/max)*100;
   bar.style.width = Math.min(100, pct)+'%';
   bar.className = 'hp-bar ' + (pct>50?'healthy':(pct>25?'bloodied':'critical'));
+  // Persist back into the session data so the value survives re-renders,
+  // and push the change live to the TV screen without touching it directly.
+  const sep = rid.lastIndexOf('_');
+  const blockId = rid.slice(0, sep), idx = Number(rid.slice(sep+1));
+  const s = current();
+  const b = s && s.blocks.find(x=>x.id===blockId);
+  if(b && b.data.combatants && b.data.combatants[idx]){
+    b.data.combatants[idx].cur = val;
+    save();
+    pushToPresent();
+  }
 };
 window.__hpChange = function(rid, max, delta){
   const input = document.getElementById('hp-'+rid);
@@ -661,13 +700,20 @@ function renderPageBlocks(session, includeDM){
   let activeTransition = 'fade';
   let pageIdx = 0;
   return session.blocks.map(b=>{
-    const c = renderBlockContent(b, includeDM);
-    if(!c) return '';
-    const wrap = `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-transition="${esc(activeTransition)}">${c}</div>`;
     if(b.type === 'divider'){
+      // Dividers are DM-only scene markers now — like DM-notes, players never
+      // see them. They still drive the page count, so that always has to run
+      // regardless of whether we render a visible indicator for the DM.
+      const indicator = includeDM
+        ? `<div class="pblock divider-indicator" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="0" data-btype="divider">${renderBlockContent(b, true)}</div>`
+        : '';
       activeTransition = (b.data && b.data.transition) || 'fade';
       pageIdx++;
+      return indicator;
     }
+    const c = renderBlockContent(b, includeDM);
+    if(!c) return '';
+    const wrap = `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="${b.pinned?1:0}" data-btype="${esc(b.type)}" data-transition="${esc(activeTransition)}">${c}</div>`;
     return wrap;
   }).join('');
 }
@@ -710,6 +756,7 @@ function renderCanvas(){
     s.blocks.forEach((b,i)=>{
       const tools = `<div class="eblock-tools">
         <span class="btype-tag">${BLOCK_DEFS[b.type]?BLOCK_DEFS[b.type].label:b.type}</span>
+        ${b.type!=='divider'?`<button class="tool-btn${b.pinned?' pinned':''}" data-act="pin" data-id="${b.id}" title="${b.pinned?'Fastgjort — vises på alle sider fremover, indtil et nyt pin af samme type overtager. Klik for at frigøre.':'Fastgør denne blok, så den bliver stående på tværs af sider i denne scene'}">${b.pinned?'📌':'📍'}</button>`:''}
         <button class="tool-btn" data-act="up" data-id="${b.id}" title="Op" ${i===0?'disabled style=opacity:.3':''}>▲</button>
         <button class="tool-btn" data-act="down" data-id="${b.id}" title="Ned" ${i===s.blocks.length-1?'disabled style=opacity:.3':''}>▼</button>
         <button class="tool-btn" data-act="edit" data-id="${b.id}" title="Rediger">✎</button>
@@ -718,7 +765,7 @@ function renderCanvas(){
       const body = (editingBlock===b.id)
         ? renderForm(b)
         : (renderBlockContent(b,true) || `<div class="scroll-panel"><em>Tom ${esc(b.type)} — klik ✎</em></div>`);
-      html += `<div class="eblock" data-id="${b.id}">${tools}${body}</div>`;
+      html += `<div class="eblock${b.pinned?' is-pinned':''}" data-id="${b.id}">${tools}${body}</div>`;
     });
   }
   // add bar
@@ -809,6 +856,10 @@ canvas.addEventListener('click', e=>{
     else if(act==='down') moveBlock(id,1);
     else if(act==='edit'){ editingBlock = (editingBlock===id?null:id); renderCanvas(); }
     else if(act==='del'){ if(confirm('Slet denne blok?')) removeBlock(id); }
+    else if(act==='pin'){
+      const b = current().blocks.find(x=>x.id===id);
+      if(b){ b.pinned = !b.pinned; save(); renderCanvas(); pushToPresent(); }
+    }
     return;
   }
   if(e.target.closest('[data-done]')){ editingBlock=null; renderCanvas(); return; }
@@ -995,13 +1046,29 @@ function installPresentControls(win, doc){
     var ch=kids(); if(!ch.length) return;
     var max=maxPage();
     idx = Math.max(0, Math.min(max, idx));
+    // Pass 1: for each block type, find the most recent pinned block whose
+    // own page has been reached (<=idx). A later pin of the same type
+    // (e.g. a new pinned image) automatically takes over from the previous one.
+    var latestPinnedByType = {};
     for(var i=0;i<ch.length;i++){
       var el=ch[i];
       var p=parseInt(el.getAttribute('data-page')||'0',10);
+      if(p>idx) continue;
+      if(el.getAttribute('data-pinned')==='1'){
+        latestPinnedByType[el.getAttribute('data-btype')||''] = el;
+      }
+    }
+    // Pass 2: apply visibility. Individual objects fade in as they appear —
+    // not the whole scene — so only blocks new to THIS step ever animate.
+    for(var i=0;i<ch.length;i++){
+      var el=ch[i];
+      var p=parseInt(el.getAttribute('data-page')||'0',10);
+      var pinned = el.getAttribute('data-pinned')==='1';
+      var show = pinned ? (latestPinnedByType[el.getAttribute('data-btype')||'']===el) : (p===idx);
       el.classList.remove('enter-fade','enter-slide');
-      if(p===idx){
+      if(show){
         el.style.display='';
-        if(animate && win.__effects){
+        if(animate && win.__effects && p===idx){
           var trans = el.getAttribute('data-transition')||'fade';
           if(trans!=='instant'){ void el.offsetWidth; el.classList.add('enter-'+trans); }
         }
@@ -1009,11 +1076,34 @@ function installPresentControls(win, doc){
         el.style.display='none';
       }
     }
+    // Two-column scene layout kicks in only while a pinned image is active —
+    // a normal (non-pinned) full-width image still gets its own moment untouched.
+    var wrap = doc.querySelector('.page-wrap');
+    if(wrap) wrap.classList.toggle('two-col', !!latestPinnedByType['image']);
     win.__cur=idx;
     try{ win.scrollTo(0,0); }catch(e){}
+    win.__fitToScreen && win.__fitToScreen();
   };
   win.__applyPages = function(){ win.__showPage(win.__cur||0, false); };
   win.__step = function(dir){ win.__showPage((win.__cur||0)+dir, true); };
+  // Scale the current page down (never up) so it always fits the screen without scrolling.
+  win.__fitToScreen = function(){
+    var root = doc.getElementById('player-root');
+    if(!root) return;
+    root.style.transform = 'none';
+    root.style.width = '';
+    var contentH = root.scrollHeight;
+    var availH = win.innerHeight - 24;
+    var scale = Math.min(1, availH / Math.max(1, contentH));
+    if(scale < 0.999){
+      root.style.transformOrigin = 'top center';
+      root.style.transform = 'scale(' + scale + ')';
+      root.style.width = (100/scale) + '%';
+      root.style.marginLeft = 'auto'; root.style.marginRight = 'auto';
+    }
+  };
+  win.addEventListener('resize', function(){ win.__fitToScreen && win.__fitToScreen(); });
+  try{ doc.documentElement.style.overflow = 'hidden'; doc.body.style.overflow = 'hidden'; }catch(e){}
   // HP tracker
   win.__hpSafeEval = function(expr){
     if(!/^[\d+\-*/(). ]+$/.test(expr)) return NaN;
@@ -1027,6 +1117,15 @@ function installPresentControls(win, doc){
     var pct=(val/max)*100;
     bar.style.width=Math.min(100,pct)+'%';
     bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
+    var sep = rid.lastIndexOf('_');
+    var blockId = rid.slice(0, sep), idx = Number(rid.slice(sep+1));
+    var s = current();
+    var b = s && s.blocks.find(function(x){ return x.id===blockId; });
+    if(b && b.data.combatants && b.data.combatants[idx]){
+      b.data.combatants[idx].cur = val;
+      save();
+      renderCanvas();
+    }
   };
   win.__hpChange = function(rid, max, delta){
     var input=doc.getElementById('hp-'+rid); if(!input) return;
@@ -1251,21 +1350,50 @@ document.getElementById('btnExportHtml').onclick = ()=>{
       var ch=__kids(); if(!ch.length) return;
       var max=__maxPage();
       idx = Math.max(0, Math.min(max, idx));
+      var latestPinnedByType = {};
       for(var i=0;i<ch.length;i++){
         var el=ch[i];
         var p=parseInt(el.getAttribute('data-page')||'0',10);
+        if(p>idx) continue;
+        if(el.getAttribute('data-pinned')==='1'){
+          latestPinnedByType[el.getAttribute('data-btype')||''] = el;
+        }
+      }
+      for(var i=0;i<ch.length;i++){
+        var el=ch[i];
+        var p=parseInt(el.getAttribute('data-page')||'0',10);
+        var pinned = el.getAttribute('data-pinned')==='1';
+        var show = pinned ? (latestPinnedByType[el.getAttribute('data-btype')||'']===el) : (p===idx);
         el.classList.remove('enter-fade','enter-slide');
-        if(p===idx){
+        if(show){
           el.style.display='';
-          if(animate && window.__effects){
+          if(animate && window.__effects && p===idx){
             var trans = el.getAttribute('data-transition')||'fade';
             if(trans!=='instant'){ void el.offsetWidth; el.classList.add('enter-'+trans); }
           }
         } else { el.style.display='none'; }
       }
+      var wrap = document.querySelector('.page-wrap');
+      if(wrap) wrap.classList.toggle('two-col', !!latestPinnedByType['image']);
       window.__cur=idx;
       try{ window.scrollTo(0,0); }catch(e){}
+      window.__fitToScreen && window.__fitToScreen();
     };
+    window.__fitToScreen=function(){
+      var root=document.querySelector('.page-wrap');
+      if(!root) return;
+      root.style.transform='none'; root.style.width='';
+      var contentH=root.scrollHeight, availH=window.innerHeight-24;
+      var scale=Math.min(1, availH/Math.max(1,contentH));
+      if(scale<0.999){
+        root.style.transformOrigin='top center';
+        root.style.transform='scale('+scale+')';
+        root.style.width=(100/scale)+'%';
+        root.style.marginLeft='auto'; root.style.marginRight='auto';
+      }
+    };
+    window.addEventListener('resize', function(){ window.__fitToScreen && window.__fitToScreen(); });
+    try{ document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; }catch(e){}
     window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
     window.__showPage(0, false);
     document.getElementById('nextBtn').addEventListener('click', function(){ window.__step(1); });
