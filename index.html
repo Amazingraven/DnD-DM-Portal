@@ -161,6 +161,17 @@ body {
   font-size: 1.05rem; margin-top: 4rem; line-height: 1.7;
 }
 
+/* Embedded 16:9 TV-simulator — no popup/window-placement permission needed,
+   shows layout proportions accurately even without a real TV connected. */
+.tv-sim-panel{ padding:0.8rem 1rem; background:#0d0a05; border-bottom:2px solid #6b551f; }
+.tv-sim-frame-wrap{
+  width:100%; max-width:960px; margin:0 auto; aspect-ratio:16/9;
+  border:2px solid #b8862a; border-radius:8px; overflow:hidden; background:#000;
+}
+.tv-sim-frame-wrap iframe{ width:100%; height:100%; border:0; display:block; }
+.tv-sim-controls{ display:flex; gap:0.5rem; align-items:center; justify-content:center; margin-top:0.5rem; flex-wrap:wrap; }
+.tv-sim-hint{ font-size:0.68rem; color:#b8862a; opacity:0.8; }
+
 /* ===== SHARED PARCHMENT STYLES injected at runtime (see SHARED_CSS) ===== */
 </style>
 </head>
@@ -181,10 +192,22 @@ body {
     <button class="btn" id="btnNext" title="Næste scene (→ / mellemrum)">Næste ▶</button>
     <button class="btn primary" id="btnPresent">▶ Fremvis til TV</button>
     <button class="btn" id="btnPickScreen" title="Vælg hvilken skærm fremvisningen skal åbne på">🖥 Vælg skærm</button>
+    <button class="btn" id="btnToggleTvSim" title="Indbygget 16:9-testvisning i browseren — ingen popup, ingen skærmtilladelse nødvendig">🖥 Test-visning</button>
     <a class="btn" id="btnLobby" href="lobby/" target="_blank" title="Åbn opstarts-skærm i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">🕯 Opstarts-skærm</a>
     <a class="btn" id="btnShops" href="shops/" target="_blank" title="Åbn butiks-/inventory-styring i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">🏪 Butikker</a>
     <a class="btn" id="btnContent" href="content/" target="_blank" title="Åbn portal content manager i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">📜 Portal-indhold</a>
     <input type="file" id="fileImport" accept="application/json,.json,text/html,.html" style="display:none">
+  </div>
+  <div class="tv-sim-panel" id="tvSimPanel" style="display:none;">
+    <div class="tv-sim-frame-wrap">
+      <iframe id="tvSimFrame" title="TV-testvisning (16:9)"></iframe>
+    </div>
+    <div class="tv-sim-controls">
+      <button class="btn" id="tvSimPrev">◀</button>
+      <button class="btn" id="tvSimNext">Næste ▶</button>
+      <button class="btn" id="tvSimFs">⛶ Fuldskærm</button>
+      <span class="tv-sim-hint">Viser proportioner og layout på en 16:9-flade — ikke fysisk skærmstørrelse eller læseafstand.</span>
+    </div>
   </div>
   <div class="workspace">
     <aside class="library" id="library">
@@ -1148,6 +1171,7 @@ function installPresentControls(win, doc){
   });
 }
 function pushToPresent(){
+  renderTvSim();
   if(!presentWin || presentWin.closed || !presentRoot) return;
   const html = renderPlayerHTML(current());
   presentRoot.innerHTML = html || `<div class="present-empty">Venter på indhold…</div>`;
@@ -1331,9 +1355,8 @@ document.getElementById('fileImport').addEventListener('change', e=>{
   };
   r.readAsText(file);
 });
-document.getElementById('btnExportHtml').onclick = ()=>{
-  const s=current();
-  const body = `<div class="page-wrap">${renderPageBlocks(s,true)}</div>`;
+function buildStandaloneHTML(s, includeDM){
+  const body = `<div class="page-wrap">${renderPageBlocks(s,includeDM)}</div>`;
   const navButtons = `<div class="export-nav">
     <button class="fs-btn" id="prevBtn">◀ Forrige</button>
     <button class="fs-btn" id="nextBtn">Næste ▶</button>
@@ -1436,9 +1459,7 @@ document.getElementById('btnExportHtml').onclick = ()=>{
       window.__hpUpdateBar(rid, max, result);
     };
   <\/script>`;
-  const navCSS = `<style>.export-nav{ position:fixed; bottom:14px; right:14px; z-index:99; display:flex; gap:.5rem; } .export-nav .fs-btn{ position:static; }</style>`;
-  const embeddedData = `<script type="application/json" id="__session-data">${JSON.stringify(s).replace(/<\/script/gi, '<\\/script')}<\/script>`;
-  const full = `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
+  return `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(s.name||'Session')}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
@@ -1446,7 +1467,46 @@ document.getElementById('btnExportHtml').onclick = ()=>{
 <style>${themeVarsCSS(themeOf())}</style>
 ${navCSS}</head>
 <body class="present-body">${embeddedData}${body}${navButtons}${hpScript}${deckScript}</body></html>`;
+}
+document.getElementById('btnExportHtml').onclick = ()=>{
+  const s = current();
+  const full = buildStandaloneHTML(s, true);
   download((s.name||'session').replace(/[^a-z0-9æøå_-]+/gi,'_').toLowerCase()+'.html', full, 'text/html');
+};
+
+/* ===== Embedded 16:9 TV-simulator — accurate layout/scaling/pin-behaviour
+   without needing a real second screen or HDMI hookup. Reuses the exact
+   same standalone build as "Eksportér HTML", rendered with includeDM=false
+   so it matches what players actually see, not the DM's own reference copy. */
+let tvSimEnabled = false;
+let tvSimPage = 0;
+function renderTvSim(){
+  if(!tvSimEnabled) return;
+  const frame = document.getElementById('tvSimFrame');
+  if(!frame) return;
+  try{ if(frame.contentWindow && typeof frame.contentWindow.__cur === 'number') tvSimPage = frame.contentWindow.__cur; }catch(e){}
+  frame.srcdoc = buildStandaloneHTML(current(), false);
+  frame.onload = function(){
+    try{ frame.contentWindow.__showPage(tvSimPage, false); }catch(e){}
+  };
+}
+document.getElementById('btnToggleTvSim').onclick = ()=>{
+  tvSimEnabled = !tvSimEnabled;
+  document.getElementById('tvSimPanel').style.display = tvSimEnabled ? '' : 'none';
+  document.getElementById('btnToggleTvSim').textContent = tvSimEnabled ? '🖥 Skjul test-visning' : '🖥 Test-visning';
+  if(tvSimEnabled) renderTvSim();
+};
+document.getElementById('tvSimNext').onclick = ()=>{
+  const frame = document.getElementById('tvSimFrame');
+  try{ frame.contentWindow.__step(1); }catch(e){}
+};
+document.getElementById('tvSimPrev').onclick = ()=>{
+  const frame = document.getElementById('tvSimFrame');
+  try{ frame.contentWindow.__step(-1); }catch(e){}
+};
+document.getElementById('tvSimFs').onclick = ()=>{
+  const wrap = document.querySelector('.tv-sim-frame-wrap');
+  try{ wrap.requestFullscreen(); }catch(e){}
 };
 
 /* ============================================================
