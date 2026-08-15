@@ -6,7 +6,7 @@
       "id": "b1",
       "type": "header",
       "data": {
-        "kicker": "DRAGONS OF ICESPIRE PEAK",
+        "kicker": "DRAGON OF ICESPIRE PEAK",
         "title": "Court of the Icespire Clan",
         "mood": ""
       },
@@ -25,7 +25,7 @@
       "id": "b3",
       "type": "narrative-dm",
       "data": {
-        "heading": "The Army of Icespire",
+        "heading": "Army of Icespire",
         "text": "Først ser I den gamle ruin - Så ser I hæren. Teltene fortsætter mellem træerne, længere end øjet kan følge. Bål brænder mellem palisaderne.\n\nFalcon lader jer se det et øjeblik - Så peger han - \"Der.\" Hans finger rammer et punkt lige inden for orkernes lejer \"afvent signalet også snig jer mod nedgangen - husk at nederlag ikke er en mulighed\". \n\nFalcon forsvinder ind i skovens dyb.",
         "dmNotes": "Falcons plan:\n- Falcon kan ikke få heltene gennem lejren. Han kan kun skabe et vindue.\n- Rangers og Kryptgarden-elverne angriber den modsatte side med kontrollerede eksplosioner, brændende pile og gamle Neverwinter-horn.\n- De lader bannere, silhuetter og bevægelser blive set, så horden tror at Neverwinters hær er ankommet.\n- Falcon ved ikke præcist hvad der findes i tunnellerne eller hvor de ender.\n- Planen vil koste Falcon styrker og materiel. Det er ikke en gratis distraktion.\n- Falcon gør klart, at når retræten begynder, kan han ikke vende tilbage efter heltene.",
         "skills": []
@@ -53,8 +53,8 @@
       "id": "b5",
       "type": "narrative-dm",
       "data": {
-        "heading": "The Forgotten Path Ways",
-        "text": "Først hornene - så eksplosionerne - så tusinder af fødder over jeres hoveder - hæren er ved at mobalisere.\n\nJo længere I bevæger jer ind under ruinen, desto mere forsvinder verden ovenfor - indtil der til sidst kun er lyden af jeres støvler mod de glatte sten.",
+        "heading": "Forgotten Path Ways",
+        "text": "Først hornene - så eksplosionerne - så tusinder af fødder over jeres hoveder - hæren er ved at mobalisere.\n\nJo længere I bevæger jer ned under ruinen, desto mere forsvinder verden ovenfor - indtil der til sidst kun er lyden af jeres støvler mod de glatte sten.",
         "dmNotes": "Exploration:\n- Survival DC 13: Find den mest sandsynlige vej mod borgens fundament.\n- History DC 13: Tunnellerne er ældre end orkernes besættelse og ligner service-/evakueringspassager.\n- Perception DC 14: Gamle orkiske fodspor stopper konsekvent før områder dækket af tykke hvide tråde.\n- Fail-forward: Fejl koster tid, positionering eller resources. Missionen må ikke bryde på ét check.",
         "skills": [
           {
@@ -68,10 +68,14 @@
           {
             "name": "Perception",
             "desc": ""
+          },
+          {
+            "name": "NATURE",
+            "desc": ""
           }
         ]
       },
-      "pinned": false
+      "pinned": true
     },
     {
       "id": "b6",
@@ -122,6 +126,14 @@
       "pinned": false
     },
     {
+      "id": "b14",
+      "type": "divider",
+      "data": {
+        "icon": "◆",
+        "transition": "fade"
+      }
+    },
+    {
       "id": "b11",
       "type": "hptracker",
       "data": {
@@ -156,10 +168,10 @@
       "pinned": false
     },
     {
-      "id": "b14",
+      "id": "gbw1lk5",
       "type": "divider",
       "data": {
-        "icon": "◆",
+        "icon": "⚔",
         "transition": "fade"
       }
     },
@@ -277,7 +289,7 @@
           }
         ]
       },
-      "pinned": false
+      "pinned": true
     },
     {
       "id": "b24",
@@ -318,6 +330,14 @@
         "attacks": "Multiattack x 2\nCleaver: +4 to hit, (1d6 damage +4 slashing)."
       },
       "pinned": false
+    },
+    {
+      "id": "0a7c337",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
     },
     {
       "id": "b26",
@@ -365,11 +385,48 @@
       "type": "narrative-dm",
       "data": {
         "heading": "Court of the Icespire Horde",
-        "text": "I tronsalen sidder Varkhul - Ork Warchief af Icespire klanen. Han er omgivet af vagter og foran Varkul står en Talos shaman.\n\nAudiensen er højlydt og på ingen måde venlig i tonen.\n\nVarkul: \"I får ikke flere ofre til jeres ritual, Karga.. fortæl dit overhoved at vi allerede har ofret Talos rigeligt\"\nKarga: \"Siden DU! mislykkedes med at generhverve Heart of Thunder, mangler vi fortsat tusinde sjæle.. så hvis ikke du tilføjer dele af din hær til bålet får I ALDRIG muligheden for at genvinde Icespire Hold\"",
+        "text": "I tronsalen sidder Varkhul - Ork Warchief af Icespire klanen. Han er omgivet af vagter og foran Varkul står hvad I identificere, baseret på vedkomnes fremtoning, som en shaman af Talos.\n\nAudiensen er højlydt og på ingen måde venlig i tonen.\n\nVarkul: \"I får ikke flere ofre til jeres ritual, Karga.. fortæl dit overhoved at vi allerede har ofret Talos rigeligt\"\nKarga: \"Siden DU! mislykkedes med at generhverve Heart of Thunder, mangler vi fortsat tusinde sjæle.. så hvis ikke du tilføjer dele af din hær til bålet får I ALDRIG muligheden for at genvinde Icespire Hold\"",
         "dmNotes": "Finalen skal være et åbent RP-encounter. Ingen skjult Influence-score. Ingen fast samtale. Spillerne skal kunne vinde rummet gennem egne argumenter, intuition og karaktervalg. DM har kun brug for klare NPC-motivationer og grænser.\n\nVarkhul Iceblood — Icespire Warchief:\n- Identitet: Krigskonge, ikke kultleder.\n- Primær motivation: Få sit folk hjem til Icespire Hold.\n- Sekundær motivation: Bevare styrke, ære og clanens fremtid.\n- Cryovain er hans reelle fjende.\n- Han bruger Talos fordi Talos har givet horden styrke, men er ikke religiøs fanatiker.\n- Han respekterer styrke, resultater, mod og konkrete løsninger.\n- Han hader at blive behandlet som dum barbar.\n- Han kan forhandles med — hvis heltene tilbyder en troværdig vej tilbage til Icespire Hold, har de noget han faktisk ønsker.\n\nThunder-Speaker Karga — Voice of Talos:\n- Identitet: Talos-shaman og ideologisk magtcenter ved hoffet.\n- Primær motivation: Grand Sacrifice skal gennemføres.\n- Han mener at lidelse, offer og torden er vejen til sejr.\n- Han accepterer gerne at horden bløder, hvis Talos' magt vokser.\n- Han ser diplomati med heltene som forgiftning af Warchiefens vilje.\n- Han kan argumentere og manipulere, men ikke reelt forhandles væk fra Talos.\n- Hvis Warchiefen vender sig væk fra Talos, mister Karga både religiøs og politisk magt.\n- Når Karga vurderer at han har mistet Warchiefens øre, er vold et naturligt sidste træk.\n\nDM-guidance — kun til DM, aldrig scriptet:\n- Lad spillerne tale frit. Afbryd ikke med mekanik medmindre en konkret handling kræver et roll.\n- Varkhul vil høre hvorfor de kom gennem en hel hær for at tale i stedet for at dræbe.\n- Karga vil forsøge at frame dem som svage mennesker/elvere, løgnere og fjender af orkernes gud.\n- Karga ønsker at gøre spørgsmålet religiøst: Talos har samlet horden og vil give dem sejr.\n- Varkhul ønsker et praktisk svar: Hvordan får han sit folk hjem, og hvad sker der med Cryovain?\n- Hvis heltene bruger Grand Sacrifice imod Karga, skal det ramme spørgsmålet om hvor mange ork-liv han er villig til at bruge som brændstof.\n- Hvis spillerne vinder Warchiefens tillid, kan horden omdirigeres mod Icespire Hold/Cryovain.\n- Hvis Karga mister Warchiefens øre, kan han eskalere til combat. Det er en konsekvens af hans motivation, ikke en obligatorisk scripted trigger.\n- Varkhul og hans warriors bør ikke automatisk hjælpe heltene i kampen mod Karga. Det kan være stærkere at lade Court se på og lade Talos forsvare sin egen stemme.\n- Hvis spillerne vælger at angribe Varkhul eller hele Court, skal situationen føles åbenlyst selvmorderisk. Statblocket eksisterer, men sessionen er ikke designet som en fair bossfight mod hele rummet.",
-        "skills": []
+        "skills": [
+          {
+            "name": "PERCEPTION",
+            "desc": ""
+          },
+          {
+            "name": "PERSUSAION",
+            "desc": ""
+          },
+          {
+            "name": "RELIGION",
+            "desc": ""
+          },
+          {
+            "name": "INTIMIDATION",
+            "desc": ""
+          },
+          {
+            "name": "HISTORY",
+            "desc": ""
+          },
+          {
+            "name": "ARCANA",
+            "desc": ""
+          },
+          {
+            "name": "DECEPTION",
+            "desc": ""
+          }
+        ]
       },
       "pinned": false
+    },
+    {
+      "id": "3iq562f",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
     },
     {
       "id": "b33",
