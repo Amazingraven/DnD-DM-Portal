@@ -75,7 +75,7 @@
           }
         ]
       },
-      "pinned": true
+      "pinned": false
     },
     {
       "id": "b6",
@@ -292,6 +292,14 @@
       "pinned": true
     },
     {
+      "id": "ifys8wk",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
+    },
+    {
       "id": "b24",
       "type": "statblock",
       "data": {
@@ -307,9 +315,17 @@
         "wis": 12,
         "cha": 11,
         "traits": "Saving Throws: STR +7, CON +7. Skills: Athletics +7, Intimidation +3.\nKitchen Veteran — Reaction. Når Gormak rammes af et melee attack, kan han bevæge sig 5 ft. uden Opportunity Attack og sparke/vælte et køkkenobjekt.",
-        "attacks": "Multiattack: Gormak laver to af følgende angreb:\nButcher's Cleaver: +7 to hit. (1d12+4) slashing.\nGet Back in the Pot! — Recharge 5–6: Creatures inden for 10 ft. laver DC 14 STR Save. Failure: 9 (2d8) bludgeoning + pushed 10 ft.\n\nBonus Action: \nMeat Hook — +6 to hit, range 15 ft. (1d6+2) piercing, og Large eller mindre target trækkes 10 ft. mod Gormak.\n"
+        "attacks": "Multiattack: Gormak laver to af følgende angreb:\nButcher's Cleaver: +7 to hit. (1d12+4) slashing.\nGet Back in the Pot! — Recharge 5–6: Creatures inden for 10 ft. laver DC 14 STR Save. Failure: (2d8) bludgeoning + pushed 10 ft.\n\nBonus Action: \nMeat Hook: +6 to hit, range 15 ft. (1d6+2) piercing, og target trækkes 10 ft. mod Gormak. (kræver frit udsyn til target)\n"
       },
       "pinned": false
+    },
+    {
+      "id": "mfxutwl",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
     },
     {
       "id": "b25",
@@ -418,7 +434,7 @@
           }
         ]
       },
-      "pinned": false
+      "pinned": true
     },
     {
       "id": "3iq562f",
@@ -447,6 +463,14 @@
         "attacks": "Multiattack x 2 (1 basic + 1 special or 2 basic)\n\nBasic:\nStorm Mace (extended reach - 10 feat): +6 to hit. (1d8+3) bludgeoning + (1d8+3) lightning. STR Save 15 or prone. \nThunderbolt: Ranged Spell Attack +7, range 90 ft. Hit: (3d8) lightning.\n\nSpecial:\nChain Lightning — Recharge 5–6: Ét creature inden for 60 ft., derefter op til to targets inden for 20 ft. af første target. DC 15 DEX Save. (4d8) lightning, half on success.\nThunderclap — Recharge 4–6: Creatures inden for 15 ft. DC 15 CON. Failure: (3d8) thunder + pushed 10 ft. + Prone. Success: half damage.\n\nLegendary Actions x 2\nLightning speed - Move half speed with no opportunity Attacks\nBasic attack"
       },
       "pinned": false
+    },
+    {
+      "id": "gfwe2vu",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
     },
     {
       "id": "b32",
