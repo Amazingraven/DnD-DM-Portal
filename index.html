@@ -243,7 +243,7 @@ const SHARED_CSS = `
 }
 .scroll-panel{
   background:radial-gradient(ellipse at 50% 0%, var(--parchment) 0%, var(--parchment-dark) 100%);
-  border:1px solid var(--gold); border-radius:6px; padding:2.4rem 2.8rem; margin-bottom:2.2rem;
+  border:1px solid var(--gold); border-radius:6px; padding:1.6rem 1.8rem; margin-bottom:2.2rem;
   box-shadow:0 4px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3); position:relative; color:var(--ink);
 }
 .scroll-panel h2{
@@ -267,34 +267,39 @@ const SHARED_CSS = `
 .divider::before,.divider::after{ content:''; flex:1; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
 /* ===== Two-column scene layout — only kicks in on TV/export while a pinned
    image is active on the page. Builder canvas is unaffected (stays linear
-   for easy editing). Columns sized ~40%/40% per Rasmus's measurements, with
-   the remaining ~20% as gap + outer margin so the background stays visible.
-   Image box is a fixed 4:5 ratio, object-fit:contain (nothing is ever
-   cropped), top-aligned so it flushes with the header — matches the
-   session-builder-schema pin-adfærd notes.
+   for easy editing). Columns widened and gap tightened per feedback: image
+   and text should sit close together with minimal outer air.
    IMPORTANT: .page-wrap normally has max-width:1600px (a leftover reading-
    width cap from the old single-column design). That must be overridden
-   here — otherwise the 40%/40% columns get computed against 1600px instead
-   of the actual screen width, and the whole grid ends up double-centered
-   (once as a 1600px box, once again inside it) far from the true left edge. */
+   here — otherwise the columns get computed against 1600px instead of the
+   actual screen width, and the whole grid ends up double-centered (once as
+   a 1600px box, once again inside it) far from the true left edge. */
 .present-body .page-wrap.two-col{
-  max-width:none; width:100%; box-sizing:border-box; padding:0 1rem;
-  display:grid; grid-template-columns:40% 40%; column-gap:5%; row-gap:1.6rem;
+  max-width:none; width:100%; box-sizing:border-box; padding:0 0.5rem;
+  display:grid; grid-template-columns:45% 45%; column-gap:3%; row-gap:1.2rem;
   justify-content:center; align-items:start;
 }
 .present-body .page-wrap.two-col .pblock[data-btype="header"]{ grid-column:1 / -1; }
 .present-body .page-wrap.two-col .pblock[data-btype="image"]{ grid-column:1; }
 .present-body .page-wrap.two-col #two-col-right{
-  grid-column:2; display:flex; flex-direction:column; gap:1.6rem;
+  grid-column:2; display:flex; flex-direction:column; gap:1.2rem;
 }
+.present-body .page-wrap.two-col #two-col-right .scroll-panel{ margin-bottom:0; }
 .present-body .page-wrap.two-col .scene-figure{ margin:0; }
+/* .figure-frame reserves a fixed 4:5 slot for LAYOUT stability only — it has
+   no visible border/background of its own. The actual frame lives on the
+   <img>, which shrink-wraps to its real rendered (contain) size via
+   max-width/max-height + width/height:auto, so the border always hugs the
+   picture exactly, whatever its native aspect ratio turns out to be. */
 .present-body .page-wrap.two-col .figure-frame{
   aspect-ratio:4/5; overflow:hidden;
-  background:rgba(0,0,0,.18); border:1px solid var(--gold); border-radius:6px;
+  display:flex; justify-content:center; align-items:flex-start;
 }
 .present-body .page-wrap.two-col .figure-frame img{
-  width:100%; height:100%; object-fit:contain; object-position:top center;
-  border:none; box-shadow:none; border-radius:0; margin:0; display:block;
+  max-width:100%; max-height:100%; width:auto; height:auto;
+  display:block; margin:0;
+  border:2px solid var(--gold); border-radius:6px;
+  box-shadow:0 0 40px rgba(160,80,0,.35);
 }
 .present-body .page-wrap.two-col .scene-figure figcaption{
   margin-top:.5rem;
@@ -324,7 +329,7 @@ const SHARED_CSS = `
 .statblock .stat-block-section .stat-label,
 .statblock .stat-block-section .attack-name{ display:block; margin-bottom:.25rem; }
 .statblock .stat-body{ font-family:'IM Fell English',Georgia,serif; font-size:1.1rem; line-height:1.6; color:var(--ink); }
-.hp-tracker-section{ background:var(--parchment-mid); border:1px solid var(--gold); border-radius:4px; padding:1.3rem 1.5rem; margin:1.5rem 0; }
+.hp-tracker-section{ background:var(--parchment-mid); border:1px solid var(--gold); border-radius:4px; padding:1rem 1.2rem; margin:1rem 0; }
 .hp-tracker-title{ font-family:'Cinzel',serif; font-weight:600; font-size:1rem; color:var(--rust); text-transform:uppercase; letter-spacing:.1em; margin-bottom:1rem; text-align:center; }
 .hp-row{ display:flex; align-items:center; gap:1rem; margin-bottom:.8rem; flex-wrap:wrap; }
 .hp-label{ font-family:'Cinzel',serif; font-weight:600; font-size:1.05rem; color:var(--ink); min-width:140px; }
