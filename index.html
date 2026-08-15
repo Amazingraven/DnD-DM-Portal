@@ -247,11 +247,11 @@ const SHARED_CSS = `
   box-shadow:0 4px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3); position:relative; color:var(--ink);
 }
 .scroll-panel h2{
-  font-family:'Cinzel',serif; font-weight:600; font-size:clamp(1.3rem,3.2vw,2rem);
+  font-family:'Cinzel',serif; font-weight:600; font-size:clamp(1.5rem,3.5vw,2.2rem);
   color:var(--rust); margin:0 0 1rem;
 }
 .narrative{
-  font-family:'IM Fell English',Georgia,serif; font-size:1.3rem; line-height:1.85;
+  font-family:'IM Fell English',Georgia,serif; font-size:1.5rem; line-height:1.85;
   color:var(--ink); white-space:pre-wrap; margin:0;
 }
 .scene-figure{ margin:0 0 2.2rem; text-align:center; }
@@ -276,7 +276,7 @@ const SHARED_CSS = `
    a 1600px box, once again inside it) far from the true left edge. */
 .present-body .page-wrap.two-col{
   max-width:none; width:100%; box-sizing:border-box; padding:0 0.5rem;
-  display:grid; grid-template-columns:45% 45%; column-gap:3%; row-gap:1.2rem;
+  display:grid; grid-template-columns:45% 45%; column-gap:1.2%; row-gap:1.2rem;
   justify-content:center; align-items:start;
 }
 .present-body .page-wrap.two-col .pblock[data-btype="header"]{ grid-column:1 / -1; }
@@ -290,10 +290,14 @@ const SHARED_CSS = `
    no visible border/background of its own. The actual frame lives on the
    <img>, which shrink-wraps to its real rendered (contain) size via
    max-width/max-height + width/height:auto, so the border always hugs the
-   picture exactly, whatever its native aspect ratio turns out to be. */
+   picture exactly, whatever its native aspect ratio turns out to be.
+   justify-content:flex-end anchors the image to its INNER edge (the one
+   facing the text column) — a narrower/taller image gives up width on the
+   OUTER (true left screen edge) side instead, so the gap to the text column
+   always stays the same fixed distance, whatever the image's own shape is. */
 .present-body .page-wrap.two-col .figure-frame{
   aspect-ratio:4/5; overflow:hidden;
-  display:flex; justify-content:center; align-items:flex-start;
+  display:flex; justify-content:flex-end; align-items:flex-start;
 }
 .present-body .page-wrap.two-col .figure-frame img{
   max-width:100%; max-height:100%; width:auto; height:auto;
@@ -313,31 +317,31 @@ const SHARED_CSS = `
 .skill-badge .skill-name{ color:var(--rust); }
 .statblock{
   background:var(--parchment); border-top:3px solid var(--rust); border-bottom:3px solid var(--rust);
-  padding:1.5rem 1.8rem; margin:1.5rem 0; font-size:1.1rem; line-height:1.65; color:var(--ink);
+  padding:1.5rem 1.8rem; margin:1.5rem 0; font-size:1.25rem; line-height:1.65; color:var(--ink);
   font-family:'IM Fell English',Georgia,serif;
 }
-.statblock-title{ font-family:'Cinzel',serif; font-weight:700; font-size:1.5rem; color:var(--rust); margin-bottom:.1rem; }
+.statblock-title{ font-family:'Cinzel',serif; font-weight:700; font-size:1.65rem; color:var(--rust); margin-bottom:.1rem; }
 .statblock hr{ border:none; height:2px; background:linear-gradient(to right,var(--rust),var(--ember),var(--rust)); margin:.6rem 0; opacity:.5; }
-.statblock .stat-label{ font-family:'Cinzel',serif; font-weight:600; font-size:.92rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
+.statblock .stat-label{ font-family:'Cinzel',serif; font-weight:600; font-size:1.02rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
 .stat-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:.4rem; text-align:center; margin:.6rem 0; }
 .stat-cell{ background:var(--parchment-dark); border:1px solid var(--gold); border-radius:3px; padding:.5rem .3rem; }
-.stat-cell .stat-abbr{ font-family:'Cinzel',serif; font-weight:600; font-size:.7rem; letter-spacing:.12em; text-transform:uppercase; color:var(--rust); display:block; }
-.stat-cell .stat-val{ font-weight:700; font-size:1.15rem; color:var(--ink); display:block; }
-.stat-cell .stat-mod{ font-size:.88rem; color:var(--ash); display:block; }
-.statblock .attack-name{ font-family:'Cinzel',serif; font-weight:600; font-size:.92rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
+.stat-cell .stat-abbr{ font-family:'Cinzel',serif; font-weight:600; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; color:var(--rust); display:block; }
+.stat-cell .stat-val{ font-weight:700; font-size:1.3rem; color:var(--ink); display:block; }
+.stat-cell .stat-mod{ font-size:.95rem; color:var(--ash); display:block; }
+.statblock .attack-name{ font-family:'Cinzel',serif; font-weight:600; font-size:1.02rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
 .statblock .stat-block-section{ margin-top:.8rem; }
 .statblock .stat-block-section .stat-label,
 .statblock .stat-block-section .attack-name{ display:block; margin-bottom:.25rem; }
-.statblock .stat-body{ font-family:'IM Fell English',Georgia,serif; font-size:1.1rem; line-height:1.6; color:var(--ink); }
+.statblock .stat-body{ font-family:'IM Fell English',Georgia,serif; font-size:1.25rem; line-height:1.6; color:var(--ink); }
 .hp-tracker-section{ background:var(--parchment-mid); border:1px solid var(--gold); border-radius:4px; padding:1rem 1.2rem; margin:1rem 0; }
-.hp-tracker-title{ font-family:'Cinzel',serif; font-weight:600; font-size:1rem; color:var(--rust); text-transform:uppercase; letter-spacing:.1em; margin-bottom:1rem; text-align:center; }
+.hp-tracker-title{ font-family:'Cinzel',serif; font-weight:600; font-size:1.1rem; color:var(--rust); text-transform:uppercase; letter-spacing:.1em; margin-bottom:1rem; text-align:center; }
 .hp-row{ display:flex; align-items:center; gap:1rem; margin-bottom:.8rem; flex-wrap:wrap; }
-.hp-label{ font-family:'Cinzel',serif; font-weight:600; font-size:1.05rem; color:var(--ink); min-width:140px; }
-.hp-btn{ width:40px; height:40px; border:1px solid var(--gold); background:var(--parchment); color:var(--rust); font-family:'Cinzel',serif; font-weight:700; font-size:1.3rem; cursor:pointer; border-radius:3px; display:flex; align-items:center; justify-content:center; }
+.hp-label{ font-family:'Cinzel',serif; font-weight:600; font-size:1.2rem; color:var(--ink); min-width:140px; }
+.hp-btn{ width:44px; height:44px; border:1px solid var(--gold); background:var(--parchment); color:var(--rust); font-family:'Cinzel',serif; font-weight:700; font-size:1.4rem; cursor:pointer; border-radius:3px; display:flex; align-items:center; justify-content:center; }
 .hp-controls{ display:flex; align-items:center; gap:.5rem; }
-.hp-input{ width:70px; height:40px; text-align:center; border:1px solid var(--gold); background:var(--parchment); font-family:'IM Fell English',Georgia,serif; font-size:1.2rem; font-weight:700; border-radius:3px; color:var(--ink); }
-.hp-num{ font-family:'IM Fell English',Georgia,serif; font-weight:700; font-size:1.2rem; min-width:34px; text-align:center; color:var(--ink); }
-.hp-max{ color:var(--ash); font-size:1.05rem; }
+.hp-input{ width:76px; height:44px; text-align:center; border:1px solid var(--gold); background:var(--parchment); font-family:'IM Fell English',Georgia,serif; font-size:1.3rem; font-weight:700; border-radius:3px; color:var(--ink); }
+.hp-num{ font-family:'IM Fell English',Georgia,serif; font-weight:700; font-size:1.3rem; min-width:34px; text-align:center; color:var(--ink); }
+.hp-max{ color:var(--ash); font-size:1.15rem; }
 .hp-bar-wrap{ flex:1; min-width:100px; height:12px; background:var(--parchment-dark); border-radius:4px; overflow:hidden; border:1px solid rgba(184,134,42,.3); }
 .hp-bar{ height:100%; border-radius:4px; transition:width .3s ease; }
 .hp-bar.healthy{ background:linear-gradient(to right,#5a7a2a,#7a9a3a); }
