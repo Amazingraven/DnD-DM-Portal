@@ -1459,6 +1459,8 @@ function buildStandaloneHTML(s, includeDM){
       window.__hpUpdateBar(rid, max, result);
     };
   <\/script>`;
+  const navCSS = `<style>.export-nav{ position:fixed; bottom:14px; right:14px; z-index:99; display:flex; gap:.5rem; } .export-nav .fs-btn{ position:static; }</style>`;
+  const embeddedData = `<script type="application/json" id="__session-data">${JSON.stringify(s).replace(/<\/script/gi, '<\\/script')}<\/script>`;
   return `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(s.name||'Session')}</title>
