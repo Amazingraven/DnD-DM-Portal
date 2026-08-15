@@ -307,7 +307,9 @@ const SHARED_CSS = `
 }
 .present-body .page-wrap.two-col .pblock[data-btype="header"]{ grid-column:1 / -1; }
 .present-body .page-wrap.two-col .pblock[data-btype="image"]{ grid-column:1; }
-.present-body .page-wrap.two-col .pblock:not([data-btype="header"]):not([data-btype="image"]){ grid-column:2; }
+.present-body .page-wrap.two-col #two-col-right{
+  grid-column:2; display:flex; flex-direction:column; gap:1.6rem;
+}
 .present-body .page-wrap.two-col .scene-figure{ margin:0; }
 .present-body .page-wrap.two-col .figure-frame{
   aspect-ratio:4/5; overflow:hidden;
@@ -1108,23 +1110,56 @@ function installPresentControls(win, doc){
     // Two-column scene layout kicks in only while a pinned image is active —
     // a normal (non-pinned) full-width image still gets its own moment untouched.
     var wrap = doc.querySelector('.page-wrap');
-    if(wrap) wrap.classList.toggle('two-col', !!latestPinnedByType['image']);
+    var twoColActive = !!latestPinnedByType['image'];
+    if(wrap) wrap.classList.toggle('two-col', twoColActive);
+    // In two-col mode, move the currently-visible non-header/non-image blocks
+    // into a single wrapper so we can fit/scale ONLY that column later — the
+    // image must never shrink just because the text column is busy.
+    if(wrap){
+      var rightCol = doc.getElementById('two-col-right');
+      if(twoColActive){
+        if(!rightCol){ rightCol = doc.createElement('div'); rightCol.id = 'two-col-right'; wrap.appendChild(rightCol); }
+        for(var j=0;j<ch.length;j++){
+          var el2 = ch[j];
+          var t2 = el2.getAttribute('data-btype');
+          if(el2.style.display!=='none' && t2!=='header' && t2!=='image'){ rightCol.appendChild(el2); }
+        }
+      } else if(rightCol){
+        while(rightCol.firstChild){ wrap.insertBefore(rightCol.firstChild, rightCol); }
+        rightCol.remove();
+      }
+    }
     win.__cur=idx;
     try{ win.scrollTo(0,0); }catch(e){}
     win.__fitToScreen && win.__fitToScreen();
   };
   win.__applyPages = function(){ win.__showPage(win.__cur||0, false); };
   win.__step = function(dir){ win.__showPage((win.__cur||0)+dir, true); };
-  // Scale the current page down (never up) so it always fits the screen without scrolling.
+  // Scale down (never up), and only when content genuinely doesn't fit.
+  // In two-col mode: scale ONLY the text/stat/hp column — the image is a
+  // fixed-ratio box and must never resize based on how much text exists.
   win.__fitToScreen = function(){
     var root = doc.getElementById('player-root');
     if(!root) return;
+    var wrap = doc.querySelector('.page-wrap');
+    var availH = win.innerHeight - 24;
+    if(wrap && wrap.classList.contains('two-col')){
+      root.style.transform = 'none'; // whole page never scales in two-col mode
+      var rightCol = doc.getElementById('two-col-right');
+      if(rightCol){
+        rightCol.style.transform = 'none';
+        var h = rightCol.scrollHeight;
+        var scale = Math.min(1, availH / Math.max(1, h));
+        rightCol.style.transformOrigin = 'top left';
+        rightCol.style.transform = (scale < 0.999) ? ('scale(' + scale + ')') : 'none';
+      }
+      return;
+    }
     root.style.transform = 'none';
     var contentH = root.scrollHeight;
-    var availH = win.innerHeight - 24;
-    var scale = Math.min(1, availH / Math.max(1, contentH));
+    var scale2 = Math.min(1, availH / Math.max(1, contentH));
     root.style.transformOrigin = 'top center';
-    root.style.transform = (scale < 0.999) ? ('scale(' + scale + ')') : 'none';
+    root.style.transform = (scale2 < 0.999) ? ('scale(' + scale2 + ')') : 'none';
   };
   win.addEventListener('resize', function(){ win.__fitToScreen && win.__fitToScreen(); });
   try{ doc.documentElement.style.overflow = 'hidden'; doc.body.style.overflow = 'hidden'; }catch(e){}
@@ -1398,19 +1433,46 @@ function buildStandaloneHTML(s, includeDM){
         } else { el.style.display='none'; }
       }
       var wrap = document.querySelector('.page-wrap');
-      if(wrap) wrap.classList.toggle('two-col', !!latestPinnedByType['image']);
+      var twoColActive = !!latestPinnedByType['image'];
+      if(wrap) wrap.classList.toggle('two-col', twoColActive);
+      if(wrap){
+        var rightCol = document.getElementById('two-col-right');
+        if(twoColActive){
+          if(!rightCol){ rightCol=document.createElement('div'); rightCol.id='two-col-right'; wrap.appendChild(rightCol); }
+          for(var j=0;j<ch.length;j++){
+            var el2=ch[j], t2=el2.getAttribute('data-btype');
+            if(el2.style.display!=='none' && t2!=='header' && t2!=='image'){ rightCol.appendChild(el2); }
+          }
+        } else if(rightCol){
+          while(rightCol.firstChild){ wrap.insertBefore(rightCol.firstChild, rightCol); }
+          rightCol.remove();
+        }
+      }
       window.__cur=idx;
       try{ window.scrollTo(0,0); }catch(e){}
       window.__fitToScreen && window.__fitToScreen();
     };
     window.__fitToScreen=function(){
-      var root=document.querySelector('.page-wrap');
-      if(!root) return;
-      root.style.transform='none';
-      var contentH=root.scrollHeight, availH=window.innerHeight-24;
-      var scale=Math.min(1, availH/Math.max(1,contentH));
-      root.style.transformOrigin='top center';
-      root.style.transform = (scale<0.999) ? ('scale('+scale+')') : 'none';
+      var wrap=document.querySelector('.page-wrap');
+      if(!wrap) return;
+      var availH=window.innerHeight-24;
+      if(wrap.classList.contains('two-col')){
+        wrap.style.transform='none';
+        var rightCol=document.getElementById('two-col-right');
+        if(rightCol){
+          rightCol.style.transform='none';
+          var h=rightCol.scrollHeight;
+          var scale=Math.min(1, availH/Math.max(1,h));
+          rightCol.style.transformOrigin='top left';
+          rightCol.style.transform=(scale<0.999) ? ('scale('+scale+')') : 'none';
+        }
+        return;
+      }
+      wrap.style.transform='none';
+      var contentH=wrap.scrollHeight;
+      var scale2=Math.min(1, availH/Math.max(1,contentH));
+      wrap.style.transformOrigin='top center';
+      wrap.style.transform = (scale2<0.999) ? ('scale('+scale2+')') : 'none';
     };
     window.addEventListener('resize', function(){ window.__fitToScreen && window.__fitToScreen(); });
     try{ document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; }catch(e){}
