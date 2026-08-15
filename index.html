@@ -271,8 +271,14 @@ const SHARED_CSS = `
    the remaining ~20% as gap + outer margin so the background stays visible.
    Image box is a fixed 4:5 ratio, object-fit:contain (nothing is ever
    cropped), top-aligned so it flushes with the header — matches the
-   session-builder-schema pin-adfærd notes. */
+   session-builder-schema pin-adfærd notes.
+   IMPORTANT: .page-wrap normally has max-width:1600px (a leftover reading-
+   width cap from the old single-column design). That must be overridden
+   here — otherwise the 40%/40% columns get computed against 1600px instead
+   of the actual screen width, and the whole grid ends up double-centered
+   (once as a 1600px box, once again inside it) far from the true left edge. */
 .present-body .page-wrap.two-col{
+  max-width:none; width:100%; box-sizing:border-box; padding:0 1rem;
   display:grid; grid-template-columns:40% 40%; column-gap:5%; row-gap:1.6rem;
   justify-content:center; align-items:start;
 }
@@ -1091,16 +1097,11 @@ function installPresentControls(win, doc){
     var root = doc.getElementById('player-root');
     if(!root) return;
     root.style.transform = 'none';
-    root.style.width = '';
     var contentH = root.scrollHeight;
     var availH = win.innerHeight - 24;
     var scale = Math.min(1, availH / Math.max(1, contentH));
-    if(scale < 0.999){
-      root.style.transformOrigin = 'top center';
-      root.style.transform = 'scale(' + scale + ')';
-      root.style.width = (100/scale) + '%';
-      root.style.marginLeft = 'auto'; root.style.marginRight = 'auto';
-    }
+    root.style.transformOrigin = 'top center';
+    root.style.transform = (scale < 0.999) ? ('scale(' + scale + ')') : 'none';
   };
   win.addEventListener('resize', function(){ win.__fitToScreen && win.__fitToScreen(); });
   try{ doc.documentElement.style.overflow = 'hidden'; doc.body.style.overflow = 'hidden'; }catch(e){}
@@ -1382,15 +1383,11 @@ document.getElementById('btnExportHtml').onclick = ()=>{
     window.__fitToScreen=function(){
       var root=document.querySelector('.page-wrap');
       if(!root) return;
-      root.style.transform='none'; root.style.width='';
+      root.style.transform='none';
       var contentH=root.scrollHeight, availH=window.innerHeight-24;
       var scale=Math.min(1, availH/Math.max(1,contentH));
-      if(scale<0.999){
-        root.style.transformOrigin='top center';
-        root.style.transform='scale('+scale+')';
-        root.style.width=(100/scale)+'%';
-        root.style.marginLeft='auto'; root.style.marginRight='auto';
-      }
+      root.style.transformOrigin='top center';
+      root.style.transform = (scale<0.999) ? ('scale('+scale+')') : 'none';
     };
     window.addEventListener('resize', function(){ window.__fitToScreen && window.__fitToScreen(); });
     try{ document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; }catch(e){}
