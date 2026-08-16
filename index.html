@@ -457,7 +457,6 @@ const BLOCK_DEFS = {
   header:      { label: 'Header (titel)' },
   image:       { label: 'Billede' },
   narrative:   { label: 'Flavor-tekst' },
-  'narrative-dm': { label: 'Flavor-tekst + DM-noter' },
   skills:      { label: 'Skill-badges' },
   statblock:   { label: 'Statblock' },
   hptracker:   { label: 'HP-tracker' },
@@ -468,8 +467,7 @@ function blockDefaults(type){
   switch(type){
     case 'header': return { kicker:'DRAGONS OF ICESPIRE PEAK', title:'Ny session', mood:'' };
     case 'image': return { imageData:'', caption:'' };
-    case 'narrative': return { heading:'', text:'Fortællertekst…', skills:[] };
-    case 'narrative-dm': return { heading:'', text:'Fortællertekst…', dmNotes:'DM-noter, DC-værdier, loot…', skills:[] };
+    case 'narrative': return { heading:'', text:'Fortællertekst…', dmNotes:'', skills:[] };
     case 'skills': return { items:[ {name:'PERCEPTION', desc:'Undersøg området'} ] };
     case 'statblock': return { title:'Modstander', hp:'', ac:'', speed:'30 ft.', cr:'',
       str:10, dex:10, con:10, int:10, wis:10, cha:10, traits:'', attacks:'' };
@@ -632,12 +630,6 @@ function renderBlockContent(block, includeDM){
     case 'divider':
       return `<div class="divider">${esc(d.icon||'◆')}</div>`;
     case 'narrative':
-      return `<div class="scroll-panel">
-        ${d.heading?`<h2>${esc(d.heading)}</h2>`:''}
-        <p class="narrative">${esc(d.text||'')}</p>
-        ${badgesHTML(d.skills)}
-      </div>`;
-    case 'narrative-dm':
       return `<div class="scroll-panel">
         ${d.heading?`<h2>${esc(d.heading)}</h2>`:''}
         <p class="narrative">${esc(d.text||'')}</p>
@@ -870,13 +862,9 @@ function renderForm(b){
         <label>Billedtekst</label>${f('caption',d.caption)}`; break;
     case 'narrative':
       inner = `<label>Overskrift</label>${f('heading',d.heading)}
-        <label>Fortællertekst</label>${ta('text',d.text)}
-        <label>Skill-badges (vises i samme boks)</label>${skillRows(d.skills,'skills')}`; break;
-    case 'narrative-dm':
-      inner = `<label>Overskrift</label>${f('heading',d.heading)}
         <label>Fortællertekst (spiller-synlig)</label>${ta('text',d.text)}
         <label>Skill-badges (vises i samme boks, spiller-synlig)</label>${skillRows(d.skills,'skills')}
-        <label>DM-noter (skjult — vises ALDRIG på spiller-TV)</label>${ta('dmNotes',d.dmNotes)}`; break;
+        <label>DM-noter (valgfri, skjult — vises ALDRIG på spiller-TV)</label>${ta('dmNotes',d.dmNotes)}`; break;
     case 'skills': {
       inner = `<label>Skill-badges (selvstændig blok)</label>${skillRows(d.items,'items')}`; break;
     }
