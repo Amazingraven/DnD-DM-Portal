@@ -51,7 +51,7 @@
     },
     {
       "id": "b7",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "Victums of the Past",
         "text": "Ved væltede vognvrag, og råbende menneskemængder rører noget på sig under jordens overflade. Blandt det kaos som Cryovain har skabt og i stanken fra de nyligt døde kroppe den hvide drage har efterladt spredt over sletten - tiltrækkes noget mere sultent og restløst.",
@@ -159,7 +159,7 @@
     },
     {
       "id": "b12",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Untethered Gather",
         "text": "Skabninger, der plejede at æde resterne af tågens dødelige effekt på dyr, mennesker og andre leverende skabning, bevæger sig med list rundt i udkanten af folkemængden.",
@@ -242,7 +242,7 @@
     },
     {
       "id": "b18",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Death Fog's Last Hunger",
         "text": "Luften bliver kold på en måde, kulden ikke plejer at være. Et sidste stykke af den grønne tåge synes at samle sig, få vilje — og form. Det, der herskede over det døde økosystem, mens tågen stod, er blevet hjemløst. Udstillet. Rasende. Og det er kommet efter det eneste, der er tilbage: de levende.",
