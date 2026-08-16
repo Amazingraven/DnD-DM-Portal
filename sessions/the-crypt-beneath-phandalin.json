@@ -21,7 +21,7 @@
     },
     {
       "id": "b3",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Burned Descent",
         "text": "Nedgangen begynder i resterne af Halias ødelagte laboratorium. Acid har ædt sig gennem sten og metal. Luften lugter stadig af brændt alkymi, sort drageblod og våd aske.\n\nEfter få meter ændrer arkitekturen sig. Halias jern, rør og runer forsvinder bag jer, og væggene bliver ældre. Elveriske sølvlinjer løber gennem stenen som årer. Nogle er skåret fri med værktøj. Halia har plyndret det, hun kunne — men hun kom aldrig helt ind.",
@@ -60,7 +60,7 @@
     },
     {
       "id": "b6",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "Cross Roads",
         "text": "Et cirkulært vejkryds åbner sig i mørket. Fire korridorer løber ud i hver sin retning. Midt på gulvet er en cirkel af hvid sten, slidt blank af kløer og tunge skridt.\n\nI skyggen mellem to søjler ligger Nharessyth.\n\nHan er enorm, sortskællet og såret. Hans vinger hænger lavt. De steder, hvor Halias rør sad boret ind i ham, står stadig åbne. Han er fri, men ikke hel.",
@@ -99,7 +99,7 @@
     },
     {
       "id": "b9",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "Hall of Names",
         "text": "En lang, lavloftet hal. Begge vægge er dækket af navne indgraveret i sølv, rav og sort sten. Nogle er elvernavne. Andre er dragenavne, skrevet med større tegn.\n\nMen store sektioner er skåret ud af væggene. Nogen har fjernet de navne, der havde værdi.\n\nDa I træder ind, begynder de tilbageværende navne at lyse svagt. Stemmer hvisker på elvisk. Først sørgmodigt. Så vredt.",
@@ -185,7 +185,7 @@
     },
     {
       "id": "b14",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Dragon Bridge",
         "text": "En smal bro spænder over et sort dyb. Broen er formet som ryggen på et enormt dyr. Langs siderne står lave statuer af elverryttere, alle med tomme tøjler i hænderne.\n\nOver broen hænger fragmenter af enorme sorte ribben. Kæder og sølvtråde dingler mellem knoglerne.\n\nDa I træder ud på broen, strammer de tomme tøjler sig. Som om noget usynligt trækker imod.",
@@ -228,7 +228,7 @@
     },
     {
       "id": "b17",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Rider's Gallery",
         "text": "Et højt galleri dækket af relieffer.\n\nFørst: en ung elverkriger foran en sort drage. Elveren har sænket sit våben. Dragen har sænket sit hoved.\n\nSå: de to i luften som ét våben — Nharessyths vinger bredt ud over himlen, Aelrindel stående i sadlen med en lanse af stjernelys.\n\nDrager, der falder. Byer, der knæler. Aelrindel foran et elverråd, hovedet hævet for højt, Nharessyth bag ham med blikket vendt bort.\n\nDet sidste relief er ødelagt. Kun fragmenter: fem hoveder, vinger, ild, gift, frost, lyn — og Aelrindel, der løfter sin lanse mod noget, ingen dødelig burde udfordre.",
@@ -267,7 +267,7 @@
     },
     {
       "id": "b20",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Broken Saddle",
         "text": "Et rundt kammer med resterne af et enormt dragerideseletøj. Læderet er hårdt som sten. Sølvbeslagene er mørke. Spænderne er større end skjolde.\n\nVed siden af ligger en knækket lanseholder, en revnet sadelplade og et stykke sort skæl, poleret glat af hænder. På væggen hænger emblemet: en lanse over en sort vinge.\n\nDa I nærmer jer, bevæger seletøjet sig. Ikke som en levende ting. Som noget, der husker at blive brugt.",
@@ -340,7 +340,7 @@
     },
     {
       "id": "b24",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Last Gate",
         "text": "To enorme dørfløje af mørk sten står foran jer. I midten er en sort dragevinge i obsidian og en elverlanse i sølv. Begge symboler er knækket på midten, men bruddet passer sammen.\n\nPå døren står:\n\n\"No enemy enters.\nNo thief leaves.\nOnly those who know the difference between victory and peace may open the grave.\"",
@@ -375,7 +375,7 @@
     },
     {
       "id": "b27",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Last Hunt",
         "text": "Det inderste kammer er enormt og højt som en katedral. Loftet forsvinder op i mørke. Gamle kæder, knækkede bannere og sorte sølvtråde hænger som spindelvæv. Gulvet er dækket af cirkler: drager, elvere, lanser, vinger og stjerner.\n\nMidt i rummet står Aelrindel Vaeruth. Ikke i en kiste. Stående.\n\nHans rustning er revnet, men stadig smuk. Hans ansigt er udtørret, ikke råddent. Øjnene brænder med blegt, ufokuseret lys. I hænderne holder han en lang lanse, mørk af ælde og stadig forkert skarp. Bag ham hænger resterne af en tom dragesadel i kæder.\n\nHan løfter hovedet. Han ser ikke jer. Han ser gennem jer.\n\n\"Nharessyth… To the wings. They come again.\"\n\nSå sænker han lansen.",
@@ -439,7 +439,7 @@
     },
     {
       "id": "b31",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "Til Spillerne",
         "text": "Krypten er stille nu. Sølvlinjerne i væggene lyser svagt, som om de trækker vejret for første gang i århundreder.\n\nEn helt, der aldrig kunne give slip — og en drage, der ventede på lov til at sørge.\n\nHvad tager I med jer op i lyset: en sejr, eller en fred?",
