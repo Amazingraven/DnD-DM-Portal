@@ -516,6 +516,23 @@ setInterval(updateLiveIndicator, 1000);
 function newSessionObj(){
   return { id: uid(), name:'Ny session', theme:'parchment', blocks:[ {id:uid(), type:'header', data:blockDefaults('header')} ] };
 }
+
+/* narrative-dm was merged into narrative (which now always has a dmNotes
+   field). Any block that still carries the old type name — from a session
+   sitting in IndexedDB/localStorage that predates the merge, an imported
+   backup file, or an un-migrated repo file — gets silently upgraded here.
+   Only the type string changes; heading/text/dmNotes/skills are already
+   identical fields, so nothing is lost. Call this on every path that brings
+   session data into the app (boot load, file import, repo pull). */
+function migrateLegacyBlockTypes(sessions){
+  if(!Array.isArray(sessions)) return;
+  sessions.forEach(s=>{
+    if(!s || !Array.isArray(s.blocks)) return;
+    s.blocks.forEach(b=>{
+      if(b && b.type === 'narrative-dm') b.type = 'narrative';
+    });
+  });
+}
 function current(){ return state.sessions.find(s=>s.id===state.currentId); }
 
 /* ---------- IndexedDB storage (large local capacity, no export needed) ---------- */
@@ -587,6 +604,8 @@ async function loadState(){
     try{ const raw=localStorage.getItem('icespire_builder_v1'); if(raw) state=JSON.parse(raw); }catch(e){}
     state.sessions = state.sessions || [];
   }
+  migrateLegacyBlockTypes(state.sessions);
+  for(const s of state.sessions){ try{ await saveNow(s); }catch(e){ console.warn('migration persist failed', e); } }
 
   if(!state.sessions.length){
     const s=newSessionObj(); state.sessions=[s]; state.currentId=s.id; await saveNow(s);
@@ -1426,6 +1445,7 @@ async function repoLoadList(){
     if(!file){ alert('Filen findes ikke længere i repoet.'); return; }
     const obj=JSON.parse(file.text);
     if(!obj.blocks) throw new Error('Ikke en gyldig sessionsfil');
+    migrateLegacyBlockTypes([obj]);
     // load as a new local session (existing local edits stay untouched)
     const existing=state.sessions.find(x=>x.name===obj.name);
     obj.id=uid();
@@ -1468,6 +1488,7 @@ document.getElementById('fileImport').addEventListener('change', e=>{
         obj = JSON.parse(text);
       }
       if(!obj.blocks) throw new Error('Ikke en gyldig sessionsfil');
+      migrateLegacyBlockTypes([obj]);
       obj.id = uid();
       state.sessions.push(obj); state.currentId=obj.id;
       editingBlock=null; saveNow(obj); renderLibrary(); renderCanvas(); pushToPresent();
