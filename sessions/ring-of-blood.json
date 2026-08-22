@@ -382,6 +382,14 @@
       }
     },
     {
+      "id": "51yyjrq",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
+    },
+    {
       "id": "b40",
       "type": "hptracker",
       "data": {
@@ -437,6 +445,14 @@
         "cha": 14,
         "traits": "Legendary Resistances: 2\n\nRELENTLESS PURSUIT: If hit and takes dmg move 20 ft. with no AO\n\nLegendary Actions: 2\nAttack, Move with no AO eller Bonus action\nGRAND SLAM!: Targets indenfor 10 ft. af Grulmog (3d8 force dmg) skubbet 15 ft tilbage - STR save 18: halv skade og ingen ikke skubbet.   \n\nBonus action:\nARENA LEAP: spring op til 30 ft. (kan bruges til at nå højere terrin) Creatures inden for 10 ft. laver Strength Save — failure: mindre damage og Prone, success: intet.",
         "attacks": "Multiattack 2:\nFACE SMASH:  +8 hit - (2d8 + 8) bludgeoning damage \nSEIZE AND HURL: grib et target indenfor 5 ft. og kast det 10–60 ft. (roll d6 for afstand & d4 (d6 hvis der kastes fra high ground) i force dmg relativt til antal øjne på d6) hvis target rammer noget solidt (væg eks.) CON save 15 eller prone."
+      }
+    },
+    {
+      "id": "5jdb0k4",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
       }
     },
     {
