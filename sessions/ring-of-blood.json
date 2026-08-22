@@ -435,8 +435,8 @@
         "int": 8,
         "wis": 12,
         "cha": 14,
-        "traits": "Legendary Resistances: 2\n\nRELENTLESS PURSUIT: If hit and takes dmg move 20 ft. with no AO\n\nLegendary Actions: 2\nAttack, Move with no AO eller Bonus action\nGRAND SLAM!:\n\nBonus action:\nARENA LEAP: spring op til 30 ft. (kan bruges til at nå højere terrin) Creatures inden for 10 ft. laver Strength Save — failure: mindre damage og Prone, success: intet.",
-        "attacks": "\nFACE SMASH: \nSEIZE AND HURL: grib et target indenfor 5 ft. og kast det 10–60 ft. (roll d6 for afstand & d4 (d6 hvis der kastes fra high ground) i force dmg relativt til antal øjne på d6) hvis target rammer noget solidt (væg eks.) CON save 15 eller prone."
+        "traits": "Legendary Resistances: 2\n\nRELENTLESS PURSUIT: If hit and takes dmg move 20 ft. with no AO\n\nLegendary Actions: 2\nAttack, Move with no AO eller Bonus action\nGRAND SLAM!: Targets indenfor 10 ft. af Grulmog (3d8 force dmg) skubbet 15 ft tilbage - STR save 18: halv skade og ingen ikke skubbet.   \n\nBonus action:\nARENA LEAP: spring op til 30 ft. (kan bruges til at nå højere terrin) Creatures inden for 10 ft. laver Strength Save — failure: mindre damage og Prone, success: intet.",
+        "attacks": "Multiattack 2:\nFACE SMASH:  +8 hit - (2d8 + 8) bludgeoning damage \nSEIZE AND HURL: grib et target indenfor 5 ft. og kast det 10–60 ft. (roll d6 for afstand & d4 (d6 hvis der kastes fra high ground) i force dmg relativt til antal øjne på d6) hvis target rammer noget solidt (væg eks.) CON save 15 eller prone."
       }
     },
     {
@@ -445,37 +445,11 @@
       "data": {
         "combatants": [
           {
-            "name": "Grûlmog (sæt HP, 190-220)",
-            "max": 205,
-            "cur": 205
+            "name": "Grûlmog",
+            "max": "250",
+            "cur": 250
           }
         ]
-      }
-    },
-    {
-      "id": "b49",
-      "type": "divider",
-      "data": {
-        "icon": "◆",
-        "transition": "fade"
-      }
-    },
-    {
-      "id": "b53",
-      "type": "narrative",
-      "data": {
-        "heading": "Ved Grûlmogs død",
-        "text": "Grûlmogs våben rammer sandet.\n\nSå hans knæ.\n\nTil sidst resten af ham.\n\nIngen jubler.\n\nEn gammel ogre rejser sig og slår en knyttet hånd mod brystet.\n\nÉn efter én følger de andre efter.",
-        "skills": []
-      }
-    },
-    {
-      "id": "b54",
-      "type": "narrative",
-      "data": {
-        "heading": "Ved Grûlmogs overgivelse",
-        "text": "Grûlmogs våben falder fra hans hånd.\n\nRundt om jer råber publikum ikke længere hans navn.\n\nHan ser mod tribunerne. Derefter mod jer.\n\n\"Ringen har talt.\"\n\nHan synker ned på ét knæ.\n\n\"Vi går hjem.\"",
-        "skills": []
       }
     }
   ]
