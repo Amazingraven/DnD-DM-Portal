@@ -25,7 +25,7 @@
       "id": "b5",
       "type": "narrative",
       "data": {
-        "heading": "The Gate of Teeth",
+        "heading": "Camp of the Hell Pit Orge ",
         "text": "Falcons skjulte sti ender ved en mur af træ, jern og knogler.\n\nBag porten rejser et brøl sig fra hundredvis af stemmer - ikke et krigsråb - et jublende publikum.",
         "skills": [
           {
@@ -76,7 +76,7 @@
       "id": "b12",
       "type": "narrative",
       "data": {
-        "heading": "The Ring of Blood",
+        "heading": "The Grand Arena",
         "text": "I træder fra mørket ind på arenaen.\n\nEn hævet bro skærer gennem arenaens centrum. Ramper, søjler og platforme bryder det mørke sand op i flere niveauer.\n\nOveralt omkring jer råber ogres fra deres pladser på tribunerne - og centret på en enorm platform, står hvem der er nødt til at være Grûlmog den Ubesejrede, og med en enkelt håndbevægelse fra den urovækkende oge-leder manes publikum til ro.",
         "skills": [
           {
@@ -120,7 +120,7 @@
       "type": "narrative",
       "data": {
         "heading": "The Starved Manticores",
-        "text": "En tung port løfter sig langsomt...\n\nKløer skraber mod sten. Skingre brøl giver ekko langs palisaderne. Lyden af vinger der foldes ud og kæder der rammer jorden... Kampen er igang!",
+        "text": "En tung port løfter sig langsomt...\n\nKløer skraber mod sten. Skingre brøl giver ekko langs palisaderne. Lyden af vinger der foldes ud og kæder der rammer jorden... ",
         "skills": []
       }
     },
@@ -183,7 +183,7 @@
       "type": "narrative",
       "data": {
         "heading": "The Captive Gladiators ",
-        "text": "Først hammer en ogre sin hånd i brystkassen  - så en anden - snart hamrer en hel tribune imens de råber: \"blod, blod, blod, ... \"\n\nPorten åbner sig igen - denne gang, ingen monstre - fire krigere træder ud i sandet. \n\nManden forrest løfter sit sværd selvsikkert mod publikum  -og nu er alle ogres oppe fra bænkene råber i kor: \"BLOOOOOOOOOD!\"\n\nI ser en orge smide en sæk ned til manden - hvori små røde flasker hurtigt fordeles mellem de fire krigere.\n\nDeres øjne fokusere nu kun på jer.",
+        "text": "Først hammer en ogre sin hånd i brystkassen  - så en anden - snart hamrer en hel tribune imens de råber: \"blod, blod, blod, ... \"\n\nPorten åbner sig igen - denne gang, ingen monstre - fire krigere træder ud i sandet. \n\nManden forrest løfter sit sværd selvsikkert mod publikum  - og nu er alle ogres oppe fra bænkene råber i kor: \"BLOOOOOOOOOD!\"\n\nI ser en orge smide en sæk ned til manden - hvori små røde flasker hurtigt fordeles mellem de fire krigere.\n\nDeres øjne fokusere nu kun på jer.",
         "skills": [
           {
             "name": "Performance",
@@ -223,8 +223,8 @@
         "int": 10,
         "wis": 11,
         "cha": 10,
-        "traits": "Hold the Line: et ramt mål mister 10 ft. Speed til starten af Fighterens næste tur. Shield Parry (Reaction): +2 AC mod ét synligt melee attack.",
-        "attacks": "Multiattack: to Longsword attacks. Longsword: +5 to hit; 7 (1d8 + 3) slashing."
+        "traits": "Hold the Line: et ramt mål i melee ranged mister 10 ft. Speed til starten af Fighterens næste tur. \nShield Parry (Reaction): +2 AC mod ét synligt melee attack.",
+        "attacks": "Multiattack x2 \nLongsword: +5 to hit; 7 (1d8 + 3) slashing."
       }
     },
     {
@@ -243,7 +243,7 @@
         "wis": 14,
         "cha": 8,
         "traits": "Clear Shot: første ranged hit på turen giver +1d6 damage, hvis ingen hostile creature er inden for 5 ft.",
-        "attacks": "Multiattack: to Longbow eller Shortsword attacks. Longbow: +5 to hit; 7 (1d8 + 3) piercing. Shortsword: +5 to hit; 6 (1d6 + 3) piercing."
+        "attacks": "Multiattack x2:  \nLongbow: +5 to hit; 7 (1d8 + 3) piercing. \nShortsword: +5 to hit; 6 (1d6 + 3) piercing."
       }
     },
     {
@@ -269,8 +269,8 @@
         "int": 11,
         "wis": 12,
         "cha": 10,
-        "traits": "Sneak Attack: +2d6 én gang per tur ved Advantage eller en allieret inden for 5 ft. af målet. Cunning Movement (Bonus Action): Dash eller Disengage. Slip Away (Reaction): når et melee attack misser, må Rogue bevæge sig 10 ft. uden Opportunity Attacks.",
-        "attacks": "Shortsword / Hand Crossbow: +5 to hit; 6 (1d6 + 3) piercing."
+        "traits": "Sneak Attack: +2d6 én gang per tur ved Advantage eller en allieret inden for 5 ft. af målet. \nCunning Movement (Bonus Action): Dash eller Disengage. \nSlip Away (Reaction): når et melee attack misser, må Rogue bevæge sig 10 ft. uden Opportunity Attacks.",
+        "attacks": "Multiattack x2:\nShortsword / Hand Crossbow: +5 to hit; 6 (1d6 + 3) piercing."
       }
     },
     {
@@ -288,8 +288,8 @@
         "int": 8,
         "wis": 10,
         "cha": 9,
-        "traits": "Reckless Attack: Advantage på eget første melee attack; attacks mod ham har Advantage til næste tur. Shoulder Rush: bevæg 20 ft.; DC 14 Strength Save eller 10 ft. push og Prone. Ingen damage. Refuse to Fall (1/Encounter): første gang han når 0 HP, falder han til 1 HP og må bevæge sig 10 ft.",
-        "attacks": "Greataxe: +6 to hit; 11 (1d12 + 4) slashing."
+        "traits": "Reckless Attack: Advantage på eget første melee attack; attacks mod ham har Advantage til næste tur. \nShoulder Rush: bevæg 20 ft.; DC 14 Strength Save eller 10 ft. push og Prone. \nRefuse to Fall (1/Encounter): første gang han når 0 HP, falder han til 1 HP og må bevæge sig 10 ft. med det samme uden attack of opportunitet.",
+        "attacks": "Multiattack x2:\nGreataxe: +6 to hit; 11 (1d12 + 4) slashing."
       }
     },
     {
@@ -350,7 +350,7 @@
       "type": "narrative",
       "data": {
         "heading": "Blood on the Sand",
-        "text": "Blood Mage rejser sig ved Grûlmogs side.\n\nDen løfter en skål mod læberne.\n\nDa den sænker den igen, er dens tænder røde.\nBlood Mage træder ind i Ringen.\n\nBlodet i sandet bevæger sig.\n\nDet løber fra de døde og samler sig omkring dens fødder.\n\n\"Så meget kraft,\" siger den.\n\n\"Og I troede, den tilhørte dem.\"",
+        "text": "Blodet i sandet bevæger sig.\n\nDet løber fra de døde og samler sig omkring dens fødder.\n\n\"Så meget kraft,\" siger den.\n\n\"Og I troede, den tilhørte dem.\"",
         "skills": []
       }
     },
@@ -367,7 +367,7 @@
       "type": "statblock",
       "data": {
         "title": "Blood Mage",
-        "hp": "125",
+        "hp": "175",
         "ac": "16",
         "speed": "30 ft.",
         "cr": "7",
@@ -377,8 +377,8 @@
         "int": 16,
         "wis": 13,
         "cha": 14,
-        "traits": "Spell Save DC 14–15. Legendary Resistances: 1. Legendary Actions: 2 per round.\n\nBLOOD CHARGES: Manticore-lig = 2 charges. Død gladiator = 1 charge. Maksimum 8 charges. Som udgangspunkt højst én charge brugt per turn.\n\nCRIMSON STEP (Bonus Action): teleportér op til 40 ft. til en permanent blood rune, aktiv blodrende eller et punkt inden for 5 ft. af et lig. Udløser ikke Opportunity Attacks. Placer mindst tre permanente runer: centralbroen og én på hver sideplatform.\n\nCHARGE-EVNER: Corpse Burst (lig eksploderer, 10 ft. radius, moderat necrotic damage + push, liget destrueres) · Red Renewal (absorbér et lig, heal ~20 HP) · Sanguine Grasp (Strength Save eller Restrained) · Blood Ward, Reaction (forbrug lig for resistance eller AC-bonus).\n\nLEGENDARY ACTIONS: Crimson Step (teleport uden spell) · Blood Lash (mindre attack/pull) · Awaken Rune (aktivér blood rune som midlertidig hazard).\n\nHALF HP: blodrenderne lyser op — mere arena-kontrol (ekstra teleport, gratis runeaktivering) frem for blot større damage.\n\nSNYD: åbner ekstra port / aktiverer skjult rune / bruger levende gladiator uden for Ringen som brændstof. Lav Favor: snyden sker. Mellem Favor: publikum advarer. Høj Favor: publikum protesterer. Favor 6: Grûlmog standser snyden for at beskytte sin egen ære.\n\nNARRATIV NØDVENDIGHED: Blood Mage skal besejres før Grûlmog, fordi han ellers er en plausibel efterfølger og chain of command forbliver intakt.",
-        "attacks": "Blood Lance: ranged spell attack eller line effect; moderat necrotic damage, ekstra effekt mod targets under half HP.\nCrimson Lash: kortere range; damage og pull på 10–15 ft.\nCoagulated Ground: Difficult Terrain og mulig fastholdelse."
+        "traits": "Traits:\nBLOOD CHARGES: Optager blodet fra alle døde kroppe i arenaen (+ 1 blood charge for hver krop) \n\nLegendary Actions: 2 per round (kræver 1 blood charge).\nCRIMSON STEP: teleportér til en krop og få den til at eksplodere: inden for 15 ft. (3d8 force dmg) DEX save 15 kun halv skade.\nBLOOD ARMOR (Reaction): Add +2 to armor class (dette kan være årsag til at et angreb misser, som normalt ville ramme)\nBLOOD ON THE SAND (kun 1 aktiv ad gangen): 20 ft. cirkulært område bliver blood-soaked (Difficult Terrain). Alle inden for området er \"sickeened\" og skal udføre et CON Save 15 ellers mist muligheden for angreb/spell cast (denne action bliver istedet brugt på at brække sig). Sandet er \"slippery\" DEX save 15 for ikke at flade PRONE når man bevæger sig i det. \nRED DAWN: absorbér et lig (heal d20)\n\nCUNNING MOVE: move 15 ft. uden attack of opotunity. (kræver ikke blood charge)",
+        "attacks": "Multiattack x2:\nBLOOD BOLT: ranged (60ft) spell attack +8 to hit (d8 necrotic + d8 force + 4)  CON save 15 or sickeened"
       }
     },
     {
@@ -388,8 +388,8 @@
         "combatants": [
           {
             "name": "Blood Mage",
-            "max": "125",
-            "cur": "125"
+            "max": "175",
+            "cur": "175"
           }
         ]
       }
