@@ -136,6 +136,13 @@ body {
 /* Editor block wrapper */
 .eblock { position: relative; margin-bottom: 1.6rem; }
 .eblock.is-pinned{ outline:2px solid var(--gold,#b8862a); outline-offset:3px; border-radius:8px; }
+.eblock.is-live{ box-shadow:0 0 0 3px #4ade80, 0 0 18px rgba(74,222,128,.45); border-radius:8px; }
+.eblock.is-live::before{
+  content:'📺 PÅ SKÆRMEN'; position:absolute; top:-0.7rem; left:0.3rem; z-index:5;
+  background:#0d2818; color:#4ade80; border:1px solid #2f6b4a; border-radius:5px;
+  padding:0.15rem 0.5rem; font-family:'Cinzel',serif; font-size:0.62rem; font-weight:600;
+  letter-spacing:.05em; white-space:nowrap;
+}
 .tool-btn.pinned{ background:var(--gold,#b8862a); color:#221a0e; }
 .eblock-tools {
   position: absolute; top: -0.7rem; right: 0.3rem; z-index: 5;
@@ -482,6 +489,29 @@ let editingBlock = null;       // block id currently in edit mode
 let insertingAt = null;        // block index where the insert-picker is expanded, or null
 let presentWin = null;
 let presentRoot = null;
+
+/* Reads which blocks are ACTUALLY visible right now in the live TV popup
+   (by inspecting its DOM directly — same-origin, so this is always accurate,
+   never a separate reimplementation of the pin/page logic) and highlights
+   the matching blocks in the builder canvas. Safe to call any time, even if
+   the popup isn't open — it just clears the indicator in that case. */
+function updateLiveIndicator(){
+  document.querySelectorAll('.eblock.is-live').forEach(el=>el.classList.remove('is-live'));
+  if(!presentWin || presentWin.closed || !presentRoot) return;
+  try{
+    presentWin.document.querySelectorAll('#player-root .pblock').forEach(el=>{
+      if(el.style.display!=='none'){
+        const bid = el.getAttribute('data-bid');
+        if(!bid) return;
+        const eblock = document.querySelector('.eblock[data-id="'+bid+'"]');
+        if(eblock) eblock.classList.add('is-live');
+      }
+    });
+  }catch(e){}
+}
+// Safety net: catches the popup being closed manually, without needing a
+// precise close-event across browsers — cheap enough to just poll.
+setInterval(updateLiveIndicator, 1000);
 
 function newSessionObj(){
   return { id: uid(), name:'Ny session', theme:'parchment', blocks:[ {id:uid(), type:'header', data:blockDefaults('header')} ] };
@@ -838,6 +868,7 @@ function renderCanvas(){
     addBlock(t);
   };
   applyEditorReveal();
+  updateLiveIndicator();
 }
 
 function renderForm(b){
@@ -1187,6 +1218,7 @@ function installPresentControls(win, doc){
     win.__cur=idx;
     try{ win.scrollTo(0,0); }catch(e){}
     win.__fitToScreen && win.__fitToScreen();
+    updateLiveIndicator();
   };
   win.__applyPages = function(){ win.__showPage(win.__cur||0, false); };
   win.__step = function(dir){ win.__showPage((win.__cur||0)+dir, true); };
