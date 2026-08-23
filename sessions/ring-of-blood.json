@@ -349,9 +349,18 @@
       "id": "b35",
       "type": "narrative",
       "data": {
-        "heading": "Blood on the Sand",
-        "text": "Blodet i sandet bevæger sig.\n\nDet løber fra de døde og samler sig omkring dens fødder.\n\n\"Så meget kraft,\" siger den.\n\n\"Og I troede, den tilhørte dem.\"",
-        "skills": []
+        "heading": "Morgrash Blodkarver",
+        "text": "Morgrash rejser sig fra Grûlmogs side, og tribunen bliver stille, som om alle holder vejret. \n\nHan løfter hånden mod arenaens døde, og blodet river sig løs af dem — stiger i mørke bånd gennem luften, samler sig om hans arme, hans bryst, som en kappe der aldrig størkner. Så går han ned ad trappen og ud i sandet, langsomt, sikkert, som om Ringen allerede tilhører ham",
+        "skills": [
+          {
+            "name": "ARCANA",
+            "desc": ""
+          },
+          {
+            "name": "INSIGHT",
+            "desc": ""
+          }
+        ]
       }
     },
     {
@@ -366,7 +375,7 @@
       "id": "b39",
       "type": "statblock",
       "data": {
-        "title": "Blood Mage",
+        "title": "Morgrash Blodkarver",
         "hp": "175",
         "ac": "16",
         "speed": "30 ft.",
