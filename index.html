@@ -1387,7 +1387,22 @@ async function ghGetFile(path){
   if(res.status===404) return null;
   if(!res.ok) throw new Error('GitHub-fejl '+res.status+' ved læsning af '+path);
   const data=await res.json();
-  return { sha:data.sha, text:b64decode(data.content||'') };
+  if(data.content){
+    return { sha:data.sha, text:b64decode(data.content) };
+  }
+  // The Contents API only returns file content inline for files under 1MB.
+  // Above that, `content` is silently omitted (this is what produced
+  // "Unexpected end of JSON input" for larger sessions with embedded
+  // images). Fall back to the Git Blobs API, which supports up to 100MB,
+  // using the sha we already have from the Contents API response.
+  if(data.sha){
+    const blobUrl = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/git/blobs/${data.sha}`;
+    const blobRes = await fetch(blobUrl, {headers:ghHeaders()});
+    if(!blobRes.ok) throw new Error('GitHub-fejl '+blobRes.status+' ved læsning af stor fil ('+path+')');
+    const blobData = await blobRes.json();
+    return { sha:data.sha, text:b64decode(blobData.content||'') };
+  }
+  throw new Error('Kunne ikke hente indhold for '+path+' (intet content-felt og intet sha fra GitHub)');
 }
 async function ghPutFile(path, contentText, message, sha){
   const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
