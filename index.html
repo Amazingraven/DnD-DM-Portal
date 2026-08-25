@@ -1268,6 +1268,19 @@ function installPresentControls(win, doc){
     root.style.transform = (scale2 < 0.999) ? ('scale(' + scale2 + ')') : 'none';
   };
   win.addEventListener('resize', function(){ win.__fitToScreen && win.__fitToScreen(); });
+  // Google Fonts load asynchronously. If __fitToScreen measures height before
+  // Cinzel/IM Fell English have finished loading, it uses fallback-font
+  // metrics (usually more compact), locking in a scale that's too small once
+  // the real fonts arrive and reflow the text taller — text then overflows
+  // the bottom of the screen. Re-measure once fonts are actually ready.
+  try{
+    if(doc.fonts && doc.fonts.ready){
+      doc.fonts.ready.then(function(){ win.__fitToScreen && win.__fitToScreen(); });
+    }
+  }catch(e){}
+  // Extra safety net for TV browsers that may lack the Font Loading API
+  // entirely — re-check shortly after load regardless.
+  setTimeout(function(){ win.__fitToScreen && win.__fitToScreen(); }, 400);
   try{ doc.documentElement.style.overflow = 'hidden'; doc.body.style.overflow = 'hidden'; }catch(e){}
   // HP tracker
   win.__hpSafeEval = function(expr){
@@ -1606,6 +1619,12 @@ function buildStandaloneHTML(s, includeDM){
       wrap.style.transform = (scale2<0.999) ? ('scale('+scale2+')') : 'none';
     };
     window.addEventListener('resize', function(){ window.__fitToScreen && window.__fitToScreen(); });
+    try{
+      if(document.fonts && document.fonts.ready){
+        document.fonts.ready.then(function(){ window.__fitToScreen && window.__fitToScreen(); });
+      }
+    }catch(e){}
+    setTimeout(function(){ window.__fitToScreen && window.__fitToScreen(); }, 400);
     try{ document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; }catch(e){}
     window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
     window.__showPage(0, false);
