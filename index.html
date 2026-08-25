@@ -1248,7 +1248,13 @@ function installPresentControls(win, doc){
     var root = doc.getElementById('player-root');
     if(!root) return;
     var wrap = doc.querySelector('.page-wrap');
-    var availH = win.innerHeight - 24;
+    // document.documentElement.clientHeight is used instead of window.innerHeight:
+    // a known Chrome quirk can leave window.innerHeight reporting a stale/wrong
+    // value for a popup window dragged onto a second monitor with a different
+    // DPI/scaling factor, particularly after entering fullscreen there.
+    // clientHeight reflects the actually-rendered document box and isn't
+    // affected by that popup-specific issue.
+    var availH = (doc.documentElement.clientHeight || win.innerHeight) - 24;
     if(wrap && wrap.classList.contains('two-col')){
       root.style.transform = 'none'; // whole page never scales in two-col mode
       var rightCol = doc.getElementById('two-col-right');
@@ -1268,19 +1274,33 @@ function installPresentControls(win, doc){
     root.style.transform = (scale2 < 0.999) ? ('scale(' + scale2 + ')') : 'none';
   };
   win.addEventListener('resize', function(){ win.__fitToScreen && win.__fitToScreen(); });
-  // Google Fonts load asynchronously. If __fitToScreen measures height before
-  // Cinzel/IM Fell English have finished loading, it uses fallback-font
-  // metrics (usually more compact), locking in a scale that's too small once
-  // the real fonts arrive and reflow the text taller — text then overflows
-  // the bottom of the screen. Re-measure once fonts are actually ready.
   try{
     if(doc.fonts && doc.fonts.ready){
       doc.fonts.ready.then(function(){ win.__fitToScreen && win.__fitToScreen(); });
     }
   }catch(e){}
-  // Extra safety net for TV browsers that may lack the Font Loading API
-  // entirely — re-check shortly after load regardless.
-  setTimeout(function(){ win.__fitToScreen && win.__fitToScreen(); }, 400);
+  // A one-off measurement can be wrong for several different reasons — fonts
+  // not loaded yet, or a Windows/Chrome quirk where moving a fullscreened
+  // window onto a second monitor with a different DPI/scaling factor doesn't
+  // reliably fire a resize event. Rather than chase each specific timing
+  // case individually, watch both the viewport AND the actual content with
+  // ResizeObserver, which reacts to the real rendered size regardless of
+  // what caused it to change — this is self-correcting no matter the cause.
+  try{
+    if(win.ResizeObserver){
+      var roCallback = function(){ win.__fitToScreen && win.__fitToScreen(); };
+      var ro = new win.ResizeObserver(roCallback);
+      ro.observe(doc.documentElement);
+      var contentTarget = doc.getElementById('player-root');
+      if(contentTarget) ro.observe(contentTarget);
+    }
+  }catch(e){}
+  // Repeated re-checks over the first few seconds as a last-resort net for
+  // browsers without ResizeObserver, or any timing case neither of the above
+  // catches (e.g. slow HDMI/display negotiation).
+  [100,400,1000,2000,3500].forEach(function(ms){
+    setTimeout(function(){ win.__fitToScreen && win.__fitToScreen(); }, ms);
+  });
   try{ doc.documentElement.style.overflow = 'hidden'; doc.body.style.overflow = 'hidden'; }catch(e){}
   // HP tracker
   win.__hpSafeEval = function(expr){
@@ -1599,7 +1619,7 @@ function buildStandaloneHTML(s, includeDM){
     window.__fitToScreen=function(){
       var wrap=document.querySelector('.page-wrap');
       if(!wrap) return;
-      var availH=window.innerHeight-24;
+      var availH=(document.documentElement.clientHeight || window.innerHeight)-24;
       if(wrap.classList.contains('two-col')){
         wrap.style.transform='none';
         var rightCol=document.getElementById('two-col-right');
@@ -1624,7 +1644,18 @@ function buildStandaloneHTML(s, includeDM){
         document.fonts.ready.then(function(){ window.__fitToScreen && window.__fitToScreen(); });
       }
     }catch(e){}
-    setTimeout(function(){ window.__fitToScreen && window.__fitToScreen(); }, 400);
+    try{
+      if(window.ResizeObserver){
+        var roCb = function(){ window.__fitToScreen && window.__fitToScreen(); };
+        var ro = new ResizeObserver(roCb);
+        ro.observe(document.documentElement);
+        var pw = document.querySelector('.page-wrap');
+        if(pw) ro.observe(pw);
+      }
+    }catch(e){}
+    [100,400,1000,2000,3500].forEach(function(ms){
+      setTimeout(function(){ window.__fitToScreen && window.__fitToScreen(); }, ms);
+    });
     try{ document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; }catch(e){}
     window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
     window.__showPage(0, false);
