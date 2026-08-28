@@ -144,6 +144,8 @@ body {
   letter-spacing:.05em; white-space:nowrap;
 }
 .tool-btn.pinned{ background:var(--gold,#b8862a); color:#221a0e; }
+.tool-btn.fit-badge{ cursor:default; padding:0.2rem 0.4rem; }
+.tool-btn.fit-badge.warn{ background:#3a1414; border-color:#a33; }
 .eblock-tools {
   position: absolute; top: -0.7rem; right: 0.3rem; z-index: 5;
   display: flex; gap: 0.25rem; background: #16110a;
@@ -290,6 +292,11 @@ const SHARED_CSS = `
   font-family:'IM Fell English',Georgia,serif; font-size:1.5rem; line-height:1.85;
   color:var(--ink); white-space:pre-wrap; margin:0;
 }
+/* Defense-in-depth safety net matching MAX_NARRATIVE_LINES (8) in the JS —
+   the JS blocks new keystrokes past this size, but this catches any text
+   that predates the cap (imports, old sessions). Scoped to the direct-child
+   main text only, not the nested DM-notes paragraph. */
+.scroll-panel > .narrative{ max-height:22.2rem; overflow:hidden; }
 .scene-figure{ margin:0 0 2.2rem; text-align:center; }
 .scene-figure img{
   max-width:100%; border:2px solid var(--gold); border-radius:6px;
@@ -820,6 +827,69 @@ function renderPlayerHTML(session){
    ============================================================ */
 const canvas = document.getElementById('canvas');
 
+/* ============================================================
+   FIT-CHECK: measures blocks using their REAL styling (SHARED_CSS is
+   already global, see the injection above) at a reference width matching
+   the actual right-column on a 4K TV, so we can tell — while authoring,
+   not live at the table — whether a block plus everything already pinned
+   before it will actually fit on screen. This replaces relying on runtime
+   scaling as the primary safety net; that logic still exists on the
+   TV/export side as a legacy fallback, but shouldn't need to trigger once
+   sessions are built against these numbers.
+   Both constants are estimates for a typical 4K TV and are meant to be
+   tuned here if real-world testing shows they're off. */
+const MEASURE_WIDTH_PX = 1700;      // ≈ right column width at 45% of a 3840px-wide 4K screen
+const RIGHT_COL_BUDGET_PX = 1800;   // ≈ available height for the right column after header + padding
+const MAX_NARRATIVE_LINES = 8;
+const RIGHT_COL_TYPES = ['narrative','statblock','hptracker','skills'];
+
+const measureBox = document.createElement('div');
+measureBox.style.cssText = 'position:absolute; visibility:hidden; pointer-events:none; left:-99999px; top:0; width:'+MEASURE_WIDTH_PX+'px;';
+document.body.appendChild(measureBox);
+
+const __rootFontPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+const NARRATIVE_LINE_HEIGHT_PX = 1.5 * 1.85 * __rootFontPx; // must match .narrative's font-size/line-height in SHARED_CSS
+const MAX_NARRATIVE_HEIGHT_PX = MAX_NARRATIVE_LINES * NARRATIVE_LINE_HEIGHT_PX;
+
+function measureNarrativeTextPx(text){
+  measureBox.innerHTML = '<p class="narrative" style="white-space:pre-wrap;margin:0;">'+esc(text||'')+'</p>';
+  const p = measureBox.querySelector('p');
+  const h = p ? p.scrollHeight : 0;
+  measureBox.innerHTML = '';
+  return h;
+}
+function measureBlockPx(block){
+  const html = renderBlockContent(block, false); // false = player-facing, matches what the TV actually shows
+  if(!html) return 0;
+  measureBox.innerHTML = html;
+  const h = measureBox.scrollHeight;
+  measureBox.innerHTML = '';
+  return h;
+}
+/* For each right-column-eligible block, in document order: combine its own
+   height with whatever is already pinned (of a DIFFERENT type — same-type
+   pins supersede, mirroring the TV's own latestPinnedByType logic) up to
+   that point, and check it against the budget. Returns {blockId: {fits, px}}. */
+function computeFitStatus(){
+  const s = current();
+  const pinnedSoFar = {}; // type -> block
+  const results = {};
+  s.blocks.forEach(b=>{
+    if(!RIGHT_COL_TYPES.includes(b.type)) return;
+    let total = measureBlockPx(b);
+    Object.keys(pinnedSoFar).forEach(t=>{
+      // A new PIN replaces the previous pin of the same type (they never
+      // coexist on screen). A non-pinned block of the same type still
+      // coexists alongside whatever is currently pinned, same-type or not.
+      if(b.pinned && t === b.type) return;
+      total += measureBlockPx(pinnedSoFar[t]);
+    });
+    results[b.id] = { fits: total <= RIGHT_COL_BUDGET_PX, px: Math.round(total) };
+    if(b.pinned) pinnedSoFar[b.type] = b;
+  });
+  return results;
+}
+
 /* scroll-reveal in the editor canvas (mirrors the present view) */
 let revealedEditor = new Set();
 let _lastSessionId = null;
@@ -855,14 +925,20 @@ function renderCanvas(){
   document.getElementById('sessionName').value = s.name || '';
   document.getElementById('themeSelect').value = themeOf();
   applyTheme(themeOf(), document.documentElement);
+  const fitStatus = computeFitStatus();
   let html = '';
   if(!s.blocks.length){
     html = `<div class="empty-hint">Tom session.<br>Tilføj din første blok herunder.</div>`;
   } else {
     s.blocks.forEach((b,i)=>{
       html += renderInsertPoint(i);
+      const fit = fitStatus[b.id];
+      const fitBadge = fit
+        ? `<span class="tool-btn fit-badge${fit.fits?'':' warn'}" title="${fit.fits?'Passer på skærmen sammen med det, der allerede er pinnet ('+fit.px+'px af '+RIGHT_COL_BUDGET_PX+'px budget)':'Passer IKKE sammen med det, der allerede er pinnet ('+fit.px+'px af '+RIGHT_COL_BUDGET_PX+'px budget) — noget skal fjernes eller afpinnes'}">${fit.fits?'✅':'⚠️'}</span>`
+        : '';
       const tools = `<div class="eblock-tools">
         <span class="btype-tag">${BLOCK_DEFS[b.type]?BLOCK_DEFS[b.type].label:b.type}</span>
+        ${fitBadge}
         ${b.type!=='divider'?`<button class="tool-btn${b.pinned?' pinned':''}" data-act="pin" data-id="${b.id}" title="${b.pinned?'Fastgjort — vises på alle sider fremover, indtil et nyt pin af samme type overtager. Klik for at frigøre.':'Fastgør denne blok, så den bliver stående på tværs af sider i denne scene'}">${b.pinned?'📌':'📍'}</button>`:''}
         <button class="tool-btn" data-act="up" data-id="${b.id}" title="Op" ${i===0?'disabled style=opacity:.3':''}>▲</button>
         <button class="tool-btn" data-act="down" data-id="${b.id}" title="Ned" ${i===s.blocks.length-1?'disabled style=opacity:.3':''}>▼</button>
@@ -988,7 +1064,16 @@ canvas.addEventListener('input', e=>{
   const form = e.target.closest('.eform'); if(!form) return;
   const b = current().blocks.find(x=>x.id===form.dataset.id); if(!b) return;
   const t = e.target;
-  if(t.dataset.field){ b.data[t.dataset.field] = (t.type==='number')? t.value : t.value; commitLive(); }
+  if(t.dataset.field){
+    if(b.type==='narrative' && t.dataset.field==='text' && measureNarrativeTextPx(t.value) > MAX_NARRATIVE_HEIGHT_PX){
+      // This keystroke would push the box past its fixed size — revert to
+      // the last value that fit, rather than let it silently overflow.
+      t.value = b.data.text || '';
+      return;
+    }
+    b.data[t.dataset.field] = (t.type==='number')? t.value : t.value;
+    commitLive();
+  }
   else if(t.dataset.sub){
     const arr = b.data[t.dataset.sub]; const it = arr[Number(t.dataset.idx)];
     if(it){ it[t.dataset.key] = t.value; commitLive(); }
