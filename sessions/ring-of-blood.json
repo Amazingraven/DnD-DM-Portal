@@ -377,7 +377,7 @@
       "data": {
         "title": "Morgrash Blodkarver",
         "hp": "175",
-        "ac": "16",
+        "ac": "17",
         "speed": "30 ft.",
         "cr": "7",
         "str": 10,
@@ -405,8 +405,8 @@
         "combatants": [
           {
             "name": "Blood Mage",
-            "max": "175",
-            "cur": "175"
+            "max": "210",
+            "cur": 210
           }
         ]
       }
@@ -443,7 +443,7 @@
       "data": {
         "title": "Grûlmog the Unbeaten ",
         "hp": "250",
-        "ac": "18",
+        "ac": "19",
         "speed": "40 ft.",
         "cr": "10",
         "str": 22,
