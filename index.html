@@ -296,10 +296,7 @@ const SHARED_CSS = `
    the JS blocks new keystrokes past this size, but this catches any text
    that predates the cap (imports, old sessions). Scoped to the direct-child
    main text only, not the nested DM-notes paragraph. */
-/* No CSS max-height/overflow:hidden here anymore — that silently clipped
-   existing text without any warning, which is worse than the problem it
-   was meant to solve. Text over the cap is flagged in the builder instead
-   (see computeFitStatus), rendered in full until manually shortened. */
+.scroll-panel > .narrative{ max-height:22.2rem; overflow:hidden; }
 .scene-figure{ margin:0 0 2.2rem; text-align:center; }
 .scene-figure img{
   max-width:100%; border:2px solid var(--gold); border-radius:6px;
@@ -887,13 +884,7 @@ function computeFitStatus(){
       if(b.pinned && t === b.type) return;
       total += measureBlockPx(pinnedSoFar[t]);
     });
-    // Separate from the combined-budget check: does THIS narrative block's
-    // own text already exceed its individual line cap? A lone long text can
-    // easily fit the total right-column budget while still being far past
-    // what the box was actually designed for — worth flagging distinctly,
-    // since this can only be fixed by shortening that specific text.
-    const overOwnCap = (b.type==='narrative' && measureNarrativeTextPx(b.data && b.data.text) > MAX_NARRATIVE_HEIGHT_PX);
-    results[b.id] = { fits: total <= RIGHT_COL_BUDGET_PX && !overOwnCap, px: Math.round(total), overOwnCap: overOwnCap };
+    results[b.id] = { fits: total <= RIGHT_COL_BUDGET_PX, px: Math.round(total) };
     if(b.pinned) pinnedSoFar[b.type] = b;
   });
   return results;
@@ -943,7 +934,7 @@ function renderCanvas(){
       html += renderInsertPoint(i);
       const fit = fitStatus[b.id];
       const fitBadge = fit
-        ? `<span class="tool-btn fit-badge${fit.fits?'':' warn'}" title="${fit.overOwnCap?'Denne teksts EGEN længde overskrider det tilladte linjeloft ('+fit.px+'px) — forkort selve teksten':(fit.fits?'Passer på skærmen sammen med det, der allerede er pinnet ('+fit.px+'px af '+RIGHT_COL_BUDGET_PX+'px budget)':'Passer IKKE sammen med det, der allerede er pinnet ('+fit.px+'px af '+RIGHT_COL_BUDGET_PX+'px budget) — noget skal fjernes eller afpinnes')}">${fit.fits?'✅':(fit.overOwnCap?'🚫':'⚠️')}</span>`
+        ? `<span class="tool-btn fit-badge${fit.fits?'':' warn'}" title="${fit.fits?'Passer på skærmen sammen med det, der allerede er pinnet ('+fit.px+'px af '+RIGHT_COL_BUDGET_PX+'px budget)':'Passer IKKE sammen med det, der allerede er pinnet ('+fit.px+'px af '+RIGHT_COL_BUDGET_PX+'px budget) — noget skal fjernes eller afpinnes'}">${fit.fits?'✅':'⚠️'}</span>`
         : '';
       const tools = `<div class="eblock-tools">
         <span class="btype-tag">${BLOCK_DEFS[b.type]?BLOCK_DEFS[b.type].label:b.type}</span>
@@ -1240,6 +1231,9 @@ async function openPresent(){
   installPresentControls(presentWin, doc);
   const fsBtn = doc.getElementById('fsBtn');
   fsBtn.addEventListener('click', ()=>{ try{ doc.documentElement.requestFullscreen(); }catch(e){} });
+  const syncFsBtn = ()=>{ fsBtn.style.display = doc.fullscreenElement ? 'none' : ''; };
+  doc.addEventListener('fullscreenchange', syncFsBtn);
+  syncFsBtn();
   if(willFullscreen){
     try{ presentWin.focus(); doc.documentElement.requestFullscreen().catch(()=>{}); }catch(e){}
   }
@@ -1760,6 +1754,12 @@ function buildStandaloneHTML(s, includeDM){
       else if(e.key==='ArrowLeft'){ e.preventDefault(); window.__step(-1); }
     });
     document.getElementById('fsBtn').addEventListener('click', function(){ try{ document.documentElement.requestFullscreen(); }catch(e){} });
+    (function(){
+      var fsBtn = document.getElementById('fsBtn');
+      var syncFsBtn = function(){ fsBtn.style.display = document.fullscreenElement ? 'none' : ''; };
+      document.addEventListener('fullscreenchange', syncFsBtn);
+      syncFsBtn();
+    })();
   <\/script>`;
   const hpScript = `<script>
     window.__hpSafeEval=function(expr){
