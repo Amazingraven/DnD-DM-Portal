@@ -292,11 +292,10 @@ const SHARED_CSS = `
   font-family:'IM Fell English',Georgia,serif; font-size:1.5rem; line-height:1.85;
   color:var(--ink); white-space:pre-wrap; margin:0;
 }
-/* Defense-in-depth safety net matching MAX_NARRATIVE_LINES (8) in the JS —
-   the JS blocks new keystrokes past this size, but this catches any text
-   that predates the cap (imports, old sessions). Scoped to the direct-child
-   main text only, not the nested DM-notes paragraph. */
-.scroll-panel > .narrative{ max-height:22.2rem; overflow:hidden; }
+/* No CSS max-height/overflow:hidden here — that silently clipped existing
+   text without any warning, which is worse than the problem it solved.
+   Text over the cap is flagged in the builder instead (see
+   computeFitStatus), rendered in full until manually shortened. */
 .scene-figure{ margin:0 0 2.2rem; text-align:center; }
 .scene-figure img{
   max-width:100%; border:2px solid var(--gold); border-radius:6px;
@@ -840,16 +839,19 @@ const canvas = document.getElementById('canvas');
    tuned here if real-world testing shows they're off. */
 const MEASURE_WIDTH_PX = 1700;      // ≈ right column width at 45% of a 3840px-wide 4K screen
 const RIGHT_COL_BUDGET_PX = 1800;   // ≈ available height for the right column after header + padding
-const MAX_NARRATIVE_LINES = 8;
 const RIGHT_COL_TYPES = ['narrative','statblock','hptracker','skills'];
 
 const measureBox = document.createElement('div');
 measureBox.style.cssText = 'position:absolute; visibility:hidden; pointer-events:none; left:-99999px; top:0; width:'+MEASURE_WIDTH_PX+'px;';
 document.body.appendChild(measureBox);
 
-const __rootFontPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-const NARRATIVE_LINE_HEIGHT_PX = 1.5 * 1.85 * __rootFontPx; // must match .narrative's font-size/line-height in SHARED_CSS
-const MAX_NARRATIVE_HEIGHT_PX = MAX_NARRATIVE_LINES * NARRATIVE_LINE_HEIGHT_PX;
+// A single narrative panel, if it's the only thing pinned in the right
+// column, should be able to grow up to roughly how far the image goes —
+// not an arbitrary small slice of it. Derived as a fraction of
+// RIGHT_COL_BUDGET_PX (rather than an independent line-count guess) so the
+// two numbers can never drift out of sync — a previous fixed "8 lines"
+// guess turned out far too small in real-world testing.
+const MAX_NARRATIVE_HEIGHT_PX = RIGHT_COL_BUDGET_PX * 0.9;
 
 function measureNarrativeTextPx(text){
   measureBox.innerHTML = '<p class="narrative" style="white-space:pre-wrap;margin:0;">'+esc(text||'')+'</p>';
