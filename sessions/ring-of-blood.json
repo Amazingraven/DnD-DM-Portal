@@ -183,7 +183,7 @@
       "type": "narrative",
       "data": {
         "heading": "The Captive Gladiators ",
-        "text": "Først hammer en ogre sin hånd i brystkassen  - så en anden - snart hamrer en hel tribune imens de råber: \"blod, blod, blod, ... \"\n\nPorten åbner sig igen - denne gang, ingen monstre - fire krigere træder ud i sandet. \n\nManden forrest løfter sit sværd selvsikkert mod publikum  - og nu er alle ogres oppe fra bænkene råber i kor: \"BLOOOOOOOOOD!\"\n\nI ser en orge smide en sæk ned til manden - hvori små røde flasker hurtigt fordeles mellem de fire krigere.\n\nDeres øjne fokusere nu kun på jer.",
+        "text": "Først hammer en ogre sin hånd i brystkassen  - så en anden - snart hamrer en hel tribune imens de råber: \"blod, blod, blod, ... \"\n\nPorten åbner sig igen - denne gang, ingen monstre - fire krigere træder ud i sandet. \n\nManden forrest løfter sit sværd selvsikkert mod publikum  - og nu er alle ogres oppe fra bænkene råber i kor: \"BLOOOOOOOOOD!\"\n\nI ser en orge smide en sæk ned til manden - hvori små røde flasker hurtigt fordeles mellem de fire krigere. \n\nDeres øjne fokusere nu kun på jer.",
         "skills": [
           {
             "name": "Performance",
@@ -225,6 +225,14 @@
         "cha": 10,
         "traits": "Hold the Line: et ramt mål i melee ranged mister 10 ft. Speed til starten af Fighterens næste tur. \nShield Parry (Reaction): +2 AC mod ét synligt melee attack.",
         "attacks": "Multiattack x2 \nLongsword: +5 to hit; 7 (1d8 + 3) slashing."
+      }
+    },
+    {
+      "id": "ncdghtw",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
       }
     },
     {
@@ -271,6 +279,14 @@
         "cha": 10,
         "traits": "Sneak Attack: +2d6 én gang per tur ved Advantage eller en allieret inden for 5 ft. af målet. \nCunning Movement (Bonus Action): Dash eller Disengage. \nSlip Away (Reaction): når et melee attack misser, må Rogue bevæge sig 10 ft. uden Opportunity Attacks.",
         "attacks": "Multiattack x2:\nShortsword / Hand Crossbow: +5 to hit; 6 (1d6 + 3) piercing."
+      }
+    },
+    {
+      "id": "yw17etu",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
       }
     },
     {
@@ -435,6 +451,14 @@
         "heading": "Grûlmog - The Undefeated",
         "text": "Blood Mage falder og hele arenaen bliver dødsens stille - alle vender blikket mod Grûlmog.\n\nGrûlmog rejser sig... \"fint.. jeg ordner dem selv\"\n\nGrûlmog kaster sig udover tribunen og lander på broen.",
         "skills": []
+      }
+    },
+    {
+      "id": "rvm9ihd",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
       }
     },
     {
