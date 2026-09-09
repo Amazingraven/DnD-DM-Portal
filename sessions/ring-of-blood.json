@@ -25,7 +25,7 @@
       "id": "b5",
       "type": "narrative",
       "data": {
-        "heading": "Camp of the Hell Pit Orge ",
+        "heading": "The Hell Pit Orges",
         "text": "Falcons skjulte sti ender ved en mur af træ, jern og knogler.\n\nBag porten rejser et brøl sig fra hundredvis af stemmer - ikke et krigsråb - et jublende publikum.",
         "skills": [
           {
@@ -120,8 +120,16 @@
       "type": "narrative",
       "data": {
         "heading": "The Starved Manticores",
-        "text": "En tung port løfter sig langsomt...\n\nKløer skraber mod sten. Skingre brøl giver ekko langs palisaderne. Lyden af vinger der foldes ud og kæder der rammer jorden... ",
+        "text": "En tung port løfter sig langsomt...\n\nKløer skraber mod sten. \n\nSkingre brøl giver ekko langs palisaderne. \n\nLyden af vinger der foldes ud og kæder der rammer jorden... ",
         "skills": []
+      }
+    },
+    {
+      "id": "0nx6gq4",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
       }
     },
     {
@@ -141,6 +149,14 @@
         "cha": 8,
         "traits": "Tail Spikes: kun 6 tilbage per Manticore. \nMultiattack x 3: ét Bite og to Claws, eller tre Tail Spike attacks.",
         "attacks": "Bite: +5 to hit; 1d8 + 3 piercing.\nClaw: +5 to hit; 1d6 + 3 slashing.\nTail Spike: +5 to hit; range 100/200 ft.; 1d8 + 3 piercing."
+      }
+    },
+    {
+      "id": "tjircf5",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
       }
     },
     {
