@@ -23,7 +23,7 @@
     },
     {
       "id": "b3",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Descent",
         "text": "Nedgangen begynder i resterne af Halias ødelagte laboratorium. Acid har ædt sig gennem sten og metal. Luften lugter stadig af brændt alkymi, sort drageblod og våd aske.\n\nI finder jer selv stående foran den buede nedgang til krypten med ældgamle elever-tegn indgraveret i buen. ",
@@ -67,7 +67,7 @@
     },
     {
       "id": "b6",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "Cross Roads",
         "text": "Et cirkulært rum åbner sig i mørket. Fire korridorer løber ud i hver sin retning. Midt på gulvet er en cirkel af marmor oplyst af en hvid krystal i loftet.\n\nI skyggen mellem to søjler ligger den sorte drage.\n\nHan er enorm, sortskællet og med kæder fra sit fangeskab stadigvæk viklet tæt om kroppen. Hans vinger hænger lavt og han syntes ikke faretruende da I træder ind i rummet.",
@@ -107,7 +107,7 @@
     },
     {
       "id": "b9",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "Hall of Names",
         "text": "Langs kryptens overdådige gange åbner der sig et rum hvor væggene er dækket af navne indgraveret i sølv, rav og sort sten. Tydeligst er navnene på bagvæggen.\n\nOverdådige skatte ligger langs den bagerste væg.\n\nSelv fra gangen kan I se at navnene på bagvæggen lyser svagt, hvorimod alle andre er mørklagte. Stemmer hvisker på elvisk - sørgmodigt.",
@@ -217,7 +217,7 @@
     },
     {
       "id": "b14",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Bridge of Sorrow",
         "text": "En smal bro spænder over et sort dyb. Broen er tydeligt inspireret af ryggen på en enorm drage.\n\nOver broen hænger fragmenter af enorme sorte ribben. Kæder og sølvtråde dingler mellem knoglerne og holder resten af, hvad der engang var et gigantisk væsen, fast i loftet.",
@@ -257,7 +257,7 @@
     },
     {
       "id": "b17",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Rider's Gallery",
         "text": "Et højt galleri dækket af udhugget og farvelagte vægskulpturer - der fortæller historien om Aelrindel og Nharesstyh, fra storhedstid til fald.\n\nFørst: en ung elverkriger foran en sort drage. Elveren har sænket sit våben. Dragen har sænket sit hoved.\n\nSå: de to i luften som ét våben — Nharessyths vinger bredt ud over himlen, Aelrindel stående i sadlen med en lanse af stjernelys.\n\nDrager, der falder. Byer, der knæler. Aelrindel foran et elverråd, hovedet hævet for højt, Nharessyth bag ham med blikket vendt bort.\n\nDen miderste og mest storslåede udhugning: fem hoveder, vinger, ild, gift, frost, lyn — og Aelrindel, der løfter sin lanse mod noget, ingen dødelig burde udfordre.",
@@ -297,7 +297,7 @@
     },
     {
       "id": "b24",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "Tomb of Aelrindel",
         "text": "To enorme dørfløje af mørk sten står foran jer. Døren ser beskadiget ud, men hvem end der har forsøgt med magt at tvinge sig igennem, nåede aldrig at gøre arbejdet færdigt.\n\nInskriptioner, lignende dem fra passagen der første ned i krypten, er tydelige i buen om porten. ",
@@ -337,7 +337,7 @@
     },
     {
       "id": "b27",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "The Last Hunt",
         "text": "Det inderste kammer er enormt og højt som en katedral. Loftet forsvinder op i mørke og gulvet er sparsomt tilrettelagt med en gabende afgrund der fylder det meste af lokalet.\n\nPå en platform midt i rummet står Aelrindel Vaeruth i en halvt gennemsigtig skikkelse.\n\nHans rustning er revnet, men stadig smuk. Hans ansigt er udtørret, ikke råddent. Øjnene brænder med blegt, ufokuseret lys. I hænderne holder han en lang lanse, som I har set afbilledet tidligere. Bag ham på en hævet platform står en velbevaret sarkofag.",
@@ -368,17 +368,17 @@
       "type": "statblock",
       "data": {
         "title": "Aelrindel Vaeruth — The Last Dragon Hunter",
-        "hp": "225 ",
-        "ac": "18",
+        "hp": "350",
+        "ac": "19",
         "speed": "40 ft.",
         "cr": "8",
-        "str": 18,
-        "dex": 16,
-        "con": 16,
-        "int": 12,
-        "wis": 14,
-        "cha": 16,
-        "traits": "Resistens: nekrotisk skade, ikke-magiske våben.\nImmun: charmed, frightened, exhaustion, poisoned.\nLegendary Actions (3 per runde): Rider's Step (flyt uden opportunity attacks) · Lance Strike · Death Cry (koster 2 actions: 30 ft., WIS Save DC 15 eller frightened).",
+        "str": "20",
+        "dex": "18",
+        "con": "17",
+        "int": "18",
+        "wis": "17",
+        "cha": "14",
+        "traits": "Legendary Resistens: 2\nResistens: nekrotisk skade, ikke-magiske våben.\nImmun: charmed, frightened, exhaustion, poisoned.\nLegendary Actions (3 per runde): Rider's Step (flyt uden opportunity attacks) · Lance Strike · Death Cry (koster 2 actions: 30 ft., WIS Save DC 15 eller frightened).",
         "attacks": "Multiattack x 2\nDragonhunter Lance: +8 to hit, reach 10 ft., 2d8+4 stik + 2d8 nekrotisk.\nSpectral Charge: bevæger sig optil 20 ft. i en lige linje i et angreb (flytter ham over kløfter og kan ramme flere spillere samtidig): +3d8 skade og STR Save DC 15 eller prone."
       }
     },
@@ -389,8 +389,8 @@
         "combatants": [
           {
             "name": "Aelrindel",
-            "max": 225,
-            "cur": 225
+            "max": "350",
+            "cur": "350"
           },
           {
             "name": "Nharessyth ",
@@ -410,7 +410,7 @@
     },
     {
       "id": "b31",
-      "type": "narrative-dm",
+      "type": "narrative",
       "data": {
         "heading": "Aftermath",
         "text": "Krypten er stille nu. Faklerne er gået ud, ingen hvisken eller følelsen af det overnaturliges tilstedeværelse, som om krypten endelig er lagt til hvile for første gang i århundreder.\n\nEn helt, der aldrig kunne give slip — og en drage, der ventede på lov til at sørge.\n\nHvad tager I med jer op i lyset: en sejr, sjælefred, våben eller noget mere spirituelt?",
