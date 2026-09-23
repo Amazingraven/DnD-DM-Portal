@@ -1179,6 +1179,43 @@ function fileToBase64(file) {
   });
 }
 
+async function ghPutBinary(path, base64, message) {
+  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const res = await fetch(url, { method: 'PUT', headers: ghHeaders(), body: JSON.stringify({ message, content: base64 }) });
+  if (!res.ok) { const t = await res.text(); throw new Error('GitHub-fejl ' + res.status + ': ' + t.slice(0, 140)); }
+  return res.json();
+}
+
+// Spillerportalen viser en lille udgave af billedet i lister og gitre og henter kun
+// originalen, når et billede åbnes i fuld skærm. Miniaturen laves her i browseren,
+// så den følger med uploaden i stedet for at skulle laves i hånden bagefter.
+async function makeThumbBlob(file, maxW = 800, quality = 0.78) {
+  let bmp;
+  try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); }
+  catch (e) { bmp = await createImageBitmap(file); }
+  const w = Math.min(maxW, bmp.width) || bmp.width;
+  const h = Math.max(1, Math.round(bmp.height * w / bmp.width));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#f0e5c8';           // gennemsigtige PNG'er får pergamentbaggrund
+  ctx.fillRect(0, 0, w, h);
+  ctx.drawImage(bmp, 0, 0, w, h);
+  if (bmp.close) bmp.close();
+  return await new Promise(res => c.toBlob(res, 'image/jpeg', quality));
+}
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1]);
+    r.onerror = () => reject(new Error('Kunne ikke læse miniaturen'));
+    r.readAsDataURL(blob);
+  });
+}
+function thumbPathFor(imagePath) {
+  return `${GH_DIR}/thumbs/` + imagePath.replace(/^.*\//, '').replace(/\.[^.]+$/, '') + '.jpg';
+}
+
 // Uploads a binary asset (image/audio) straight to the repo as its own file
 // under data/<subdir>/, and returns the public GitHub Pages URL for it.
 async function uploadAssetToRepo(file, subdir) {
@@ -1188,13 +1225,19 @@ async function uploadAssetToRepo(file, subdir) {
   const safeName = file.name.toLowerCase().replace(/[^a-z0-9_.-]+/g, '-');
   const path = `${GH_DIR}/${subdir}/${Date.now()}-${safeName}`;
   const base64 = await fileToBase64(file);
-  const url = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
-  const res = await fetch(url, {
-    method: 'PUT',
-    headers: ghHeaders(),
-    body: JSON.stringify({ message: 'Upload ' + safeName, content: base64 })
-  });
-  if (!res.ok) { const t = await res.text(); throw new Error('GitHub-fejl ' + res.status + ': ' + t.slice(0, 140)); }
+  await ghPutBinary(path, base64, 'Upload ' + safeName);
+
+  // Miniaturen er en bekvemmelighed, ikke et krav: fejler den, beholder vi originalen,
+  // og portalen falder selv tilbage til den.
+  if (subdir === 'images' && /^image\//.test(file.type) && !/svg|gif/i.test(file.type)) {
+    try {
+      const blob = await makeThumbBlob(file);
+      if (blob) await ghPutBinary(thumbPathFor(path), await blobToBase64(blob), 'Miniature til ' + safeName);
+    } catch (err) {
+      console.warn('Miniature kunne ikke laves:', err);
+      toast('Billedet er uploadet, men miniaturen fejlede — portalen bruger originalen');
+    }
+  }
   return `https://amazingraven.github.io/${GH_REPO}/${path}`;
 }
 
