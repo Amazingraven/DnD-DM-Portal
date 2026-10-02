@@ -484,10 +484,67 @@ function blockDefaults(type){
     case 'skills': return { items:[ {name:'PERCEPTION', desc:'Undersøg området'} ] };
     case 'statblock': return { title:'Modstander', hp:'', ac:'', speed:'30 ft.', cr:'',
       str:10, dex:10, con:10, int:10, wis:10, cha:10, traits:'', attacks:'' };
-    case 'hptracker': return { combatants:[ {name:'Modstander #1', max:30, cur:30} ] };
+    case 'hptracker': return { combatants:[ {name:'Modstander #1', max:30, cur:30} ], groups:[] };
     case 'divider': return { icon:'⚔', transition:'fade' };
     default: return {};
   }
+}
+
+/* ============================================================
+   STATBLOCK -> HP-TRACKER KOBLING
+   En tracker kan kobles til en statblock i samme session med et antal.
+   Rækkerne genereres derfra, så HP kun vedligeholdes ét sted (statblocken)
+   og antallet ét sted (trackeren). Frie rækker uden kobling bevares.
+   ============================================================ */
+function statblocksIn(session){ return ((session&&session.blocks)||[]).filter(b=>b.type==='statblock'); }
+function sbTitle(sb){ return (((sb.data||{}).title)||'').trim() || 'Modstander'; }
+function hpFromStatblock(sb){            // "45 (6d8+12)" -> 45
+  const m = String((sb.data||{}).hp||'').match(/\d+/);
+  return m ? Math.max(1, parseInt(m[0],10)) : null;
+}
+function trackerIsDamaged(b){
+  return ((b.data||{}).combatants||[]).some(c=>c.ref && Number(c.cur) < Number(c.max));
+}
+function syncTracker(b, session, opts){
+  opts = opts || {};
+  const groups = (b.data.groups||[]);
+  const all = (b.data.combatants||[]);
+  const manual = all.filter(c=>!c.ref);
+  const byRef = {};
+  all.forEach(c=>{ if(c.ref){ (byRef[c.ref] = byRef[c.ref] || []).push(c); } });
+  const rows = [];
+  groups.forEach(g=>{
+    const sb = ((session&&session.blocks)||[]).find(x=>x.id===g.ref && x.type==='statblock');
+    if(!sb) return;                        // statblock slettet -> rækkerne forsvinder med den
+    const max = hpFromStatblock(sb) || 1;
+    const n = Math.max(1, Math.min(20, Number(g.count)||1));
+    const title = sbTitle(sb);
+    const prev = byRef[g.ref] || [];
+    for(let i=0;i<n;i++){
+      const old = prev[i];
+      const cur = (opts.reset || !old) ? max : Math.min(Number(old.cur)||max, max);
+      rows.push({ ref:g.ref, name: n>1 ? `${title} #${i+1}` : title, max, cur });
+    }
+  });
+  b.data.combatants = rows.concat(manual);
+}
+/* Kaldes når en statblock eller en kobling ændres. Er kampen i gang
+   (nogen har taget skade), spørger vi før vi nulstiller til fuld HP. */
+function syncLinkedTrackers(session, statblockId){
+  const trackers = ((session&&session.blocks)||[]).filter(b=>
+    b.type==='hptracker' && (b.data.groups||[]).some(g=>!statblockId || g.ref===statblockId));
+  if(!trackers.length) return false;
+  trackers.forEach(b=>{
+    let reset = true;
+    if(trackerIsDamaged(b)){
+      reset = confirm('Nogle modstandere i denne HP-tracker har allerede taget skade.\n\nOK = nulstil alle til fuld HP.\nAnnuller = behold nuværende HP.');
+    }
+    syncTracker(b, session, { reset });
+  });
+  return true;
+}
+function resetTrackerToFull(b){
+  (b.data.combatants||[]).forEach(c=>{ c.cur = Number(c.max)||0; });
 }
 
 let state = { sessions: [], currentId: null };
@@ -1009,12 +1066,35 @@ function renderForm(b){
         <label>Traits</label>${ta('traits',d.traits)}
         <label>Attacks</label>${ta('attacks',d.attacks)}`; break;
     case 'hptracker': {
-      const items = (d.combatants||[]).map((c,i)=>`<div class="subitem">
-        <input type="text" data-sub="combatants" data-idx="${i}" data-key="name" value="${esc(c.name)}" placeholder="Navn">
-        <input type="number" data-sub="combatants" data-idx="${i}" data-key="max" value="${esc(c.max)}" placeholder="Max HP" style="max-width:90px">
-        <input type="number" data-sub="combatants" data-idx="${i}" data-key="cur" value="${esc(c.cur)}" placeholder="HP nu" style="max-width:90px">
-        <button class="mini-btn del" data-subdel="combatants" data-idx="${i}">✕</button></div>`).join('');
-      inner = `<label>Modstandere</label>${items}<button class="mini-btn" data-subadd="combatants">+ Tilføj</button>`; break;
+      const sbs = statblocksIn(current());
+      const sbOpts = (sel) => sbs.map(sb=>{
+        const hp = hpFromStatblock(sb);
+        return `<option value="${sb.id}" ${sel===sb.id?'selected':''}>${esc(sbTitle(sb))}${hp?` (HP ${hp})`:' (HP mangler)'}</option>`;
+      }).join('');
+      const groups = (d.groups||[]).map((g,i)=>`<div class="subitem">
+        <select data-group="ref" data-idx="${i}">${sbOpts(g.ref)}</select>
+        <input type="number" data-group="count" data-idx="${i}" value="${esc(g.count||1)}" min="1" max="20" title="Antal" style="max-width:80px">
+        <button class="mini-btn del" data-groupdel="${i}" title="Fjern koblingen">✕</button></div>`).join('');
+      const linkUI = sbs.length
+        ? `${groups}<button class="mini-btn" data-groupadd="1">+ Kobl statblock</button>`
+        : `<div class="subitem"><em style="opacity:.7">Tilføj en statblock-blok i denne session for at kunne koble.</em></div>`;
+      const items = (d.combatants||[]).map((c,i)=> c.ref
+        ? `<div class="subitem">
+            <input type="text" value="${esc(c.name)}" disabled title="Styres af statblocken">
+            <input type="number" value="${esc(c.max)}" disabled style="max-width:90px" title="Max HP kommer fra statblocken">
+            <input type="number" data-sub="combatants" data-idx="${i}" data-key="cur" value="${esc(c.cur)}" placeholder="HP nu" style="max-width:90px">
+            <span class="mini-btn" style="visibility:hidden">✕</span></div>`
+        : `<div class="subitem">
+            <input type="text" data-sub="combatants" data-idx="${i}" data-key="name" value="${esc(c.name)}" placeholder="Navn">
+            <input type="number" data-sub="combatants" data-idx="${i}" data-key="max" value="${esc(c.max)}" placeholder="Max HP" style="max-width:90px">
+            <input type="number" data-sub="combatants" data-idx="${i}" data-key="cur" value="${esc(c.cur)}" placeholder="HP nu" style="max-width:90px">
+            <button class="mini-btn del" data-subdel="combatants" data-idx="${i}">✕</button></div>`).join('');
+      inner = `<label>Koblet til statblock (navn og max HP følger den — antal styres her)</label>${linkUI}
+        <label style="margin-top:.8rem">Modstandere</label>${items}
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
+          <button class="mini-btn" data-subadd="combatants">+ Tilføj fri række</button>
+          <button class="mini-btn" data-hpreset="1" title="Sæt alle tilbage til fuld HP">↺ Nulstil kamp</button>
+        </div>`; break;
     }
     case 'divider':
       inner = `<label>Ikon</label>${f('icon',d.icon)}
@@ -1056,6 +1136,34 @@ canvas.addEventListener('click', e=>{
     return;
   }
   if(e.target.closest('[data-done]')){ editingBlock=null; renderCanvas(); return; }
+  const gadd = e.target.closest('[data-groupadd]');
+  if(gadd){
+    const b = current().blocks.find(x=>x.id===gadd.closest('.eform').dataset.id);
+    const sbs = statblocksIn(current());
+    if(b && sbs.length){
+      if(!b.data.groups) b.data.groups = [];
+      b.data.groups.push({ ref: sbs[0].id, count: 1 });
+      syncTracker(b, current(), { reset:true });
+      save(); renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  const gdel = e.target.closest('[data-groupdel]');
+  if(gdel){
+    const b = current().blocks.find(x=>x.id===gdel.closest('.eform').dataset.id);
+    if(b){
+      b.data.groups.splice(Number(gdel.dataset.groupdel),1);
+      syncTracker(b, current(), {});
+      save(); renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  const hpreset = e.target.closest('[data-hpreset]');
+  if(hpreset){
+    const b = current().blocks.find(x=>x.id===hpreset.closest('.eform').dataset.id);
+    if(b){ resetTrackerToFull(b); save(); renderCanvas(); pushToPresent(); }
+    return;
+  }
   const subadd = e.target.closest('[data-subadd]');
   if(subadd){ addSubItem(subadd.closest('.eform').dataset.id, subadd.dataset.subadd); return; }
   const subdel = e.target.closest('[data-subdel]');
@@ -1084,6 +1192,26 @@ canvas.addEventListener('input', e=>{
 
 canvas.addEventListener('change', e=>{
   const t = e.target;
+  const gform = t.closest('.eform');
+  if(t.dataset.group && gform){
+    const b = current().blocks.find(x=>x.id===gform.dataset.id);
+    const g = b && (b.data.groups||[])[Number(t.dataset.idx)];
+    if(g){
+      if(t.dataset.group==='ref') g.ref = t.value;
+      else g.count = Math.max(1, Math.min(20, Number(t.value)||1));
+      syncLinkedTrackers(current(), g.ref);
+      save(); renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  // HP eller titel rettet på en statblock -> opdater de trackere, der peger på den
+  if(gform && (t.dataset.field==='hp' || t.dataset.field==='title')){
+    const b = current().blocks.find(x=>x.id===gform.dataset.id);
+    if(b && b.type==='statblock' && syncLinkedTrackers(current(), b.id)){
+      save(); renderCanvas(); pushToPresent();
+    }
+    return;
+  }
   if(t.dataset.img){
     const form = t.closest('.eform'); const b = current().blocks.find(x=>x.id===form.dataset.id);
     const file = t.files[0]; if(!file||!b) return;
@@ -1108,6 +1236,14 @@ function insertBlockAt(type, idx){
   save(); renderCanvas(); pushToPresent();
 }
 function removeBlock(id){
+  const gone = current().blocks.find(x=>x.id===id);
+  if(gone && gone.type==='statblock'){
+    current().blocks.filter(b=>b.type==='hptracker').forEach(b=>{
+      if(!(b.data.groups||[]).some(g=>g.ref===id)) return;
+      b.data.groups = b.data.groups.filter(g=>g.ref!==id);
+      syncTracker(b, current(), {});
+    });
+  }
   const s=current(); s.blocks = s.blocks.filter(b=>b.id!==id);
   if(editingBlock===id) editingBlock=null;
   save(); renderCanvas(); pushToPresent();
