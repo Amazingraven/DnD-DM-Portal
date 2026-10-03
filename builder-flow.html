@@ -901,34 +901,57 @@ function laneOf(type){
 function renderFlowBlocks(session, includeDM){
   let activeTransition = 'fade';
   let pageIdx = 0, placed = false;
-  // Sessionen åbner med det første billede OG den første tekstboks, så der
-  // står noget i begge baner fra trin 0. Det gælder kun indtil den første
-  // ryd-blok — derefter er det flowet, der bestemmer.
-  const firstOfLane = { image:false, text:false };
-  let startPhase = true;
-  return session.blocks.map((b, orderIdx)=>{
-    // Headeren er sessionens titel: den optager ikke et trin og bliver
-    // hængende, indtil en nyere header eventuelt afløser den.
+  // En scene åbner med både billede og tekst på ét trin. En ryd-blok tager
+  // ikke et trin for sig selv: den træder i kraft i samme øjeblik som den
+  // næste scene vises. Rydder den kun den ene bane, er det kun DEN bane, der
+  // starter forfra — den anden kører videre i sit eget tempo.
+  let awaiting = { image:true, text:true };   // baner der venter på en ny scenes første blok
+  let scenePage = null;                       // trinnet den igangværende scene åbnede på
+  let pendingClears = [];
+  const items = [];
+  session.blocks.forEach((b, orderIdx)=>{
     if(b.type === 'header'){
-      const hc = renderBlockContent(b, includeDM);
-      if(!hc) return '';
-      return `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="1" data-lane="header" data-btype="header" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${hc}</div>`;
+      items.push({ b, orderIdx, lane:'header', page: pageIdx, transition: activeTransition });
+      return;
     }
-    const withPrev = !!(b.data && b.data.withPrev);
-    const lane = laneOf(b.type);
-    const opensSession = startPhase && !firstOfLane[lane];
-    if(opensSession){ firstOfLane[lane] = true; }
-    else if(placed && !withPrev){ pageIdx++; }
-    placed = true;
     if(b.type === 'divider'){
       const scope = (b.data && b.data.clear) || 'both';
       activeTransition = (b.data && b.data.transition) || 'fade';
-      startPhase = false;
-      return `<div class="pblock clear-marker" data-bid="${b.id}" data-page="${pageIdx}" data-lane="clear" data-clear="${esc(scope)}" data-btype="divider" data-order="${orderIdx}"></div>`;
+      if(scope === 'image' || scope === 'both') awaiting.image = true;
+      if(scope === 'text'  || scope === 'both') awaiting.text  = true;
+      scenePage = null;
+      pendingClears.push({ b, orderIdx });
+      return;
     }
-    const c = renderBlockContent(b, includeDM);
-    if(!c){ if(!withPrev && placed) { /* tom blok optager stadig sit trin */ } return ''; }
-    return `<div class="pblock" data-bid="${b.id}" data-page="${opensSession ? 0 : pageIdx}" data-pinned="1" data-lane="${lane}" data-btype="${esc(b.type)}" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${c}</div>`;
+    const lane = laneOf(b.type);
+    const withPrev = !!(b.data && b.data.withPrev);
+    if(awaiting[lane]){
+      if(scenePage === null){ if(placed) pageIdx++; scenePage = pageIdx; }
+      awaiting[lane] = false;
+    } else {
+      if(placed && !withPrev) pageIdx++;
+      scenePage = null;
+    }
+    placed = true;
+    if(pendingClears.length){
+      pendingClears.forEach(pc=> items.push({ b: pc.b, orderIdx: pc.orderIdx, lane:'clear', page: pageIdx }));
+      pendingClears = [];
+    }
+    items.push({ b, orderIdx, lane, page: pageIdx, transition: activeTransition });
+  });
+  // En ryd-blok til allersidst har intet at følge — den får sit eget sluttrin.
+  if(pendingClears.length){
+    if(placed) pageIdx++;
+    pendingClears.forEach(pc=> items.push({ b: pc.b, orderIdx: pc.orderIdx, lane:'clear', page: pageIdx }));
+  }
+  return items.map(it=>{
+    if(it.lane === 'clear'){
+      const scope = (it.b.data && it.b.data.clear) || 'both';
+      return `<div class="pblock clear-marker" data-bid="${it.b.id}" data-page="${it.page}" data-lane="clear" data-clear="${esc(scope)}" data-btype="divider" data-order="${it.orderIdx}"></div>`;
+    }
+    const c = renderBlockContent(it.b, includeDM);
+    if(!c) return '';
+    return `<div class="pblock" data-bid="${it.b.id}" data-page="${it.page}" data-pinned="1" data-lane="${it.lane}" data-btype="${esc(it.b.type)}" data-transition="${esc(it.transition||'fade')}" data-order="${it.orderIdx}">${c}</div>`;
   }).join('');
 }
 
