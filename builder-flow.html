@@ -944,6 +944,20 @@ function renderFlowBlocks(session, includeDM){
     if(placed) pageIdx++;
     pendingClears.forEach(pc=> items.push({ b: pc.b, orderIdx: pc.orderIdx, lane:'clear', page: pageIdx }));
   }
+  // Automatisk overgang: skifter kun den ene bane, glider den ind fra siden.
+  // Er det et sceneskift — ryd-blok, eller begge baner skifter samtidig —
+  // kommer indholdet nedefra, så det føles som et nyt opslag.
+  const perPage = {};
+  items.forEach(it=>{
+    if(it.lane === 'header') return;
+    const e = perPage[it.page] || (perPage[it.page] = { lanes:0, clear:false });
+    if(it.lane === 'clear') e.clear = true; else e.lanes++;
+  });
+  items.forEach(it=>{
+    if(it.lane === 'header' || it.lane === 'clear') return;
+    const e = perPage[it.page];
+    it.transition = (e && (e.clear || e.lanes > 1)) ? 'fade' : 'slide';
+  });
   return items.map(it=>{
     if(it.lane === 'clear'){
       const scope = (it.b.data && it.b.data.clear) || 'both';
@@ -1181,7 +1195,17 @@ function renderForm(b){
         </div>`; break;
     }
     case 'divider':
-      inner = (current().flow
+      if(current().flow){
+        inner = `<label>Ryd skærmen (sceneskift)</label>
+           <select data-field="clear">
+             <option value="both" ${(!d.clear||d.clear==='both')?'selected':''}>Begge — både billede og tekst skifter</option>
+             <option value="image" ${d.clear==='image'?'selected':''}>Kun billedet</option>
+             <option value="text" ${d.clear==='text'?'selected':''}>Kun tekstboksen</option>
+           </select>
+           <p style="opacity:.7;margin:.6rem 0 0;font-size:.9em">Overgangen vælges automatisk: skifter kun den ene bane, glider indholdet ind fra siden — ved sceneskift kommer det nedefra.</p>`;
+        break;
+      }
+      inner = (false
         ? `<label>Ryd skærmen</label>
            <select data-field="clear">
              <option value="both" ${(!d.clear||d.clear==='both')?'selected':''}>Begge — både billede og tekst forsvinder</option>
