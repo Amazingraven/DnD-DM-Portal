@@ -901,6 +901,11 @@ function laneOf(type){
 function renderFlowBlocks(session, includeDM){
   let activeTransition = 'fade';
   let pageIdx = 0, placed = false;
+  // Sessionen åbner med det første billede OG den første tekstboks, så der
+  // står noget i begge baner fra trin 0. Det gælder kun indtil den første
+  // ryd-blok — derefter er det flowet, der bestemmer.
+  const firstOfLane = { image:false, text:false };
+  let startPhase = true;
   return session.blocks.map((b, orderIdx)=>{
     // Headeren er sessionens titel: den optager ikke et trin og bliver
     // hængende, indtil en nyere header eventuelt afløser den.
@@ -910,16 +915,20 @@ function renderFlowBlocks(session, includeDM){
       return `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="1" data-lane="header" data-btype="header" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${hc}</div>`;
     }
     const withPrev = !!(b.data && b.data.withPrev);
-    if(placed && !withPrev) pageIdx++;
+    const lane = laneOf(b.type);
+    const opensSession = startPhase && !firstOfLane[lane];
+    if(opensSession){ firstOfLane[lane] = true; }
+    else if(placed && !withPrev){ pageIdx++; }
     placed = true;
     if(b.type === 'divider'){
       const scope = (b.data && b.data.clear) || 'both';
       activeTransition = (b.data && b.data.transition) || 'fade';
+      startPhase = false;
       return `<div class="pblock clear-marker" data-bid="${b.id}" data-page="${pageIdx}" data-lane="clear" data-clear="${esc(scope)}" data-btype="divider" data-order="${orderIdx}"></div>`;
     }
     const c = renderBlockContent(b, includeDM);
     if(!c){ if(!withPrev && placed) { /* tom blok optager stadig sit trin */ } return ''; }
-    return `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="1" data-lane="${laneOf(b.type)}" data-btype="${esc(b.type)}" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${c}</div>`;
+    return `<div class="pblock" data-bid="${b.id}" data-page="${opensSession ? 0 : pageIdx}" data-pinned="1" data-lane="${lane}" data-btype="${esc(b.type)}" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${c}</div>`;
   }).join('');
 }
 
