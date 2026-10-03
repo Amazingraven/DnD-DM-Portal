@@ -893,11 +893,22 @@ const canvas = document.getElementById('canvas');
    baner. En blok med withPrev deler trin med blokken før, så et sceneskift
    kan ændre begge baner på ét tryk.
    ============================================================ */
-function laneOf(type){ return type === 'image' ? 'image' : 'text'; }
+function laneOf(type){
+  if(type === 'image') return 'image';
+  if(type === 'header') return 'header';   // sessionens titel — står fast, ryddes aldrig
+  return 'text';
+}
 function renderFlowBlocks(session, includeDM){
   let activeTransition = 'fade';
   let pageIdx = 0, placed = false;
   return session.blocks.map((b, orderIdx)=>{
+    // Headeren er sessionens titel: den optager ikke et trin og bliver
+    // hængende, indtil en nyere header eventuelt afløser den.
+    if(b.type === 'header'){
+      const hc = renderBlockContent(b, includeDM);
+      if(!hc) return '';
+      return `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="1" data-lane="header" data-btype="header" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${hc}</div>`;
+    }
     const withPrev = !!(b.data && b.data.withPrev);
     if(placed && !withPrev) pageIdx++;
     placed = true;
@@ -1468,6 +1479,7 @@ function installPresentControls(win, doc){
           var sc = el.getAttribute('data-clear')||'both';
           if(sc==='image'||sc==='both') delete laneNow.image;
           if(sc==='text'||sc==='both') delete laneNow.text;
+          // laneNow.header røres aldrig — titlen bliver stående hele sessionen.
         } else if(lane){ laneNow[lane] = el; }
       }
     } else {
@@ -1892,6 +1904,7 @@ function buildStandaloneHTML(s, includeDM){
             var sc = el.getAttribute('data-clear')||'both';
             if(sc==='image'||sc==='both') delete laneNow.image;
             if(sc==='text'||sc==='both') delete laneNow.text;
+            // laneNow.header røres aldrig — titlen bliver stående hele sessionen.
           } else if(lane){ laneNow[lane] = el; }
         }
       } else {
