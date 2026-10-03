@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLOW-BETA · Icespire Session Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ===== EDITOR CHROME (quiet dark UI) ===== */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: #0d0a05;
+  color: #e8d9a8;
+  font-family: 'Cinzel', serif;
+  overflow: hidden;
+}
+.app { display: flex; flex-direction: column; height: 100vh; }
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 0.9rem;
+  background: #16110a;
+  border-bottom: 1px solid #4a3a1a;
+  z-index: 50;
+  flex-wrap: wrap;
+}
+.brand {
+  font-family: 'Cinzel Decorative', serif; font-weight: 700;
+  color: #d4a843; font-size: 0.95rem; letter-spacing: 0.04em;
+  margin-right: 0.4rem; white-space: nowrap;
+}
+.meter {
+  font-family: 'Cinzel', serif; font-size: 0.66rem; color: #7a6a3a;
+  letter-spacing: 0.05em; white-space: nowrap; margin-right: 0.3rem;
+}
+.session-name {
+  background: #221a0e; border: 1px solid #4a3a1a; color: #f2e8c9;
+  font-family: 'Cinzel', serif; font-size: 0.85rem;
+  padding: 0.35rem 0.6rem; border-radius: 4px; min-width: 180px;
+}
+.topbar .spacer { flex: 1; }
+.btn {
+  background: #221a0e; border: 1px solid #6b551f; color: #d4a843;
+  font-family: 'Cinzel', serif; font-weight: 600; font-size: 0.72rem;
+  letter-spacing: 0.05em; padding: 0.4rem 0.7rem; border-radius: 4px;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s, border-color 0.15s;
+}
+.btn:hover { background: #2e2412; border-color: #b8862a; }
+.btn.primary { background: #8b2e0a; border-color: #c44a0a; color: #f2e8c9; }
+.btn.primary:hover { background: #a8380c; }
+.btn:focus-visible { outline: 2px solid #d4a843; outline-offset: 1px; }
+
+/* Body split */
+.workspace { display: flex; flex: 1; overflow: hidden; }
+
+/* Library drawer */
+.library {
+  width: 230px; background: #120d07; border-right: 1px solid #4a3a1a;
+  overflow-y: auto; flex-shrink: 0; padding: 0.7rem;
+}
+.library h3 {
+  font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: #b8862a; margin: 0.2rem 0 0.7rem;
+}
+.lib-item {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.5rem 0.6rem; border-radius: 4px; cursor: pointer;
+  border: 1px solid transparent; margin-bottom: 0.3rem; font-size: 0.8rem;
+  color: #cdbf95;
+}
+.lib-item:hover { background: #1d1609; }
+.lib-item.active { background: #241a0c; border-color: #8b2e0a; color: #f2e8c9; }
+.lib-item .lib-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-del {
+  background: none; border: none; color: #7a5a2a; cursor: pointer;
+  font-size: 0.9rem; padding: 0 0.2rem; line-height: 1;
+}
+.lib-del:hover { color: #c44a0a; }
+
+/* Canvas — candlelit parchment world */
+.canvas-wrap { flex: 1; overflow-y: auto; position: relative; }
+.canvas-wrap::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse at 30% 20%, var(--glow-1) 0%, transparent 60%),
+    radial-gradient(ellipse at 75% 80%, var(--glow-2) 0%, transparent 50%);
+  animation: candleflicker 6s ease-in-out infinite alternate;
+}
+@keyframes candleflicker { 0%{opacity:.8} 30%{opacity:1} 60%{opacity:.85} 100%{opacity:1} }
+.canvas {
+  max-width: 1200px; margin: 0 auto; padding: 1.8rem 1.5rem 8rem;
+  position: relative; z-index: 1;
+}
+
+/* Add-block bar */
+.add-bar {
+  display: flex; gap: 0.5rem; align-items: center; justify-content: center;
+  margin: 1.4rem 0; flex-wrap: wrap;
+}
+.add-bar select {
+  background: #221a0e; border: 1px solid #6b551f; color: #f2e8c9;
+  font-family: 'Cinzel', serif; font-size: 0.8rem; padding: 0.45rem 0.6rem; border-radius: 4px;
+}
+
+/* Insert-point: a thin strip between blocks for inserting a new block
+   directly at that position, instead of always appending then reordering. */
+.insert-point{
+  display: flex; align-items: center; justify-content: center;
+  height: 0.9rem; margin: 0.2rem 0; position: relative;
+}
+.insert-point::before{
+  content: ''; position: absolute; left: 0; right: 0; top: 50%;
+  height: 1px; background: #4a3a1a; opacity: 0.6;
+}
+.insert-plus{
+  position: relative; z-index: 1;
+  width: 1.4rem; height: 1.4rem; border-radius: 50%;
+  background: #221a0e; border: 1px solid #6b551f; color: #d4a843;
+  font-family: 'Cinzel', serif; font-size: 0.85rem; line-height: 1;
+  cursor: pointer; opacity: 0.55; transition: opacity 0.15s, transform 0.15s;
+}
+.insert-plus:hover{ opacity: 1; transform: scale(1.15); }
+.insert-point.expanded{
+  height: auto; background: #16110a; border: 1px solid #4a3a1a; border-radius: 5px;
+  padding: 0.5rem; gap: 0.5rem; margin: 0.5rem 0;
+}
+.insert-point.expanded::before{ content: none; }
+.insert-point.expanded select{
+  background: #221a0e; border: 1px solid #6b551f; color: #f2e8c9;
+  font-family: 'Cinzel', serif; font-size: 0.75rem; padding: 0.4rem 0.5rem; border-radius: 4px;
+}
+.btn-sm{ font-size: 0.7rem; padding: 0.4rem 0.6rem; }
+
+/* Editor block wrapper */
+.eblock { position: relative; margin-bottom: 1.6rem; }
+.eblock.is-pinned{ outline:2px solid var(--gold,#b8862a); outline-offset:3px; border-radius:8px; }
+.eblock.is-live{ box-shadow:0 0 0 3px #4ade80, 0 0 18px rgba(74,222,128,.45); border-radius:8px; }
+.eblock.is-live::before{
+  content:'📺 PÅ SKÆRMEN'; position:absolute; top:-0.7rem; left:0.3rem; z-index:5;
+  background:#0d2818; color:#4ade80; border:1px solid #2f6b4a; border-radius:5px;
+  padding:0.15rem 0.5rem; font-family:'Cinzel',serif; font-size:0.62rem; font-weight:600;
+  letter-spacing:.05em; white-space:nowrap;
+}
+.tool-btn.pinned{ background:var(--gold,#b8862a); color:#221a0e; }
+.tool-btn.fit-badge{ cursor:default; padding:0.2rem 0.4rem; }
+.tool-btn.fit-badge.warn{ background:#3a1414; border-color:#a33; }
+.eblock-tools {
+  position: absolute; top: -0.7rem; right: 0.3rem; z-index: 5;
+  display: flex; gap: 0.25rem; background: #16110a;
+  border: 1px solid #4a3a1a; border-radius: 5px; padding: 0.15rem 0.25rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
+.tool-btn {
+  background: none; border: none; color: #b8862a; cursor: pointer;
+  font-size: 0.85rem; padding: 0.15rem 0.35rem; border-radius: 3px; line-height: 1;
+}
+.tool-btn:hover { background: #2e2412; color: #f2e8c9; }
+.tool-btn.danger:hover { color: #c44a0a; }
+.btype-tag {
+  font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #7a5a2a; align-self: center; padding: 0 0.3rem;
+}
+
+/* Edit form */
+.eform {
+  background: rgba(20,12,4,0.55); border: 1px dashed #6b551f; border-radius: 6px;
+  padding: 1rem 1.1rem; margin-top: 0.4rem;
+}
+.eform label {
+  display: block; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: #b8862a; margin: 0.7rem 0 0.25rem;
+}
+.eform label:first-child { margin-top: 0; }
+.eform input[type=text], .eform input[type=number], .eform textarea {
+  width: 100%; background: #1d1609; border: 1px solid #4a3a1a; color: #f2e8c9;
+  font-family: 'IM Fell English', Georgia, serif; font-size: 0.95rem;
+  padding: 0.45rem 0.55rem; border-radius: 4px;
+}
+.eform textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+.eform .row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.eform .row > div { flex: 1; min-width: 90px; }
+.eform .subitem {
+  display: flex; gap: 0.4rem; align-items: flex-start; margin-bottom: 0.4rem; flex-wrap: wrap;
+}
+.eform .subitem input { flex: 1; min-width: 100px; }
+.mini-btn {
+  background: #221a0e; border: 1px solid #6b551f; color: #d4a843;
+  font-family: 'Cinzel', serif; font-size: 0.68rem; padding: 0.3rem 0.55rem;
+  border-radius: 4px; cursor: pointer;
+}
+.mini-btn:hover { background: #2e2412; }
+.mini-btn.del { color: #c44a0a; border-color: #6b2a14; }
+.img-preview { max-width: 160px; max-height: 110px; border: 1px solid #6b551f; border-radius: 4px; margin-top: 0.4rem; display: block; }
+
+.empty-hint {
+  text-align: center; color: #6b551f; font-family: 'IM Fell English', Georgia, serif;
+  font-size: 1.05rem; margin-top: 4rem; line-height: 1.7;
+}
+
+/* ===== SHARED PARCHMENT STYLES injected at runtime (see SHARED_CSS) ===== */
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="brand">⚔ Icespire Builder</span>
+    <span id="meter" class="meter" title="Lager brugt"></span>
+    <input class="session-name" id="sessionName" placeholder="Sessionsnavn…" />
+    <select class="session-name" id="themeSelect" title="Farvetema (gælder hele sessionen)" style="min-width:auto;"></select>
+    <span class="spacer"></span>
+    <button class="btn" id="btnLibrary" title="Vis/skjul bibliotek">Bibliotek</button>
+    <button class="btn" id="btnImport" title="Importér en session fra en JSON-fil, eller en tidligere eksporteret HTML-fil (kun dem eksporteret efter denne opdatering)">Importér</button>
+    <button class="btn" id="btnExportJson">Gem (JSON)</button>
+    <button class="btn" id="btnExportHtml">Eksportér HTML</button>
+    <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.68rem;color:#b8862a;cursor:pointer;"><input type="checkbox" id="chkEffects" checked> Effekter</label>
+    <button class="btn" id="btnPrev" title="Forrige scene (←)">◀</button>
+    <button class="btn" id="btnNext" title="Næste scene (→ / mellemrum)">Næste ▶</button>
+    <button class="btn primary" id="btnPresent">▶ Fremvis til TV</button>
+    <button class="btn" id="btnFlow" title="Flow-tilstand: hver blok er sit eget trin, og billeder og tekst skifter uafhængigt">⇵ Flow</button>
+<button class="btn" id="btnPickScreen" title="Vælg hvilken skærm fremvisningen skal åbne på">🖥 Vælg skærm</button>
+    <a class="btn" id="btnLobby" href="lobby/" target="_blank" title="Åbn opstarts-skærm i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">🕯 Opstarts-skærm</a>
+    <a class="btn" id="btnShops" href="shops/" target="_blank" title="Åbn butiks-/inventory-styring i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">🏪 Butikker</a>
+    <a class="btn" id="btnContent" href="content/" target="_blank" title="Åbn portal content manager i nyt vindue" style="text-decoration:none; display:inline-flex; align-items:center;">📜 Portal-indhold</a>
+    <input type="file" id="fileImport" accept="application/json,.json,text/html,.html" style="display:none">
+  </div>
+  <div class="workspace">
+    <aside class="library" id="library">
+      <h3>Bibliotek</h3>
+      <button class="btn" id="btnNew" style="width:100%; margin-bottom:0.7rem;">+ Ny session</button>
+      <div id="libList"></div>
+      <div class="repo-sync" id="repoSync">
+        <h3 style="margin-top:1.2rem;">☁ Repo-sync</h3>
+        <div id="repoTokenArea">
+          <input type="password" id="ghTokenInput" placeholder="GitHub-token (kun DnD-DM-Portal)"
+            style="width:100%; margin-bottom:0.4rem; font-size:0.72rem; padding:0.4rem; border:1px solid var(--gold); border-radius:3px; background:var(--parchment-dark);">
+          <button class="btn" id="btnSaveToken" style="width:100%; margin-bottom:0.5rem;">Gem token</button>
+        </div>
+        <div id="repoActions" style="display:none;">
+          <button class="btn" id="btnRepoLoad" style="width:100%; margin-bottom:0.4rem;">📁 Hent fra repo</button>
+          <button class="btn primary" id="btnRepoPush" style="width:100%; margin-bottom:0.4rem;">☁ Gem session i repo</button>
+          <button class="btn" id="btnClearToken" style="width:100%; font-size:0.62rem; opacity:0.7;">Glem token</button>
+        </div>
+      </div>
+    </aside>
+    <div class="canvas-wrap">
+      <div class="canvas" id="canvas"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   SHARED PARCHMENT CSS — single source of truth.
+   Used by: editor canvas, present window, exported HTML.
+   ============================================================ */
+const SHARED_CSS = `
+:root{
+  --ink:#1a1208; --parchment:#f2e8c9; --parchment-dark:#e8d9a8; --parchment-mid:#ede0b5;
+  --gold:#b8862a; --gold-light:#d4a843; --rust:#8b2e0a; --ash:#3d3020; --ember:#c44a0a;
+  --shadow:rgba(20,10,0,.55);
+  --title:#f2e8c9;
+  --glow-1:rgba(180,90,10,.18); --glow-2:rgba(150,60,5,.12);
+}
+.page-wrap{ max-width:1600px; margin:0 auto; }
+.header-block{ text-align:center; margin:1.5rem 0 1rem; }
+.header-block .kicker{
+  font-family:'Cinzel',serif; font-size:.85rem; letter-spacing:.32em; text-transform:uppercase;
+  color:var(--gold); display:block; margin-bottom:.6rem;
+}
+.header-block h1{
+  font-family:'Cinzel Decorative',serif; font-weight:700;
+  font-size:clamp(2.2rem,5.5vw,4rem); color:var(--title); margin:.2rem 0; line-height:1.15;
+  text-shadow:0 2px 22px rgba(0,0,0,.6);
+}
+.header-block .mood{
+  font-family:'IM Fell English',Georgia,serif; font-style:italic;
+  color:var(--gold-light); font-size:1.25rem; margin-top:.5rem;
+}
+.scroll-panel{
+  background:radial-gradient(ellipse at 50% 0%, var(--parchment) 0%, var(--parchment-dark) 100%);
+  border:1px solid var(--gold); border-radius:6px; padding:1.6rem 1.8rem; margin-bottom:2.2rem;
+  box-shadow:0 4px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.3); position:relative; color:var(--ink);
+}
+.scroll-panel h2{
+  font-family:'Cinzel',serif; font-weight:600; font-size:clamp(1.5rem,3.5vw,2.2rem);
+  color:var(--rust); margin:0 0 1rem;
+}
+.narrative{
+  font-family:'IM Fell English',Georgia,serif; font-size:1.5rem; line-height:1.85;
+  color:var(--ink); white-space:pre-wrap; margin:0;
+}
+/* No CSS max-height/overflow:hidden here — that silently clipped existing
+   text without any warning, which is worse than the problem it solved.
+   Text over the cap is flagged in the builder instead (see
+   computeFitStatus), rendered in full until manually shortened. */
+.scene-figure{ margin:0 0 2.2rem; text-align:center; }
+.scene-figure img{
+  max-width:100%; border:2px solid var(--gold); border-radius:6px;
+  box-shadow:0 0 60px rgba(160,80,0,.4); display:block; margin:0 auto;
+}
+.scene-figure figcaption{
+  font-family:'IM Fell English',Georgia,serif; font-style:italic; color:var(--gold-light);
+  font-size:1.05rem; margin-top:.7rem;
+}
+.divider{ display:flex; align-items:center; gap:1rem; margin:2.2rem 0; opacity:.7; color:var(--gold); font-size:.9rem; }
+.divider::before,.divider::after{ content:''; flex:1; height:1px; background:linear-gradient(to right,transparent,var(--gold),transparent); }
+/* ===== Two-column scene layout — only kicks in on TV/export while a pinned
+   image is active on the page. Builder canvas is unaffected (stays linear
+   for easy editing). Columns widened and gap tightened per feedback: image
+   and text should sit close together with minimal outer air.
+   IMPORTANT: .page-wrap normally has max-width:1600px (a leftover reading-
+   width cap from the old single-column design). That must be overridden
+   here — otherwise the columns get computed against 1600px instead of the
+   actual screen width, and the whole grid ends up double-centered (once as
+   a 1600px box, once again inside it) far from the true left edge. */
+.present-body .page-wrap.two-col{
+  max-width:none; width:100%; box-sizing:border-box; padding:0 0.5rem;
+  display:grid; grid-template-columns:45% 45%; column-gap:1.2%; row-gap:1.2rem;
+  justify-content:center; align-items:start;
+}
+.present-body .page-wrap.two-col .pblock[data-btype="header"]{ grid-column:1 / -1; }
+.present-body .page-wrap.two-col .pblock[data-btype="image"]{ grid-column:1; }
+.present-body .page-wrap.two-col #two-col-right{
+  grid-column:2; display:flex; flex-direction:column; gap:1.2rem;
+}
+.present-body .page-wrap.two-col #two-col-right .scroll-panel{ margin-bottom:0; }
+.present-body .page-wrap.two-col .scene-figure{ margin:0; }
+/* .figure-frame reserves a fixed 4:5 slot for LAYOUT stability only — it has
+   no visible border/background of its own. The actual frame lives on the
+   <img>, which shrink-wraps to its real rendered (contain) size via
+   max-width/max-height + width/height:auto, so the border always hugs the
+   picture exactly, whatever its native aspect ratio turns out to be.
+   justify-content:flex-end anchors the image to its INNER edge (the one
+   facing the text column) — a narrower/taller image gives up width on the
+   OUTER (true left screen edge) side instead, so the gap to the text column
+   always stays the same fixed distance, whatever the image's own shape is. */
+.present-body .page-wrap.two-col .figure-frame{
+  aspect-ratio:4/5;
+  display:flex; justify-content:flex-end; align-items:flex-start;
+}
+.present-body .page-wrap.two-col .figure-frame img{
+  max-width:100%; max-height:100%; width:auto; height:auto;
+  display:block; margin:0;
+  border:2px solid var(--gold); border-radius:6px;
+  box-shadow:0 0 40px rgba(160,80,0,.35);
+}
+.present-body .page-wrap.two-col .scene-figure figcaption{
+  margin-top:.5rem;
+}
+.skill-checks{ display:flex; flex-wrap:wrap; gap:.6rem; margin:1.3rem 0; }
+.skill-badge{
+  display:inline-block; font-family:'Cinzel',serif; font-weight:600; font-size:.85rem;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--ash);
+  border:1px solid var(--gold); background:var(--parchment-mid); padding:.5rem 1.1rem; border-radius:3px;
+}
+.skill-badge .skill-name{ color:var(--rust); }
+.statblock{
+  background:var(--parchment); border-top:3px solid var(--rust); border-bottom:3px solid var(--rust);
+  padding:1.5rem 1.8rem; margin:1.5rem 0; font-size:1.4rem; line-height:1.65; color:var(--ink);
+  font-family:'IM Fell English',Georgia,serif;
+}
+.statblock-title{ font-family:'Cinzel',serif; font-weight:700; font-size:1.8rem; color:var(--rust); margin-bottom:.1rem; }
+.statblock hr{ border:none; height:2px; background:linear-gradient(to right,var(--rust),var(--ember),var(--rust)); margin:.6rem 0; opacity:.5; }
+.statblock .stat-label{ font-family:'Cinzel',serif; font-weight:600; font-size:1.15rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
+.stat-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:.4rem; text-align:center; margin:.6rem 0; }
+.stat-cell{ background:var(--parchment-dark); border:1px solid var(--gold); border-radius:3px; padding:.5rem .3rem; }
+.stat-cell .stat-abbr{ font-family:'Cinzel',serif; font-weight:600; font-size:.88rem; letter-spacing:.12em; text-transform:uppercase; color:var(--rust); display:block; }
+.stat-cell .stat-val{ font-weight:700; font-size:1.45rem; color:var(--ink); display:block; }
+.stat-cell .stat-mod{ font-size:1.05rem; color:var(--ash); display:block; }
+.statblock .attack-name{ font-family:'Cinzel',serif; font-weight:600; font-size:1.15rem; color:var(--rust); text-transform:uppercase; letter-spacing:.06em; }
+.statblock .stat-block-section{ margin-top:.8rem; }
+.statblock .stat-block-section .stat-label,
+.statblock .stat-block-section .attack-name{ display:block; margin-bottom:.25rem; }
+.statblock .stat-body{ font-family:'IM Fell English',Georgia,serif; font-size:1.4rem; line-height:1.6; color:var(--ink); }
+.hp-tracker-section{ background:var(--parchment-mid); border:1px solid var(--gold); border-radius:4px; padding:1rem 1.2rem; margin:1rem 0; }
+.hp-tracker-title{ font-family:'Cinzel',serif; font-weight:600; font-size:1.1rem; color:var(--rust); text-transform:uppercase; letter-spacing:.1em; margin-bottom:1rem; text-align:center; }
+.hp-row{ display:flex; align-items:center; gap:1rem; margin-bottom:.8rem; flex-wrap:wrap; }
+.hp-label{ font-family:'Cinzel',serif; font-weight:600; font-size:1.2rem; color:var(--ink); min-width:140px; }
+.hp-btn{ width:44px; height:44px; border:1px solid var(--gold); background:var(--parchment); color:var(--rust); font-family:'Cinzel',serif; font-weight:700; font-size:1.4rem; cursor:pointer; border-radius:3px; display:flex; align-items:center; justify-content:center; }
+.hp-controls{ display:flex; align-items:center; gap:.5rem; }
+.hp-input{ width:76px; height:44px; text-align:center; border:1px solid var(--gold); background:var(--parchment); font-family:'IM Fell English',Georgia,serif; font-size:1.3rem; font-weight:700; border-radius:3px; color:var(--ink); }
+.hp-num{ font-family:'IM Fell English',Georgia,serif; font-weight:700; font-size:1.3rem; min-width:34px; text-align:center; color:var(--ink); }
+.hp-max{ color:var(--ash); font-size:1.15rem; }
+.hp-bar-wrap{ flex:1; min-width:100px; height:12px; background:var(--parchment-dark); border-radius:4px; overflow:hidden; border:1px solid rgba(184,134,42,.3); }
+.hp-bar{ height:100%; border-radius:4px; transition:width .3s ease; }
+.hp-bar.healthy{ background:linear-gradient(to right,#5a7a2a,#7a9a3a); }
+.hp-bar.bloodied{ background:linear-gradient(to right,var(--gold),var(--ember)); }
+.hp-bar.critical{ background:linear-gradient(to right,var(--rust),#6b1a04); }
+.dm-note{ background:rgba(139,46,10,.08); border-left:3px solid var(--rust); margin:1rem 0 0; font-size:1.05rem; color:var(--ash); border-radius:4px; }
+.dm-note-toggle{ cursor:pointer; padding:.6rem 1.2rem; font-family:'Cinzel',serif; font-size:.92rem; font-weight:600; color:var(--rust); letter-spacing:.08em; list-style:none; user-select:none; }
+.dm-note-toggle::-webkit-details-marker{ display:none; }
+.dm-note-toggle::before{ content:'▶ '; font-size:.7rem; display:inline-block; transition:transform .2s; }
+details.dm-note[open] .dm-note-toggle::before{ transform:rotate(90deg); }
+.dm-note-content{ padding:.4rem 1.2rem .8rem; }
+.dm-note-content .narrative{ font-size:1.1rem; }
+/* scroll-reveal effects */
+.pblock{ }
+.reveal{ opacity:0; transform:translateY(34px) scale(.985); filter:blur(1.5px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1), filter .7s ease; will-change:opacity, transform; }
+.reveal.visible{ opacity:1; transform:none; filter:none; }
+.reveal[data-transition="slide"]{ transform:translateX(70px) scale(.985); }
+.reveal[data-transition="slide"].visible{ transform:none; }
+.reveal[data-transition="instant"]{ transition:none; filter:none; transform:none; }
+@media (prefers-reduced-motion: reduce){ .reveal{ transform:none; filter:none; transition:opacity .5s ease; } .reveal.visible{ opacity:1; } }
+/* deck-mode: dividers split content into pages, only current page is shown */
+.present-body .pblock.enter-fade{ animation:deckFade .6s ease both; }
+.present-body .pblock.enter-slide{ animation:deckSlide .6s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes deckFade{ from{opacity:0; transform:translateY(28px);} to{opacity:1; transform:none;} }
+@keyframes deckSlide{ from{opacity:0; transform:translateX(90px);} to{opacity:1; transform:none;} }
+@media (prefers-reduced-motion: reduce){ .present-body .pblock.enter-fade,.present-body .pblock.enter-slide{ animation:none; } }
+/* present-mode candlelight */
+.present-body{ background:#0d0a05; color:var(--parchment); margin:0; padding:2.5rem 1.5rem 5rem; min-height:100vh; }
+.present-body::before{ content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(ellipse at 30% 20%, var(--glow-1) 0%, transparent 60%),radial-gradient(ellipse at 75% 80%, var(--glow-2) 0%, transparent 50%);
+  animation:candleflicker 6s ease-in-out infinite alternate; }
+@keyframes candleflicker{ 0%{opacity:.8}30%{opacity:1}60%{opacity:.85}100%{opacity:1} }
+.present-body .page-wrap{ position:relative; z-index:1; }
+.fs-btn{ position:fixed; bottom:14px; right:14px; z-index:99; background:#221a0e; color:#d4a843; border:1px solid #6b551f; font-family:'Cinzel',serif; font-size:.7rem; padding:.5rem .8rem; border-radius:5px; cursor:pointer; }
+.present-empty{ text-align:center; color:var(--gold); font-family:'IM Fell English',Georgia,serif; font-style:italic; margin-top:25vh; opacity:.6; }
+`;
+
+/* inject parchment CSS into editor doc so canvas previews look right */
+(function(){ const s=document.createElement('style'); s.textContent=SHARED_CSS; document.head.appendChild(s); })();
+
+/* ============================================================
+   FARVETEMAER (gælder pr. session)
+   ============================================================ */
+const THEMES = {
+  parchment: { label: 'Pergament & Rust', vars: {
+    '--ink':'#1a1208','--parchment':'#f2e8c9','--parchment-dark':'#e8d9a8','--parchment-mid':'#ede0b5',
+    '--gold':'#b8862a','--gold-light':'#d4a843','--rust':'#8b2e0a','--ash':'#3d3020','--ember':'#c44a0a',
+    '--title':'#f2e8c9','--glow-1':'rgba(190,95,12,.22)','--glow-2':'rgba(150,60,5,.15)' } },
+  frost: { label: 'Frostbidt (Cryovain)', vars: {
+    '--ink':'#0c1a28','--parchment':'#dfeaf3','--parchment-dark':'#c2d6e6','--parchment-mid':'#d2e1ee',
+    '--gold':'#3f7fb0','--gold-light':'#74b6e0','--rust':'#16566f','--ash':'#3f5567','--ember':'#23c7e6',
+    '--title':'#bfe4f5','--glow-1':'rgba(70,150,220,.26)','--glow-2':'rgba(30,80,150,.18)' } },
+  woods: { label: 'Skovdyb (Neverwinter)', vars: {
+    '--ink':'#15240e','--parchment':'#e4edca','--parchment-dark':'#ccd99c','--parchment-mid':'#d8e2b0',
+    '--gold':'#8a6e22','--gold-light':'#b39a3a','--rust':'#245c20','--ash':'#3c4a2e','--ember':'#6cba2e',
+    '--title':'#cfe6a0','--glow-1':'rgba(95,165,40,.26)','--glow-2':'rgba(50,95,25,.17)' } },
+  crypt: { label: 'Krypt (genfærd)', vars: {
+    '--ink':'#cdd8da','--parchment':'#222a2c','--parchment-dark':'#171d1f','--parchment-mid':'#2b3437',
+    '--gold':'#5d6f72','--gold-light':'#9fc6c2','--rust':'#8fc4be','--ash':'#87949a','--ember':'#7fd8c0',
+    '--title':'#d3e7e4','--glow-1':'rgba(110,175,180,.18)','--glow-2':'rgba(70,110,130,.12)' } },
+  royal: { label: 'Alagondar (rødt guld)', vars: {
+    '--ink':'#f3e2b8','--parchment':'#3a1018','--parchment-dark':'#280910','--parchment-mid':'#46141e',
+    '--gold':'#caa23f','--gold-light':'#ecc864','--rust':'#e6c057','--ash':'#b89a6a','--ember':'#d12435',
+    '--title':'#f0d27a','--glow-1':'rgba(155,30,42,.26)','--glow-2':'rgba(125,85,20,.17)' } },
+};
+function themeOf(){ const s=current(); return (s && THEMES[s.theme]) ? s.theme : 'parchment'; }
+function applyTheme(id, target){
+  const t = THEMES[id] || THEMES.parchment;
+  for(const k in t.vars){ target.style.setProperty(k, t.vars[k]); }
+}
+function themeVarsCSS(id){
+  const t = THEMES[id] || THEMES.parchment; let out='';
+  for(const k in t.vars){ out += k+':'+t.vars[k]+';'; }
+  return ':root{'+out+'}';
+}
+
+/* ============================================================
+   DATA MODEL
+   ============================================================ */
+const STORE_KEY = 'icespire_builder_v1';
+const uid = () => Math.random().toString(36).slice(2,9);
+
+const BLOCK_DEFS = {
+  header:      { label: 'Header (titel)' },
+  image:       { label: 'Billede' },
+  narrative:   { label: 'Flavor-tekst' },
+  skills:      { label: 'Skill-badges' },
+  statblock:   { label: 'Statblock' },
+  hptracker:   { label: 'HP-tracker' },
+  divider:     { label: 'Divider' },
+};
+
+function blockDefaults(type){
+  switch(type){
+    case 'header': return { kicker:'DRAGONS OF ICESPIRE PEAK', title:'Ny session', mood:'' };
+    case 'image': return { imageData:'', caption:'' };
+    case 'narrative': return { heading:'', text:'Fortællertekst…', dmNotes:'', skills:[] };
+    case 'skills': return { items:[ {name:'PERCEPTION', desc:'Undersøg området'} ] };
+    case 'statblock': return { title:'Modstander', hp:'', ac:'', speed:'30 ft.', cr:'',
+      str:10, dex:10, con:10, int:10, wis:10, cha:10, traits:'', attacks:'' };
+    case 'hptracker': return { combatants:[ {name:'Modstander #1', max:30, cur:30} ], groups:[] };
+    case 'divider': return { icon:'⚔', transition:'fade' };
+    default: return {};
+  }
+}
+
+/* ============================================================
+   STATBLOCK -> HP-TRACKER KOBLING
+   En tracker kan kobles til en statblock i samme session med et antal.
+   Rækkerne genereres derfra, så HP kun vedligeholdes ét sted (statblocken)
+   og antallet ét sted (trackeren). Frie rækker uden kobling bevares.
+   ============================================================ */
+function statblocksIn(session){ return ((session&&session.blocks)||[]).filter(b=>b.type==='statblock'); }
+function sbTitle(sb){ return (((sb.data||{}).title)||'').trim() || 'Modstander'; }
+function hpFromStatblock(sb){            // "45 (6d8+12)" -> 45
+  const m = String((sb.data||{}).hp||'').match(/\d+/);
+  return m ? Math.max(1, parseInt(m[0],10)) : null;
+}
+function trackerIsDamaged(b){
+  return ((b.data||{}).combatants||[]).some(c=>c.ref && Number(c.cur) < Number(c.max));
+}
+function syncTracker(b, session, opts){
+  opts = opts || {};
+  const groups = (b.data.groups||[]);
+  const all = (b.data.combatants||[]);
+  const manual = all.filter(c=>!c.ref);
+  const byRef = {};
+  all.forEach(c=>{ if(c.ref){ (byRef[c.ref] = byRef[c.ref] || []).push(c); } });
+  const rows = [];
+  groups.forEach(g=>{
+    const sb = ((session&&session.blocks)||[]).find(x=>x.id===g.ref && x.type==='statblock');
+    if(!sb) return;                        // statblock slettet -> rækkerne forsvinder med den
+    const max = hpFromStatblock(sb) || 1;
+    const n = Math.max(1, Math.min(20, Number(g.count)||1));
+    const title = sbTitle(sb);
+    const prev = byRef[g.ref] || [];
+    for(let i=0;i<n;i++){
+      const old = prev[i];
+      const cur = (opts.reset || !old) ? max : Math.min(Number(old.cur)||max, max);
+      rows.push({ ref:g.ref, name: n>1 ? `${title} #${i+1}` : title, max, cur });
+    }
+  });
+  b.data.combatants = rows.concat(manual);
+}
+/* Kaldes når en statblock eller en kobling ændres. Er kampen i gang
+   (nogen har taget skade), spørger vi før vi nulstiller til fuld HP. */
+function syncLinkedTrackers(session, statblockId){
+  const trackers = ((session&&session.blocks)||[]).filter(b=>
+    b.type==='hptracker' && (b.data.groups||[]).some(g=>!statblockId || g.ref===statblockId));
+  if(!trackers.length) return false;
+  trackers.forEach(b=>{
+    let reset = true;
+    if(trackerIsDamaged(b)){
+      reset = confirm('Nogle modstandere i denne HP-tracker har allerede taget skade.\n\nOK = nulstil alle til fuld HP.\nAnnuller = behold nuværende HP.');
+    }
+    syncTracker(b, session, { reset });
+  });
+  return true;
+}
+function resetTrackerToFull(b){
+  (b.data.combatants||[]).forEach(c=>{ c.cur = Number(c.max)||0; });
+}
+
+let state = { sessions: [], currentId: null };
+let editingBlock = null;       // block id currently in edit mode
+let insertingAt = null;        // block index where the insert-picker is expanded, or null
+let presentWin = null;
+let presentRoot = null;
+
+/* Reads which blocks are ACTUALLY visible right now in the live TV popup
+   (by inspecting its DOM directly — same-origin, so this is always accurate,
+   never a separate reimplementation of the pin/page logic) and highlights
+   the matching blocks in the builder canvas. Safe to call any time, even if
+   the popup isn't open — it just clears the indicator in that case. */
+function updateLiveIndicator(){
+  document.querySelectorAll('.eblock.is-live').forEach(el=>el.classList.remove('is-live'));
+  if(!presentWin || presentWin.closed || !presentRoot) return;
+  try{
+    presentWin.document.querySelectorAll('#player-root .pblock').forEach(el=>{
+      if(el.style.display!=='none'){
+        const bid = el.getAttribute('data-bid');
+        if(!bid) return;
+        const eblock = document.querySelector('.eblock[data-id="'+bid+'"]');
+        if(eblock) eblock.classList.add('is-live');
+      }
+    });
+  }catch(e){}
+}
+// Safety net: catches the popup being closed manually, without needing a
+// precise close-event across browsers — cheap enough to just poll.
+setInterval(updateLiveIndicator, 1000);
+
+function newSessionObj(){
+  return { id: uid(), name:'Ny session', theme:'parchment', flow:true, blocks:[ {id:uid(), type:'header', data:blockDefaults('header')} ] };
+}
+
+/* narrative-dm was merged into narrative (which now always has a dmNotes
+   field). Any block that still carries the old type name — from a session
+   sitting in IndexedDB/localStorage that predates the merge, an imported
+   backup file, or an un-migrated repo file — gets silently upgraded here.
+   Only the type string changes; heading/text/dmNotes/skills are already
+   identical fields, so nothing is lost. Call this on every path that brings
+   session data into the app (boot load, file import, repo pull). */
+function migrateLegacyBlockTypes(sessions){
+  if(!Array.isArray(sessions)) return;
+  sessions.forEach(s=>{
+    if(!s || !Array.isArray(s.blocks)) return;
+    s.blocks.forEach(b=>{
+      if(b && b.type === 'narrative-dm') b.type = 'narrative';
+    });
+  });
+}
+function current(){ return state.sessions.find(s=>s.id===state.currentId); }
+
+/* ---------- IndexedDB storage (large local capacity, no export needed) ---------- */
+const DB_NAME='icespire_db', DB_VER=1;
+let _db=null, useIDB=true, _saveTimer=null;
+
+function openDB(){
+  return new Promise((res,rej)=>{
+    if(!('indexedDB' in window)) return rej(new Error('no indexedDB'));
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('sessions')) db.createObjectStore('sessions',{keyPath:'id'});
+      if(!db.objectStoreNames.contains('meta')) db.createObjectStore('meta',{keyPath:'key'});
+    };
+    req.onsuccess=e=>{ _db=e.target.result; res(_db); };
+    req.onerror=e=>rej(e.target.error||new Error('idb open failed'));
+  });
+}
+function idbAll(store){ return new Promise((res,rej)=>{ const r=_db.transaction(store,'readonly').objectStore(store).getAll(); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+function idbGet(store,key){ return new Promise((res,rej)=>{ const r=_db.transaction(store,'readonly').objectStore(store).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+function idbPut(store,val){ return new Promise((res,rej)=>{ const t=_db.transaction(store,'readwrite'); t.objectStore(store).put(val); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+function idbDel(store,key){ return new Promise((res,rej)=>{ const t=_db.transaction(store,'readwrite'); t.objectStore(store).delete(key); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+
+function putMeta(){
+  if(!useIDB) return Promise.resolve();
+  return idbPut('meta',{key:'state', currentId:state.currentId, effects:state.effects}).catch(e=>console.warn(e));
+}
+function saveNow(session){
+  const s = session || current();
+  if(!useIDB){ try{ localStorage.setItem('icespire_builder_v1', JSON.stringify(state)); }catch(e){ console.warn('localStorage full',e); } updateMeter(); return Promise.resolve(); }
+  return idbPut('sessions', s).then(putMeta).then(updateMeter).catch(e=>console.warn(e));
+}
+/* debounced save of the current session (used by all edit operations) */
+function save(){
+  if(!useIDB){ try{ localStorage.setItem('icespire_builder_v1', JSON.stringify(state)); }catch(e){ console.warn('localStorage full',e); } updateMeter(); return; }
+  putMeta();
+  const s = current();
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{ if(s) idbPut('sessions',s).then(updateMeter).catch(e=>console.warn(e)); }, 450);
+}
+
+async function loadState(){
+  try{ await openDB(); }
+  catch(e){ console.warn('IndexedDB unavailable, falling back to localStorage', e); useIDB=false; }
+
+  if(useIDB){
+    try{ if(navigator.storage && navigator.storage.persist) await navigator.storage.persist(); }catch(e){}
+    let sessions = await idbAll('sessions');
+    let meta = await idbGet('meta','state');
+    if(!sessions || !sessions.length){
+      // one-time migration from old localStorage
+      try{
+        const raw=localStorage.getItem('icespire_builder_v1');
+        if(raw){
+          const old=JSON.parse(raw);
+          if(old.sessions && old.sessions.length){
+            for(const s of old.sessions) await idbPut('sessions', s);
+            await idbPut('meta',{key:'state', currentId:old.currentId, effects:old.effects!==false});
+            sessions=old.sessions; meta={currentId:old.currentId, effects:old.effects!==false};
+          }
+        }
+      }catch(e){ console.warn('migration failed',e); }
+    }
+    state.sessions = sessions || [];
+    state.currentId = meta ? meta.currentId : null;
+    state.effects = meta ? (meta.effects!==false) : true;
+  } else {
+    try{ const raw=localStorage.getItem('icespire_builder_v1'); if(raw) state=JSON.parse(raw); }catch(e){}
+    state.sessions = state.sessions || [];
+  }
+  migrateLegacyBlockTypes(state.sessions);
+  for(const s of state.sessions){ try{ await saveNow(s); }catch(e){ console.warn('migration persist failed', e); } }
+
+  if(!state.sessions.length){
+    const s=newSessionObj(); state.sessions=[s]; state.currentId=s.id; await saveNow(s);
+  }
+  if(!state.currentId || !state.sessions.find(s=>s.id===state.currentId)) state.currentId=state.sessions[0].id;
+  if(typeof state.effects==='undefined') state.effects=true;
+}
+
+/* ---------- storage usage meter ---------- */
+async function updateMeter(){
+  const el=document.getElementById('meter'); if(!el) return;
+  try{
+    if(navigator.storage && navigator.storage.estimate){
+      const est=await navigator.storage.estimate();
+      const mb=(est.usage||0)/1048576;
+      el.textContent='💾 '+(mb<10?mb.toFixed(1):Math.round(mb))+' MB';
+      el.title='Lager brugt af biblioteket'+(est.quota?(' · ca. '+Math.round(est.quota/1048576)+' MB tilgængeligt'):'');
+    } else { el.textContent=''; }
+  }catch(e){ el.textContent=''; }
+}
+
+/* ---------- image downscaling on import ---------- */
+function compressImage(file, maxDim, quality){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.naturalWidth, h=img.naturalHeight;
+      const scale=Math.min(1, maxDim/Math.max(w,h));
+      w=Math.max(1,Math.round(w*scale)); h=Math.max(1,Math.round(h*scale));
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      try{ res(c.toDataURL('image/jpeg', quality)); }catch(e){ rej(e); }
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('ugyldigt billede')); };
+    img.src=url;
+  });
+}
+
+/* ============================================================
+   RENDERING — shared content (player / DM / export)
+   includeDM=false → player TV view (no secrets)
+   includeDM=true  → DM view + export (collapsible notes)
+   ============================================================ */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function escNL(s){ return esc(s).replace(/\n/g, '<br>'); }
+function mod(score){ const m=Math.floor((Number(score)-10)/2); return (m>=0?'+':'−')+Math.abs(m); }
+function hpClass(pct){ return pct>50?'healthy':(pct>25?'bloodied':'critical'); }
+
+function badgesHTML(items){
+  if(!items || !items.length) return '';
+  const b = items.map(it=>`<span class="skill-badge"><span class="skill-name">${esc(it.name)}</span>${it.desc?' — '+esc(it.desc):''}</span>`).join('');
+  return `<div class="skill-checks">${b}</div>`;
+}
+function renderBlockContent(block, includeDM){
+  const d = block.data || {};
+  switch(block.type){
+    case 'header':
+      return `<div class="header-block">
+        ${d.kicker?`<span class="kicker">${esc(d.kicker)}</span>`:''}
+        <h1>${esc(d.title||'')}</h1>
+        ${d.mood?`<div class="mood">${esc(d.mood)}</div>`:''}
+      </div>`;
+    case 'image':
+      if(!d.imageData) return includeDM?`<div class="scroll-panel"><em>(billede mangler)</em></div>`:'';
+      return `<figure class="scene-figure">
+        <div class="figure-frame"><img src="${d.imageData}" alt=""></div>
+        ${d.caption?`<figcaption>${esc(d.caption)}</figcaption>`:''}
+      </figure>`;
+    case 'divider':
+      return `<div class="divider">${esc(d.icon||'◆')}</div>`;
+    case 'narrative':
+      return `<div class="scroll-panel">
+        ${d.heading?`<h2>${esc(d.heading)}</h2>`:''}
+        <p class="narrative">${esc(d.text||'')}</p>
+        ${badgesHTML(d.skills)}
+        ${includeDM && (d.dmNotes||'').trim() ? `<details class="dm-note"><summary class="dm-note-toggle">🔒 DM-noter</summary><div class="dm-note-content"><p class="narrative">${esc(d.dmNotes)}</p></div></details>` : ''}
+      </div>`;
+    case 'skills': {
+      return `<div class="scroll-panel">${badgesHTML(d.items)}</div>`;
+    }
+    case 'statblock': {
+      const abil = [['STR',d.str],['DEX',d.dex],['CON',d.con],['INT',d.int],['WIS',d.wis],['CHA',d.cha]]
+        .map(([a,v])=>`<div class="stat-cell"><span class="stat-abbr">${a}</span><span class="stat-val">${esc(v)}</span><span class="stat-mod">${mod(v)}</span></div>`).join('');
+      return `<div class="scroll-panel"><div class="statblock">
+        <div class="statblock-title">${esc(d.title||'')}</div><hr>
+        ${d.hp?`<div class="stat-line"><span class="stat-label">HP:</span> ${esc(d.hp)}</div>`:''}
+        ${d.ac?`<div class="stat-line"><span class="stat-label">AC:</span> ${esc(d.ac)}</div>`:''}
+        ${d.speed?`<div class="stat-line"><span class="stat-label">Speed:</span> ${esc(d.speed)}</div>`:''}
+        ${d.cr?`<div class="stat-line"><span class="stat-label">CR:</span> ${esc(d.cr)}</div>`:''}
+        <hr><div class="stat-grid">${abil}</div><hr>
+        ${(d.traits||'').trim()?`<div class="stat-block-section"><div class="stat-label">Traits</div><div class="stat-body">${escNL(d.traits)}</div></div>`:''}
+        ${(d.attacks||'').trim()?`<div class="stat-block-section"><div class="attack-name">Attacks</div><div class="stat-body">${escNL(d.attacks)}</div></div>`:''}
+      </div></div>`;
+    }
+    case 'hptracker': {
+      const rows = (block.data.combatants||[]).map((c,i)=>{
+        const max=Number(c.max)||1, cur=Math.max(0,Math.min(max,Number(c.cur)||0));
+        const pct=(cur/max)*100;
+        const rid = `${block.id}_${i}`;
+        return `<div class="hp-row">
+          <span class="hp-label">${esc(c.name)}</span>
+          <div class="hp-controls">
+            <button class="hp-btn" onclick="window.__hpChange&&window.__hpChange('${rid}',${max},-1)">−</button>
+            <input type="text" inputmode="numeric" class="hp-input" id="hp-${rid}" value="${cur}" data-baseline="${cur}"
+              title="Skriv et tal, eller et regnestykke som -8 eller 15+3"
+              onfocus="this.select()"
+              onkeydown="if(event.key==='Enter'){this.blur();}"
+              onchange="window.__hpSet&&window.__hpSet('${rid}',${max})">
+            <button class="hp-btn" onclick="window.__hpChange&&window.__hpChange('${rid}',${max},1)">+</button>
+            <span class="hp-max">/ ${max}</span>
+          </div>
+          <div class="hp-bar-wrap"><div class="hp-bar ${hpClass(pct)}" id="bar-${rid}" style="width:${pct}%"></div></div>
+        </div>`;
+      }).join('');
+      return `<div class="scroll-panel"><div class="hp-tracker-section"><div class="hp-tracker-title">⚔ HP Tracker</div>${rows}</div></div>`;
+    }
+  }
+  return '';
+}
+
+/* Shared HP-tracker interactivity — attached to window so it works identically in the
+   editor canvas, the present window, and static HTML exports (all render via renderBlockContent).
+   The input accepts either a plain number (absolute) or a small arithmetic expression
+   (e.g. "-8", "+5", "15-8+2") which is evaluated relative to the last confirmed value. */
+window.__hpSafeEval = function(expr){
+  if(!/^[\d+\-*/(). ]+$/.test(expr)) return NaN;
+  try{
+    const val = Function('"use strict"; return (' + expr + ')')();
+    return (typeof val === 'number' && isFinite(val)) ? val : NaN;
+  }catch(e){ return NaN; }
+};
+window.__hpUpdateBar = function(rid, max, val){
+  const input = document.getElementById('hp-'+rid);
+  const bar = document.getElementById('bar-'+rid);
+  if(!input || !bar) return;
+  val = Math.max(0, Math.round(val));
+  input.value = val;
+  input.dataset.baseline = val;
+  const pct = (val/max)*100;
+  bar.style.width = Math.min(100, pct)+'%';
+  bar.className = 'hp-bar ' + (pct>50?'healthy':(pct>25?'bloodied':'critical'));
+  // Persist back into the session data so the value survives re-renders,
+  // and push the change live to the TV screen without touching it directly.
+  const sep = rid.lastIndexOf('_');
+  const blockId = rid.slice(0, sep), idx = Number(rid.slice(sep+1));
+  const s = current();
+  const b = s && s.blocks.find(x=>x.id===blockId);
+  if(b && b.data.combatants && b.data.combatants[idx]){
+    b.data.combatants[idx].cur = val;
+    save();
+    pushToPresent();
+  }
+};
+window.__hpChange = function(rid, max, delta){
+  const input = document.getElementById('hp-'+rid);
+  if(!input) return;
+  const baseline = parseFloat(input.dataset.baseline)||0;
+  window.__hpUpdateBar(rid, max, baseline + delta);
+};
+window.__hpSet = function(rid, max){
+  const input = document.getElementById('hp-'+rid);
+  if(!input) return;
+  const raw = (input.value||'').trim();
+  const baseline = parseFloat(input.dataset.baseline)||0;
+  let result;
+  if(/^[+\-]/.test(raw)){
+    result = window.__hpSafeEval(baseline + raw);
+  } else if(/[+\-*/]/.test(raw)){
+    result = window.__hpSafeEval(raw);
+  } else {
+    result = parseFloat(raw);
+  }
+  if(isNaN(result)) result = baseline;
+  window.__hpUpdateBar(rid, max, result);
+};
+
+function renderPageBlocks(session, includeDM){
+  if(session && session.flow) return renderFlowBlocks(session, includeDM);
+  let activeTransition = 'fade';
+  let pageIdx = 0;
+  return session.blocks.map((b, orderIdx)=>{
+    if(b.type === 'divider'){
+      // Dividers are DM-only scene markers now — like DM-notes, players never
+      // see them. They still drive the page count, so that always has to run
+      // regardless of whether we render a visible indicator for the DM.
+      const indicator = includeDM
+        ? `<div class="pblock divider-indicator" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="0" data-btype="divider" data-order="${orderIdx}">${renderBlockContent(b, true)}</div>`
+        : '';
+      activeTransition = (b.data && b.data.transition) || 'fade';
+      pageIdx++;
+      return indicator;
+    }
+    const c = renderBlockContent(b, includeDM);
+    if(!c) return '';
+    // data-order records the block's ORIGINAL authoring position. Once a
+    // block is moved into #two-col-right, its DOM position no longer
+    // reflects that original order (the wrapper itself sits wherever it was
+    // first created) — data-order lets us re-sort correctly every time
+    // instead of drifting based on DOM traversal order.
+    const wrap = `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="${b.pinned?1:0}" data-btype="${esc(b.type)}" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${c}</div>`;
+    return wrap;
+  }).join('');
+}
+function renderPlayerHTML(session){
+  if(!session || !session.blocks.length) return '';
+  return `<div class="page-wrap">${renderPageBlocks(session,false)}</div>`;
+}
+
+/* ============================================================
+   EDITOR CANVAS
+   ============================================================ */
+const canvas = document.getElementById('canvas');
+
+/* ============================================================
+   FLOW-TILSTAND
+   To baner: billeder i den ene, alt andet i den anden. Hver blok er sit
+   eget trin og afløser den forrige blok i SIN bane — den anden bane står
+   uberørt. En divider er en "ryd"-blok, der tømmer den ene eller begge
+   baner. En blok med withPrev deler trin med blokken før, så et sceneskift
+   kan ændre begge baner på ét tryk.
+   ============================================================ */
+function laneOf(type){ return type === 'image' ? 'image' : 'text'; }
+function renderFlowBlocks(session, includeDM){
+  let activeTransition = 'fade';
+  let pageIdx = 0, placed = false;
+  return session.blocks.map((b, orderIdx)=>{
+    const withPrev = !!(b.data && b.data.withPrev);
+    if(placed && !withPrev) pageIdx++;
+    placed = true;
+    if(b.type === 'divider'){
+      const scope = (b.data && b.data.clear) || 'both';
+      activeTransition = (b.data && b.data.transition) || 'fade';
+      return `<div class="pblock clear-marker" data-bid="${b.id}" data-page="${pageIdx}" data-lane="clear" data-clear="${esc(scope)}" data-btype="divider" data-order="${orderIdx}"></div>`;
+    }
+    const c = renderBlockContent(b, includeDM);
+    if(!c){ if(!withPrev && placed) { /* tom blok optager stadig sit trin */ } return ''; }
+    return `<div class="pblock" data-bid="${b.id}" data-page="${pageIdx}" data-pinned="1" data-lane="${laneOf(b.type)}" data-btype="${esc(b.type)}" data-transition="${esc(activeTransition)}" data-order="${orderIdx}">${c}</div>`;
+  }).join('');
+}
+
+/* ============================================================
+   FIT-CHECK: measures blocks using their REAL styling (SHARED_CSS is
+   already global, see the injection above) at a reference width matching
+   the actual right-column on a 4K TV, so we can tell — while authoring,
+   not live at the table — whether a block plus everything already pinned
+   before it will actually fit on screen. This replaces relying on runtime
+   scaling as the primary safety net; that logic still exists on the
+   TV/export side as a legacy fallback, but shouldn't need to trigger once
+   sessions are built against these numbers.
+   Both constants are estimates for a typical 4K TV and are meant to be
+   tuned here if real-world testing shows they're off. */
+const MEASURE_WIDTH_PX = 1700;      // ≈ right column width at 45% of a 3840px-wide 4K screen
+const RIGHT_COL_BUDGET_PX = 1800;   // ≈ available height for the right column after header + padding
+const RIGHT_COL_TYPES = ['narrative','statblock','hptracker','skills'];
+
+const measureBox = document.createElement('div');
+measureBox.style.cssText = 'position:absolute; visibility:hidden; pointer-events:none; left:-99999px; top:0; width:'+MEASURE_WIDTH_PX+'px;';
+document.body.appendChild(measureBox);
+
+// A single narrative panel, if it's the only thing pinned in the right
+// column, should be able to grow up to roughly how far the image goes —
+// not an arbitrary small slice of it. Derived as a fraction of
+// RIGHT_COL_BUDGET_PX (rather than an independent line-count guess) so the
+// two numbers can never drift out of sync — a previous fixed "8 lines"
+// guess turned out far too small in real-world testing.
+const MAX_NARRATIVE_HEIGHT_PX = RIGHT_COL_BUDGET_PX * 0.9;
+
+function measureNarrativeTextPx(text){
+  measureBox.innerHTML = '<p class="narrative" style="white-space:pre-wrap;margin:0;">'+esc(text||'')+'</p>';
+  const p = measureBox.querySelector('p');
+  const h = p ? p.scrollHeight : 0;
+  measureBox.innerHTML = '';
+  return h;
+}
+function measureBlockPx(block){
+  const html = renderBlockContent(block, false); // false = player-facing, matches what the TV actually shows
+  if(!html) return 0;
+  measureBox.innerHTML = html;
+  const h = measureBox.scrollHeight;
+  measureBox.innerHTML = '';
+  return h;
+}
+/* For each right-column-eligible block, in document order: combine its own
+   height with whatever is already pinned (of a DIFFERENT type — same-type
+   pins supersede, mirroring the TV's own latestPinnedByType logic) up to
+   that point, and check it against the budget. Returns {blockId: {fits, px}}. */
+function computeFitStatus(){
+  const s = current();
+  if(s.flow){
+    // Flow: præcis én tekstboks ad gangen, så en blok skal kun passe for sig selv.
+    const out = {};
+    s.blocks.forEach(b=>{
+      if(!RIGHT_COL_TYPES.includes(b.type)) return;
+      const px = measureBlockPx(b);
+      out[b.id] = { fits: px <= RIGHT_COL_BUDGET_PX, px: Math.round(px) };
+    });
+    return out;
+  }
+  const pinnedSoFar = {}; // type -> block
+  const results = {};
+  s.blocks.forEach(b=>{
+    if(!RIGHT_COL_TYPES.includes(b.type)) return;
+    let total = measureBlockPx(b);
+    Object.keys(pinnedSoFar).forEach(t=>{
+      // A new PIN replaces the previous pin of the same type (they never
+      // coexist on screen). A non-pinned block of the same type still
+      // coexists alongside whatever is currently pinned, same-type or not.
+      if(b.pinned && t === b.type) return;
+      total += measureBlockPx(pinnedSoFar[t]);
+    });
+    results[b.id] = { fits: total <= RIGHT_COL_BUDGET_PX, px: Math.round(total) };
+    if(b.pinned) pinnedSoFar[b.type] = b;
+  });
+  return results;
+}
+
+/* scroll-reveal in the editor canvas (mirrors the present view) */
+let revealedEditor = new Set();
+let _lastSessionId = null;
+const editorIO = ('IntersectionObserver' in window) ? new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('visible'); revealedEditor.add(e.target.getAttribute('data-id')); editorIO.unobserve(e.target); } });
+}, { root: document.querySelector('.canvas-wrap'), threshold: 0.12 }) : null;
+function applyEditorReveal(){
+  if(!editorIO) return;
+  const cur = current();
+  if(cur && cur.id !== _lastSessionId){ revealedEditor = new Set(); _lastSessionId = cur.id; }
+  document.querySelectorAll('.eblock').forEach(el=>{
+    const id = el.getAttribute('data-id');
+    if(!state.effects || revealedEditor.has(id)){ el.classList.remove('reveal'); el.classList.add('visible'); return; }
+    el.classList.add('reveal'); editorIO.observe(el);
+  });
+}
+
+function renderInsertPoint(idx){
+  if(insertingAt === idx){
+    const opts = Object.entries(BLOCK_DEFS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+    return `<div class="insert-point expanded" data-idx="${idx}">
+      <select id="insertType-${idx}">${opts}</select>
+      <button class="btn primary btn-sm" data-act="confirm-insert" data-idx="${idx}">+ Indsæt her</button>
+      <button class="btn btn-sm" data-act="cancel-insert" data-idx="${idx}">Annuller</button>
+    </div>`;
+  }
+  return `<div class="insert-point" data-idx="${idx}">
+    <button class="insert-plus" data-act="toggle-insert" data-idx="${idx}" title="Indsæt en ny blok her">+</button>
+  </div>`;
+}
+function renderCanvas(){
+  try{ syncFlowBtn(); }catch(e){}
+  const s = current();
+  document.getElementById('sessionName').value = s.name || '';
+  document.getElementById('themeSelect').value = themeOf();
+  applyTheme(themeOf(), document.documentElement);
+  const fitStatus = computeFitStatus();
+  let html = '';
+  if(!s.blocks.length){
+    html = `<div class="empty-hint">Tom session.<br>Tilføj din første blok herunder.</div>`;
+  } else {
+    s.blocks.forEach((b,i)=>{
+      html += renderInsertPoint(i);
+      const fit = fitStatus[b.id];
+      const fitBadge = fit
+        ? `<span class="tool-btn fit-badge${fit.fits?'':' warn'}" title="${fit.fits?'Passer på skærmen sammen med det, der allerede er pinnet ('+fit.px+'px af '+RIGHT_COL_BUDGET_PX+'px budget)':'Passer IKKE sammen med det, der allerede er pinnet ('+fit.px+'px af '+RIGHT_COL_BUDGET_PX+'px budget) — noget skal fjernes eller afpinnes'}">${fit.fits?'✅':'⚠️'}</span>`
+        : '';
+      const tools = `<div class="eblock-tools">
+        <span class="btype-tag">${BLOCK_DEFS[b.type]?BLOCK_DEFS[b.type].label:b.type}</span>
+        ${fitBadge}
+        ${(s.flow && b.type!=='divider')?`<button class="tool-btn${(b.data&&b.data.withPrev)?' pinned':''}" data-act="withprev" data-id="${b.id}" ${i===0?'disabled style=opacity:.3':''} title="${(b.data&&b.data.withPrev)?'Vises i samme trin som blokken ovenfor. Klik for at give den sit eget trin.':'Giv denne blok sit eget trin. Klik for at vise den samtidig med blokken ovenfor (sceneskift).'}">${(b.data&&b.data.withPrev)?'⇈':'⇡'}</button>`:''}
+        ${(!s.flow && b.type!=='divider')?`<button class="tool-btn${b.pinned?' pinned':''}" data-act="pin" data-id="${b.id}" title="${b.pinned?'Fastgjort — vises på alle sider fremover, indtil et nyt pin af samme type overtager. Klik for at frigøre.':'Fastgør denne blok, så den bliver stående på tværs af sider i denne scene'}">${b.pinned?'📌':'📍'}</button>`:''}
+        <button class="tool-btn" data-act="up" data-id="${b.id}" title="Op" ${i===0?'disabled style=opacity:.3':''}>▲</button>
+        <button class="tool-btn" data-act="down" data-id="${b.id}" title="Ned" ${i===s.blocks.length-1?'disabled style=opacity:.3':''}>▼</button>
+        <button class="tool-btn" data-act="edit" data-id="${b.id}" title="Rediger">✎</button>
+        <button class="tool-btn danger" data-act="del" data-id="${b.id}" title="Slet">✕</button>
+      </div>`;
+      const body = (editingBlock===b.id)
+        ? renderForm(b)
+        : (renderBlockContent(b,true) || `<div class="scroll-panel"><em>Tom ${esc(b.type)} — klik ✎</em></div>`);
+      html += `<div class="eblock${b.pinned?' is-pinned':''}" data-id="${b.id}">${tools}${body}</div>`;
+    });
+  }
+  // add bar
+  const opts = Object.entries(BLOCK_DEFS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+  html += `<div class="add-bar">
+    <select id="addType">${opts}</select>
+    <button class="btn primary" id="btnAdd">+ Tilføj blok</button>
+  </div>`;
+  canvas.innerHTML = html;
+  document.getElementById('btnAdd').onclick = ()=>{
+    const t = document.getElementById('addType').value;
+    addBlock(t);
+  };
+  applyEditorReveal();
+  updateLiveIndicator();
+}
+
+function renderForm(b){
+  const d = b.data;
+  const f = (field, val, type='text') => `<input type="${type}" data-field="${field}" value="${esc(val)}">`;
+  const ta = (field, val) => `<textarea data-field="${field}">${esc(val)}</textarea>`;
+  const skillRows = (arr, sub) => (arr||[]).map((it,i)=>`<div class="subitem">
+        <input type="text" data-sub="${sub}" data-idx="${i}" data-key="name" value="${esc(it.name)}" placeholder="SKILL">
+        <input type="text" data-sub="${sub}" data-idx="${i}" data-key="desc" value="${esc(it.desc)}" placeholder="kort beskrivelse (valgfri)">
+        <button class="mini-btn del" data-subdel="${sub}" data-idx="${i}">✕</button></div>`).join('')
+      + `<button class="mini-btn" data-subadd="${sub}">+ Tilføj badge</button>`;
+  let inner = '';
+  switch(b.type){
+    case 'header':
+      inner = `<label>Kampagne (kicker)</label>${f('kicker',d.kicker)}
+        <label>Titel</label>${f('title',d.title)}
+        <label>Stemning (mood)</label>${f('mood',d.mood)}`; break;
+    case 'image':
+      inner = `<label>Billede (indlejres som base64)</label>
+        <input type="file" data-img="1" accept="image/*">
+        ${d.imageData?`<img class="img-preview" src="${d.imageData}">`:''}
+        <label>Billedtekst</label>${f('caption',d.caption)}`; break;
+    case 'narrative':
+      inner = `<label>Overskrift</label>${f('heading',d.heading)}
+        <label>Fortællertekst (spiller-synlig)</label>${ta('text',d.text)}
+        <label>Skill-badges (vises i samme boks, spiller-synlig)</label>${skillRows(d.skills,'skills')}
+        <label>DM-noter (valgfri, skjult — vises ALDRIG på spiller-TV)</label>${ta('dmNotes',d.dmNotes)}`; break;
+    case 'skills': {
+      inner = `<label>Skill-badges (selvstændig blok)</label>${skillRows(d.items,'items')}`; break;
+    }
+    case 'statblock':
+      inner = `<label>Titel</label>${f('title',d.title)}
+        <div class="row"><div><label>HP</label>${f('hp',d.hp)}</div><div><label>AC</label>${f('ac',d.ac)}</div>
+          <div><label>Speed</label>${f('speed',d.speed)}</div><div><label>CR</label>${f('cr',d.cr)}</div></div>
+        <label>Abilities</label>
+        <div class="row">
+          <div><label>STR</label>${f('str',d.str,'number')}</div><div><label>DEX</label>${f('dex',d.dex,'number')}</div>
+          <div><label>CON</label>${f('con',d.con,'number')}</div><div><label>INT</label>${f('int',d.int,'number')}</div>
+          <div><label>WIS</label>${f('wis',d.wis,'number')}</div><div><label>CHA</label>${f('cha',d.cha,'number')}</div>
+        </div>
+        <label>Traits</label>${ta('traits',d.traits)}
+        <label>Attacks</label>${ta('attacks',d.attacks)}`; break;
+    case 'hptracker': {
+      const sbs = statblocksIn(current());
+      const sbOpts = (sel) => sbs.map(sb=>{
+        const hp = hpFromStatblock(sb);
+        return `<option value="${sb.id}" ${sel===sb.id?'selected':''}>${esc(sbTitle(sb))}${hp?` (HP ${hp})`:' (HP mangler)'}</option>`;
+      }).join('');
+      const groups = (d.groups||[]).map((g,i)=>`<div class="subitem">
+        <select data-group="ref" data-idx="${i}">${sbOpts(g.ref)}</select>
+        <input type="number" data-group="count" data-idx="${i}" value="${esc(g.count||1)}" min="1" max="20" title="Antal" style="max-width:80px">
+        <button class="mini-btn del" data-groupdel="${i}" title="Fjern koblingen">✕</button></div>`).join('');
+      const linkUI = sbs.length
+        ? `${groups}<button class="mini-btn" data-groupadd="1">+ Kobl statblock</button>`
+        : `<div class="subitem"><em style="opacity:.7">Tilføj en statblock-blok i denne session for at kunne koble.</em></div>`;
+      const items = (d.combatants||[]).map((c,i)=> c.ref
+        ? `<div class="subitem">
+            <input type="text" value="${esc(c.name)}" disabled title="Styres af statblocken">
+            <input type="number" value="${esc(c.max)}" disabled style="max-width:90px" title="Max HP kommer fra statblocken">
+            <input type="number" data-sub="combatants" data-idx="${i}" data-key="cur" value="${esc(c.cur)}" placeholder="HP nu" style="max-width:90px">
+            <span class="mini-btn" style="visibility:hidden">✕</span></div>`
+        : `<div class="subitem">
+            <input type="text" data-sub="combatants" data-idx="${i}" data-key="name" value="${esc(c.name)}" placeholder="Navn">
+            <input type="number" data-sub="combatants" data-idx="${i}" data-key="max" value="${esc(c.max)}" placeholder="Max HP" style="max-width:90px">
+            <input type="number" data-sub="combatants" data-idx="${i}" data-key="cur" value="${esc(c.cur)}" placeholder="HP nu" style="max-width:90px">
+            <button class="mini-btn del" data-subdel="combatants" data-idx="${i}">✕</button></div>`).join('');
+      inner = `<label>Koblet til statblock (navn og max HP følger den — antal styres her)</label>${linkUI}
+        <label style="margin-top:.8rem">Modstandere</label>${items}
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem">
+          <button class="mini-btn" data-subadd="combatants">+ Tilføj fri række</button>
+          <button class="mini-btn" data-hpreset="1" title="Sæt alle tilbage til fuld HP">↺ Nulstil kamp</button>
+        </div>`; break;
+    }
+    case 'divider':
+      inner = (current().flow
+        ? `<label>Ryd skærmen</label>
+           <select data-field="clear">
+             <option value="both" ${(!d.clear||d.clear==='both')?'selected':''}>Begge — både billede og tekst forsvinder</option>
+             <option value="image" ${d.clear==='image'?'selected':''}>Kun billedet</option>
+             <option value="text" ${d.clear==='text'?'selected':''}>Kun tekstboksen</option>
+           </select>`
+        : `<label>Ikon</label>${f('icon',d.icon)}`)
+        + `<label>Overgangseffekt (ved skift til næste scene)</label>
+        <select data-field="transition">
+          <option value="fade" ${(!d.transition||d.transition==='fade')?'selected':''}>Fade — blød indtoning</option>
+          <option value="slide" ${d.transition==='slide'?'selected':''}>Slide — glider ind fra siden</option>
+          <option value="instant" ${d.transition==='instant'?'selected':''}>Instant — ingen animation</option>
+        </select>`; break;
+  }
+  return `<div class="eform" data-id="${b.id}">${inner}
+    <div style="margin-top:1rem;text-align:right;"><button class="mini-btn" data-done="1">Færdig</button></div></div>`;
+}
+
+/* ----- canvas event delegation ----- */
+canvas.addEventListener('click', e=>{
+  const tb = e.target.closest('[data-act]');
+  if(tb){
+    const id = tb.dataset.id, act = tb.dataset.act;
+    if(act==='up') moveBlock(id,-1);
+    else if(act==='down') moveBlock(id,1);
+    else if(act==='edit'){ editingBlock = (editingBlock===id?null:id); renderCanvas(); }
+    else if(act==='del'){ if(confirm('Slet denne blok?')) removeBlock(id); }
+    else if(act==='pin'){
+      const b = current().blocks.find(x=>x.id===id);
+      if(b){ b.pinned = !b.pinned; save(); renderCanvas(); pushToPresent(); }
+    }
+    else if(act==='toggle-insert'){
+      const idx = Number(tb.dataset.idx);
+      insertingAt = (insertingAt===idx ? null : idx);
+      renderCanvas();
+    }
+    else if(act==='cancel-insert'){ insertingAt = null; renderCanvas(); }
+    else if(act==='confirm-insert'){
+      const idx = Number(tb.dataset.idx);
+      const sel = document.getElementById('insertType-'+idx);
+      insertBlockAt(sel ? sel.value : 'narrative', idx);
+    }
+    return;
+  }
+  if(e.target.closest('[data-done]')){ editingBlock=null; renderCanvas(); return; }
+  const gadd = e.target.closest('[data-groupadd]');
+  if(gadd){
+    const b = current().blocks.find(x=>x.id===gadd.closest('.eform').dataset.id);
+    const sbs = statblocksIn(current());
+    if(b && sbs.length){
+      if(!b.data.groups) b.data.groups = [];
+      b.data.groups.push({ ref: sbs[0].id, count: 1 });
+      syncTracker(b, current(), { reset:true });
+      save(); renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  const gdel = e.target.closest('[data-groupdel]');
+  if(gdel){
+    const b = current().blocks.find(x=>x.id===gdel.closest('.eform').dataset.id);
+    if(b){
+      b.data.groups.splice(Number(gdel.dataset.groupdel),1);
+      syncTracker(b, current(), {});
+      save(); renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  const hpreset = e.target.closest('[data-hpreset]');
+  if(hpreset){
+    const b = current().blocks.find(x=>x.id===hpreset.closest('.eform').dataset.id);
+    if(b){ resetTrackerToFull(b); save(); renderCanvas(); pushToPresent(); }
+    return;
+  }
+  const subadd = e.target.closest('[data-subadd]');
+  if(subadd){ addSubItem(subadd.closest('.eform').dataset.id, subadd.dataset.subadd); return; }
+  const subdel = e.target.closest('[data-subdel]');
+  if(subdel){ delSubItem(subdel.closest('.eform').dataset.id, subdel.dataset.subdel, Number(subdel.dataset.idx)); return; }
+});
+
+canvas.addEventListener('input', e=>{
+  const form = e.target.closest('.eform'); if(!form) return;
+  const b = current().blocks.find(x=>x.id===form.dataset.id); if(!b) return;
+  const t = e.target;
+  if(t.dataset.field){
+    if(b.type==='narrative' && t.dataset.field==='text' && measureNarrativeTextPx(t.value) > MAX_NARRATIVE_HEIGHT_PX){
+      // This keystroke would push the box past its fixed size — revert to
+      // the last value that fit, rather than let it silently overflow.
+      t.value = b.data.text || '';
+      return;
+    }
+    b.data[t.dataset.field] = (t.type==='number')? t.value : t.value;
+    commitLive();
+  }
+  else if(t.dataset.sub){
+    const arr = b.data[t.dataset.sub]; const it = arr[Number(t.dataset.idx)];
+    if(it){ it[t.dataset.key] = t.value; commitLive(); }
+  }
+});
+
+canvas.addEventListener('change', e=>{
+  const t = e.target;
+  const gform = t.closest('.eform');
+  if(t.dataset.group && gform){
+    const b = current().blocks.find(x=>x.id===gform.dataset.id);
+    const g = b && (b.data.groups||[])[Number(t.dataset.idx)];
+    if(g){
+      if(t.dataset.group==='ref') g.ref = t.value;
+      else g.count = Math.max(1, Math.min(20, Number(t.value)||1));
+      syncLinkedTrackers(current(), g.ref);
+      save(); renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  // HP eller titel rettet på en statblock -> opdater de trackere, der peger på den
+  if(gform && (t.dataset.field==='hp' || t.dataset.field==='title')){
+    const b = current().blocks.find(x=>x.id===gform.dataset.id);
+    if(b && b.type==='statblock' && syncLinkedTrackers(current(), b.id)){
+      save(); renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  if(t.dataset.img){
+    const form = t.closest('.eform'); const b = current().blocks.find(x=>x.id===form.dataset.id);
+    const file = t.files[0]; if(!file||!b) return;
+    compressImage(file, 1920, 0.85).then(dataUrl=>{
+      b.data.imageData = dataUrl; saveNow(current()); pushToPresent(); editingBlock=b.id; renderCanvas();
+    }).catch(err=>{ alert('Kunne ikke indlæse billedet: '+err.message); });
+  }
+});
+
+function commitLive(){ save(); pushToPresent(); } // updates TV instantly, keeps form focus
+
+/* ----- block ops ----- */
+function addBlock(type){
+  current().blocks.push({ id:uid(), type, data:blockDefaults(type) });
+  editingBlock = current().blocks[current().blocks.length-1].id;
+  save(); renderCanvas(); pushToPresent();
+}
+function insertBlockAt(type, idx){
+  current().blocks.splice(idx, 0, { id:uid(), type, data:blockDefaults(type) });
+  editingBlock = current().blocks[idx].id;
+  insertingAt = null;
+  save(); renderCanvas(); pushToPresent();
+}
+function removeBlock(id){
+  const gone = current().blocks.find(x=>x.id===id);
+  if(gone && gone.type==='statblock'){
+    current().blocks.filter(b=>b.type==='hptracker').forEach(b=>{
+      if(!(b.data.groups||[]).some(g=>g.ref===id)) return;
+      b.data.groups = b.data.groups.filter(g=>g.ref!==id);
+      syncTracker(b, current(), {});
+    });
+  }
+  const s=current(); s.blocks = s.blocks.filter(b=>b.id!==id);
+  if(editingBlock===id) editingBlock=null;
+  save(); renderCanvas(); pushToPresent();
+}
+function moveBlock(id,dir){
+  const s=current(); const i=s.blocks.findIndex(b=>b.id===id); const j=i+dir;
+  if(j<0||j>=s.blocks.length) return;
+  [s.blocks[i],s.blocks[j]]=[s.blocks[j],s.blocks[i]];
+  save(); renderCanvas(); pushToPresent();
+}
+function addSubItem(blockId, key){
+  const b=current().blocks.find(x=>x.id===blockId);
+  if(key==='items' || key==='skills'){ if(!b.data[key]) b.data[key]=[]; b.data[key].push({name:'SKILL',desc:''}); }
+  else if(key==='combatants') b.data.combatants.push({name:'Modstander',max:30,cur:30});
+  save(); renderCanvas(); pushToPresent();
+}
+function delSubItem(blockId,key,idx){
+  const b=current().blocks.find(x=>x.id===blockId);
+  b.data[key].splice(idx,1);
+  save(); renderCanvas(); pushToPresent();
+}
+
+/* ============================================================
+   LIBRARY
+   ============================================================ */
+function renderLibrary(){
+  const list = document.getElementById('libList');
+  list.innerHTML = state.sessions.map(s=>`
+    <div class="lib-item ${s.id===state.currentId?'active':''}" data-id="${s.id}">
+      <span class="lib-title">${esc(s.name||'Uden navn')}</span>
+      <button class="lib-del" data-del="${s.id}" title="Slet">🗑</button>
+    </div>`).join('');
+}
+document.getElementById('libList').addEventListener('click', e=>{
+  const del = e.target.closest('[data-del]');
+  if(del){
+    e.stopPropagation();
+    if(state.sessions.length<=1){ alert('Du kan ikke slette den sidste session.'); return; }
+    if(confirm('Slet hele denne session?')){
+      const id=del.dataset.del;
+      state.sessions = state.sessions.filter(s=>s.id!==id);
+      if(state.currentId===id) state.currentId=state.sessions[0].id;
+      if(useIDB) idbDel('sessions', id).then(putMeta).then(updateMeter).catch(e=>console.warn(e)); else save();
+      renderLibrary(); editingBlock=null; renderCanvas(); pushToPresent();
+    }
+    return;
+  }
+  const item = e.target.closest('.lib-item');
+  if(item){ state.currentId=item.dataset.id; editingBlock=null; save(); renderLibrary(); renderCanvas(); pushToPresent(); }
+});
+document.getElementById('btnNew').onclick = ()=>{
+  const s=newSessionObj(); state.sessions.push(s); state.currentId=s.id;
+  editingBlock=null; saveNow(s); renderLibrary(); renderCanvas(); pushToPresent();
+};
+document.getElementById('sessionName').addEventListener('input', e=>{
+  current().name = e.target.value; save(); renderLibrary();
+});
+document.getElementById('btnLibrary').onclick = ()=>{
+  const lib=document.getElementById('library');
+  lib.style.display = (lib.style.display==='none')?'block':'none';
+};
+
+/* ============================================================
+   PRESENT (dual-view) — TV window via about:blank child
+   ============================================================ */
+let __cachedScreenDetails = null;
+async function getScreenList(){
+  if(!('getScreenDetails' in window)) return null;
+  try{
+    __cachedScreenDetails = __cachedScreenDetails || await window.getScreenDetails();
+    return __cachedScreenDetails;
+  }catch(e){ return null; } // permission denied or dismissed
+}
+async function pickPresentScreen(){
+  const details = await getScreenList();
+  if(!details){
+    alert('Automatisk skærmvalg kræver Chrome eller Edge, samt din tilladelse. Du kan stadig trække fremvisningsvinduet manuelt over på den rigtige skærm.');
+    return;
+  }
+  const screens = details.screens;
+  if(screens.length<=1){ alert('Der er kun fundet én skærm.'); return; }
+  const lines = screens.map((s,i)=>`${i}: ${s.width}×${s.height}`+
+    (s===details.currentScreen?' — denne skærm (builderen kører her)':'')+
+    (s.isPrimary?' — primær':'')).join('\n');
+  const def = String(screens.findIndex(s=>s!==details.currentScreen) >= 0 ? screens.findIndex(s=>s!==details.currentScreen) : 0);
+  const choice = prompt('Hvilken skærm skal "Fremvis til TV" åbne på?\n\n'+lines, def);
+  if(choice===null) return;
+  const idx = parseInt(choice,10);
+  if(isNaN(idx) || !screens[idx]){ alert('Ugyldigt valg.'); return; }
+  state.presentScreenIdx = idx;
+  save();
+  alert('Gemt. Fremvisningen åbner nu automatisk på skærm '+idx+'.');
+}
+async function openPresent(){
+  let features = 'width=1280,height=720';
+  let willFullscreen = false;
+  const details = await getScreenList();
+  if(details){
+    let target = (typeof state.presentScreenIdx==='number') ? details.screens[state.presentScreenIdx] : null;
+    if(!target) target = details.screens.find(s=>s!==details.currentScreen) || details.currentScreen;
+    if(target){
+      features = `left=${target.availLeft},top=${target.availTop},width=${target.availWidth},height=${target.availHeight}`;
+      willFullscreen = true;
+    }
+  }
+  presentWin = window.open('', 'icespire_present', features);
+  if(!presentWin){ alert('Pop op blev blokeret. Tillad pop op-vinduer for denne side og prøv igen.'); return; }
+  const doc = presentWin.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiller-visning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+    <style>${SHARED_CSS}</style></head>
+    <body class="present-body"><div id="player-root"></div>
+    <button class="fs-btn" id="fsBtn">⛶ Fuldskærm</button>
+    </body></html>`);
+  doc.close();
+  presentRoot = doc.getElementById('player-root');
+  applyTheme(themeOf(), doc.documentElement);
+  // Define the deck + HP functions directly on the popup window — no reliance on
+  // document.write executing an inline <script> (which browsers often skip after close()).
+  installPresentControls(presentWin, doc);
+  const fsBtn = doc.getElementById('fsBtn');
+  fsBtn.addEventListener('click', ()=>{ try{ doc.documentElement.requestFullscreen(); }catch(e){} });
+  const syncFsBtn = ()=>{ fsBtn.style.display = doc.fullscreenElement ? 'none' : ''; };
+  doc.addEventListener('fullscreenchange', syncFsBtn);
+  syncFsBtn();
+  if(willFullscreen){
+    try{ presentWin.focus(); doc.documentElement.requestFullscreen().catch(()=>{}); }catch(e){}
+  }
+  pushToPresent();
+}
+
+/* Installs paging + HP-tracker controls onto the present popup window.
+   Runs in the MAIN app context (guaranteed to execute), operating on the popup's document. */
+function installPresentControls(win, doc){
+  win.__effects = true;
+  win.__cur = 0;
+  function kids(){ return Array.prototype.slice.call(doc.querySelectorAll('#player-root .pblock')); }
+  function maxPage(){
+    var ch=kids(), m=0;
+    for(var i=0;i<ch.length;i++){ var p=parseInt(ch[i].getAttribute('data-page')||'0',10); if(p>m) m=p; }
+    return m;
+  }
+  win.__showPage = function(idx, animate){
+    var ch=kids(); if(!ch.length) return;
+    var max=maxPage();
+    idx = Math.max(0, Math.min(max, idx));
+    // Pass 1: for each block type, find the most recent pinned block whose
+    // own page has been reached (<=idx). A later pin of the same type
+    // (e.g. a new pinned image) automatically takes over from the previous one.
+    // IMPORTANT: "most recent" must be decided by data-order (the block's
+    // fixed, original authoring position), NOT by iteration order over ch —
+    // once a block has been reparented into #two-col-right (which always
+    // sits at the end of .page-wrap), it starts appearing LAST in document
+    // traversal order on later calls regardless of its actual page, which
+    // would otherwise make an OLDER pin incorrectly win over a newer one.
+    // Flow: hver bane viser den seneste blok, der er nået; en "ryd"-markør tømmer banen.
+    var flowMode = false;
+    for(var i=0;i<ch.length;i++){ if(ch[i].getAttribute('data-lane')){ flowMode = true; break; } }
+    var laneNow = {};
+    var latestPinnedByType = {};
+    var latestPinnedOrder = {};
+    if(flowMode){
+      var ordered = ch.slice().sort(function(a,b){
+        return (parseInt(a.getAttribute('data-order')||'0',10)) - (parseInt(b.getAttribute('data-order')||'0',10));
+      });
+      for(var i=0;i<ordered.length;i++){
+        var el=ordered[i];
+        if(parseInt(el.getAttribute('data-page')||'0',10) > idx) continue;
+        var lane = el.getAttribute('data-lane');
+        if(lane === 'clear'){
+          var sc = el.getAttribute('data-clear')||'both';
+          if(sc==='image'||sc==='both') delete laneNow.image;
+          if(sc==='text'||sc==='both') delete laneNow.text;
+        } else if(lane){ laneNow[lane] = el; }
+      }
+    } else {
+      for(var i=0;i<ch.length;i++){
+        var el=ch[i];
+        if(parseInt(el.getAttribute('data-page')||'0',10) > idx) continue;
+        if(el.getAttribute('data-pinned')==='1'){
+          var pt = el.getAttribute('data-btype')||'';
+          var pord = parseInt(el.getAttribute('data-order')||'0',10);
+          if(!(pt in latestPinnedOrder) || pord > latestPinnedOrder[pt]){
+            latestPinnedOrder[pt] = pord;
+            latestPinnedByType[pt] = el;
+          }
+        }
+      }
+    }
+    // Pass 2: apply visibility. Individual objects fade in as they appear —
+    // not the whole scene — so only blocks new to THIS step ever animate.
+    for(var i=0;i<ch.length;i++){
+      var el=ch[i];
+      var p=parseInt(el.getAttribute('data-page')||'0',10);
+      var pinned = el.getAttribute('data-pinned')==='1';
+      var ln = el.getAttribute('data-lane');
+      var show = flowMode
+        ? (!!ln && ln !== 'clear' && laneNow[ln] === el)
+        : (pinned ? (latestPinnedByType[el.getAttribute('data-btype')||'']===el) : (p===idx));
+      el.classList.remove('enter-fade','enter-slide');
+      if(show){
+        el.style.display='';
+        if(animate && win.__effects && p===idx){
+          var trans = el.getAttribute('data-transition')||'fade';
+          if(trans!=='instant'){ void el.offsetWidth; el.classList.add('enter-'+trans); }
+        }
+      } else {
+        el.style.display='none';
+      }
+    }
+    // Two-column scene layout kicks in only while a pinned image is active —
+    // a normal (non-pinned) full-width image still gets its own moment untouched.
+    var wrap = doc.querySelector('.page-wrap');
+    var twoColActive = flowMode ? !!laneNow.image : !!latestPinnedByType['image'];
+    if(wrap) wrap.classList.toggle('two-col', twoColActive);
+    // In two-col mode, move the currently-visible non-header/non-image blocks
+    // into a single wrapper so we can fit/scale ONLY that column later — the
+    // image must never shrink just because the text column is busy.
+    if(wrap){
+      var rightCol = doc.getElementById('two-col-right');
+      if(twoColActive){
+        if(!rightCol){ rightCol = doc.createElement('div'); rightCol.id = 'two-col-right'; wrap.appendChild(rightCol); }
+        var candidates = [];
+        for(var j=0;j<ch.length;j++){
+          var el2 = ch[j];
+          var t2 = el2.getAttribute('data-btype');
+          if(el2.style.display!=='none' && t2!=='header' && t2!=='image'){ candidates.push(el2); }
+        }
+        candidates.sort(function(a,b){ return (parseInt(a.getAttribute('data-order')||'0',10)) - (parseInt(b.getAttribute('data-order')||'0',10)); });
+        candidates.forEach(function(el2){ rightCol.appendChild(el2); });
+      } else if(rightCol){
+        while(rightCol.firstChild){ wrap.insertBefore(rightCol.firstChild, rightCol); }
+        rightCol.remove();
+      }
+    }
+    win.__cur=idx;
+    try{ win.scrollTo(0,0); }catch(e){}
+    win.__fitToScreen && win.__fitToScreen();
+    updateLiveIndicator();
+  };
+  win.__applyPages = function(){ win.__showPage(win.__cur||0, false); };
+  win.__step = function(dir){ win.__showPage((win.__cur||0)+dir, true); };
+  // Scale down (never up), and only when content genuinely doesn't fit.
+  // In two-col mode: scale ONLY the text/stat/hp column — the image is a
+  // fixed-ratio box and must never resize based on how much text exists.
+  win.__fitToScreen = function(){
+    var root = doc.getElementById('player-root');
+    if(!root) return;
+    var wrap = doc.querySelector('.page-wrap');
+    // document.documentElement.clientHeight is used instead of window.innerHeight:
+    // a known Chrome quirk can leave window.innerHeight reporting a stale/wrong
+    // value for a popup window dragged onto a second monitor with a different
+    // DPI/scaling factor, particularly after entering fullscreen there.
+    // clientHeight reflects the actually-rendered document box and isn't
+    // affected by that popup-specific issue.
+    var availH = (doc.documentElement.clientHeight || win.innerHeight) - 24;
+    if(wrap && wrap.classList.contains('two-col')){
+      root.style.transform = 'none'; // whole page never scales in two-col mode
+      var rightCol = doc.getElementById('two-col-right');
+      if(rightCol){
+        rightCol.style.transform = 'none';
+        var h = rightCol.scrollHeight;
+        var scale = Math.min(1, availH / Math.max(1, h));
+        rightCol.style.transformOrigin = 'top left';
+        rightCol.style.transform = (scale < 0.999) ? ('scale(' + scale + ')') : 'none';
+      }
+      return;
+    }
+    root.style.transform = 'none';
+    var contentH = root.scrollHeight;
+    var scale2 = Math.min(1, availH / Math.max(1, contentH));
+    root.style.transformOrigin = 'top center';
+    root.style.transform = (scale2 < 0.999) ? ('scale(' + scale2 + ')') : 'none';
+  };
+  win.addEventListener('resize', function(){ win.__fitToScreen && win.__fitToScreen(); });
+  try{
+    if(doc.fonts && doc.fonts.ready){
+      doc.fonts.ready.then(function(){ win.__fitToScreen && win.__fitToScreen(); });
+    }
+  }catch(e){}
+  // A one-off measurement can be wrong for several different reasons — fonts
+  // not loaded yet, or a Windows/Chrome quirk where moving a fullscreened
+  // window onto a second monitor with a different DPI/scaling factor doesn't
+  // reliably fire a resize event. Rather than chase each specific timing
+  // case individually, watch both the viewport AND the actual content with
+  // ResizeObserver, which reacts to the real rendered size regardless of
+  // what caused it to change — this is self-correcting no matter the cause.
+  try{
+    if(win.ResizeObserver){
+      var roCallback = function(){ win.__fitToScreen && win.__fitToScreen(); };
+      var ro = new win.ResizeObserver(roCallback);
+      ro.observe(doc.documentElement);
+      var contentTarget = doc.getElementById('player-root');
+      if(contentTarget) ro.observe(contentTarget);
+    }
+  }catch(e){}
+  // Repeated re-checks over the first few seconds as a last-resort net for
+  // browsers without ResizeObserver, or any timing case neither of the above
+  // catches (e.g. slow HDMI/display negotiation).
+  [100,400,1000,2000,3500].forEach(function(ms){
+    setTimeout(function(){ win.__fitToScreen && win.__fitToScreen(); }, ms);
+  });
+  try{ doc.documentElement.style.overflow = 'hidden'; doc.body.style.overflow = 'hidden'; }catch(e){}
+  // HP tracker
+  win.__hpSafeEval = function(expr){
+    if(!/^[\d+\-*/(). ]+$/.test(expr)) return NaN;
+    try{ var v = Function('"use strict"; return (' + expr + ')')(); return (typeof v==='number'&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+  };
+  win.__hpUpdateBar = function(rid, max, val){
+    var input=doc.getElementById('hp-'+rid), bar=doc.getElementById('bar-'+rid);
+    if(!input||!bar) return;
+    val=Math.max(0, Math.round(val));
+    input.value=val; input.dataset.baseline=val;
+    var pct=(val/max)*100;
+    bar.style.width=Math.min(100,pct)+'%';
+    bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
+    var sep = rid.lastIndexOf('_');
+    var blockId = rid.slice(0, sep), idx = Number(rid.slice(sep+1));
+    var s = current();
+    var b = s && s.blocks.find(function(x){ return x.id===blockId; });
+    if(b && b.data.combatants && b.data.combatants[idx]){
+      b.data.combatants[idx].cur = val;
+      save();
+      renderCanvas();
+    }
+  };
+  win.__hpChange = function(rid, max, delta){
+    var input=doc.getElementById('hp-'+rid); if(!input) return;
+    win.__hpUpdateBar(rid, max, (parseFloat(input.dataset.baseline)||0)+delta);
+  };
+  win.__hpSet = function(rid, max){
+    var input=doc.getElementById('hp-'+rid); if(!input) return;
+    var raw=(input.value||'').trim(), baseline=parseFloat(input.dataset.baseline)||0, result;
+    if(/^[+\-]/.test(raw)){ result=win.__hpSafeEval(baseline+raw); }
+    else if(/[+\-*/]/.test(raw)){ result=win.__hpSafeEval(raw); }
+    else { result=parseFloat(raw); }
+    if(isNaN(result)) result=baseline;
+    win.__hpUpdateBar(rid, max, result);
+  };
+  // Keyboard nav inside the popup itself
+  doc.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); win.__step(1); }
+    else if(e.key==='ArrowLeft'){ e.preventDefault(); win.__step(-1); }
+  });
+}
+function pushToPresent(){
+  if(!presentWin || presentWin.closed || !presentRoot) return;
+  const html = renderPlayerHTML(current());
+  presentRoot.innerHTML = html || `<div class="present-empty">Venter på indhold…</div>`;
+  try{ applyTheme(themeOf(), presentWin.document.documentElement); }catch(e){}
+  const applyNow = ()=>{ try{ presentWin.__effects = !!state.effects; if(presentWin.__applyPages) presentWin.__applyPages(); }catch(e){} };
+  applyNow();
+  // Timing-safe: re-apply after the browser has laid out the freshly injected DOM.
+  try{ presentWin.requestAnimationFrame ? presentWin.requestAnimationFrame(applyNow) : setTimeout(applyNow, 30); }catch(e){ setTimeout(applyNow, 30); }
+}
+function syncFlowBtn(){
+  const on = !!(current() && current().flow);
+  const btn = document.getElementById('btnFlow');
+  if(btn){ btn.classList.toggle('primary', on); btn.textContent = on ? '⇵ Flow' : '⇵ Sider'; }
+}
+document.getElementById('btnFlow').onclick = ()=>{
+  const s = current(); if(!s) return;
+  const dividers = (s.blocks||[]).filter(b=>b.type==='divider').length;
+  if(!s.flow){
+    if(!confirm('Skift denne session til flow?\n\nHver blok bliver sit eget trin. Billeder og tekst skifter uafhængigt af hinanden, og pins bruges ikke længere.\n\n'+(dividers?('Sessionens '+dividers+' dividers bliver til "ryd skærmen"-trin.'):'')+'\n\nDu kan skifte tilbage når som helst — intet indhold går tabt.')) return;
+  }
+  s.flow = !s.flow;
+  saveNow(s); syncFlowBtn(); renderCanvas(); pushToPresent();
+};
+document.getElementById('btnPresent').onclick = openPresent;
+document.getElementById('btnPickScreen').onclick = pickPresentScreen;
+document.getElementById('btnNext').onclick = ()=>{ if(presentWin && !presentWin.closed) presentWin.__step(1); };
+document.getElementById('btnPrev').onclick = ()=>{ if(presentWin && !presentWin.closed) presentWin.__step(-1); };
+document.getElementById('chkEffects').addEventListener('change', e=>{ state.effects = e.target.checked; save(); renderCanvas(); pushToPresent(); });
+document.getElementById('themeSelect').addEventListener('change', e=>{
+  current().theme = e.target.value; save();
+  applyTheme(e.target.value, document.documentElement);
+  if(presentWin && !presentWin.closed){ try{ applyTheme(e.target.value, presentWin.document.documentElement); }catch(_){} }
+});
+
+/* keyboard remote control of the TV window (when focus is on the editor) */
+document.addEventListener('keydown', e=>{
+  if(!presentWin || presentWin.closed) return;
+  const tag = (e.target.tagName||'').toLowerCase();
+  if(tag==='input' || tag==='textarea' || tag==='select') return;
+  if(e.key==='ArrowRight' || e.key===' '){ e.preventDefault(); presentWin.__step(1); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); presentWin.__step(-1); }
+  else if(e.key==='ArrowDown'){ e.preventDefault(); try{ presentWin.scrollBy({top:220,behavior:'smooth'}); }catch(_){} }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); try{ presentWin.scrollBy({top:-220,behavior:'smooth'}); }catch(_){} }
+});
+
+/* ============================================================
+   IMPORT / EXPORT
+   ============================================================ */
+function download(filename, text, mime){
+  const blob = new Blob([text], {type:mime||'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+document.getElementById('btnExportJson').onclick = ()=>{
+  const s=current();
+  download((s.name||'session').replace(/[^a-z0-9æøå_-]+/gi,'_').toLowerCase()+'.json',
+    JSON.stringify(s,null,2), 'application/json');
+};
+/* ============================================================
+   REPO SYNC — two-way sync of sessions with the GitHub repo.
+   Token is stored in localStorage (origin: amazingraven.github.io).
+   Scope it to ONLY this repo, Contents: Read and write.
+   ============================================================ */
+const GH_OWNER='Amazingraven', GH_REPO='DnD-DM-Portal', GH_DIR='sessions';
+const GH_TOKEN_KEY='icespire-gh-token';
+
+function ghToken(){ return localStorage.getItem(GH_TOKEN_KEY)||''; }
+function ghHeaders(){ return { 'Authorization':'Bearer '+ghToken(), 'Accept':'application/vnd.github+json' }; }
+function slugify(s){ return (s||'session').toLowerCase().replace(/[^a-z0-9æøå]+/gi,'-').replace(/^-+|-+$/g,'')||'session'; }
+let _toastTimer=null;
+function toast(msg){
+  let el=document.getElementById('__toast');
+  if(!el){ el=document.createElement('div'); el.id='__toast';
+    el.style.cssText='position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#8b2e0a;color:#f2e8c9;font-family:Cinzel,serif;font-size:.8rem;letter-spacing:.08em;padding:.6rem 1.2rem;border-radius:4px;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.5);';
+    document.body.appendChild(el);
+  }
+  el.textContent=msg; el.style.display='block';
+  clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>{ el.style.display='none'; },2400);
+}
+function b64encode(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64decode(b64){ return decodeURIComponent(escape(atob(b64))); }
+
+async function ghGetFile(path){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}?_=${Date.now()}`;
+  const res=await fetch(url,{headers:ghHeaders()});
+  if(res.status===404) return null;
+  if(!res.ok) throw new Error('GitHub-fejl '+res.status+' ved læsning af '+path);
+  const data=await res.json();
+  if(data.content){
+    return { sha:data.sha, text:b64decode(data.content) };
+  }
+  // The Contents API only returns file content inline for files under 1MB.
+  // Above that, `content` is silently omitted (this is what produced
+  // "Unexpected end of JSON input" for larger sessions with embedded
+  // images). Fall back to the Git Blobs API, which supports up to 100MB,
+  // using the sha we already have from the Contents API response.
+  if(data.sha){
+    const blobUrl = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/git/blobs/${data.sha}`;
+    const blobRes = await fetch(blobUrl, {headers:ghHeaders()});
+    if(!blobRes.ok) throw new Error('GitHub-fejl '+blobRes.status+' ved læsning af stor fil ('+path+')');
+    const blobData = await blobRes.json();
+    return { sha:data.sha, text:b64decode(blobData.content||'') };
+  }
+  throw new Error('Kunne ikke hente indhold for '+path+' (intet content-felt og intet sha fra GitHub)');
+}
+async function ghPutFile(path, contentText, message, sha){
+  const url=`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+  const body={ message, content:b64encode(contentText) };
+  if(sha) body.sha=sha;
+  const res=await fetch(url,{method:'PUT',headers:ghHeaders(),body:JSON.stringify(body)});
+  if(!res.ok){ const t=await res.text(); throw new Error('GitHub-fejl '+res.status+': '+t.slice(0,140)); }
+  return res.json();
+}
+
+function reflectTokenState(){
+  const has=!!ghToken();
+  document.getElementById('repoTokenArea').style.display = has?'none':'block';
+  document.getElementById('repoActions').style.display = has?'block':'none';
+}
+
+async function repoPushCurrent(){
+  const s=current(); if(!s){ alert('Ingen session valgt.'); return; }
+  if(!ghToken()){ alert('Gem en token først.'); return; }
+  const btn=document.getElementById('btnRepoPush'); const old=btn.textContent; btn.textContent='Gemmer…'; btn.disabled=true;
+  try{
+    const slug=slugify(s.name);
+    const path=`${GH_DIR}/${slug}.json`;
+    // strip volatile runtime id so the file is stable; keep everything else
+    const payload={ name:s.name, theme:s.theme, blocks:s.blocks };
+    const existing=await ghGetFile(path);
+    await ghPutFile(path, JSON.stringify(payload,null,2),
+      (existing?'Opdater':'Tilføj')+' session: '+s.name, existing?existing.sha:null);
+    // update index.json
+    let index=[], indexSha=null;
+    const idx=await ghGetFile(`${GH_DIR}/index.json`);
+    if(idx){ indexSha=idx.sha; try{ index=JSON.parse(idx.text); }catch(e){ index=[]; } }
+    const entry={ file:`${slug}.json`, name:s.name, updated:new Date().toISOString().slice(0,10) };
+    const at=index.findIndex(e=>e.file===entry.file);
+    if(at>=0) index[at]=entry; else index.push(entry);
+    index.sort((a,b)=>a.name.localeCompare(b.name,'da'));
+    await ghPutFile(`${GH_DIR}/index.json`, JSON.stringify(index,null,2), 'Opdater session-indeks', indexSha);
+    toast('Gemt i repo ✓');
+  }catch(err){ alert('Kunne ikke gemme i repo: '+err.message); }
+  finally{ btn.textContent=old; btn.disabled=false; }
+}
+
+async function repoLoadList(){
+  if(!ghToken()){ alert('Gem en token først.'); return; }
+  try{
+    const idx=await ghGetFile(`${GH_DIR}/index.json`);
+    const index = idx ? JSON.parse(idx.text) : [];
+    if(!index.length){ alert('Ingen sessioner i repoet endnu. Gem én først med "☁ Gem session i repo".'); return; }
+    const list=index.map((e,i)=>`${i+1}. ${e.name}`+(e.updated?'  ('+e.updated+')':'')).join('\n');
+    const choice=prompt('Hvilken session vil du hente ind?\n\n'+list+'\n\nSkriv nummeret:');
+    if(choice===null) return;
+    const n=parseInt(choice,10)-1;
+    if(isNaN(n)||!index[n]){ alert('Ugyldigt valg.'); return; }
+    const file=await ghGetFile(`${GH_DIR}/${index[n].file}`);
+    if(!file){ alert('Filen findes ikke længere i repoet.'); return; }
+    const obj=JSON.parse(file.text);
+    if(!obj.blocks) throw new Error('Ikke en gyldig sessionsfil');
+    migrateLegacyBlockTypes([obj]);
+    // load as a new local session (existing local edits stay untouched)
+    const existing=state.sessions.find(x=>x.name===obj.name);
+    obj.id=uid();
+    if(existing && !confirm(`"${obj.name}" findes allerede lokalt. Hent repo-udgaven ind som en ekstra kopi?`)) return;
+    state.sessions.push(obj); state.currentId=obj.id;
+    editingBlock=null; saveNow(obj); renderLibrary(); renderCanvas(); pushToPresent();
+    toast('Hentet fra repo ✓');
+  }catch(err){ alert('Kunne ikke hente fra repo: '+err.message); }
+}
+
+document.getElementById('btnSaveToken').onclick=()=>{
+  const v=document.getElementById('ghTokenInput').value.trim();
+  if(!v){ alert('Indsæt en token først.'); return; }
+  localStorage.setItem(GH_TOKEN_KEY, v);
+  document.getElementById('ghTokenInput').value='';
+  reflectTokenState();
+  toast('Token gemt i denne browser');
+};
+document.getElementById('btnClearToken').onclick=()=>{
+  if(!confirm('Fjern den gemte token fra denne browser?')) return;
+  localStorage.removeItem(GH_TOKEN_KEY); reflectTokenState(); toast('Token fjernet');
+};
+document.getElementById('btnRepoPush').onclick=repoPushCurrent;
+document.getElementById('btnRepoLoad').onclick=repoLoadList;
+reflectTokenState();
+
+document.getElementById('btnImport').onclick = ()=> document.getElementById('fileImport').click();
+document.getElementById('fileImport').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const text = r.result;
+      let obj;
+      // Forsøg først at finde en indlejret session (fra en tidligere eksporteret HTML-fil)
+      const embedded = text.match(/<script type="application\/json" id="__session-data">([\s\S]*?)<\/script>/);
+      if (embedded) {
+        obj = JSON.parse(embedded[1]);
+      } else {
+        obj = JSON.parse(text);
+      }
+      if(!obj.blocks) throw new Error('Ikke en gyldig sessionsfil');
+      migrateLegacyBlockTypes([obj]);
+      obj.id = uid();
+      state.sessions.push(obj); state.currentId=obj.id;
+      editingBlock=null; saveNow(obj); renderLibrary(); renderCanvas(); pushToPresent();
+    }catch(err){ alert('Kunne ikke importere: '+err.message+'\n\n(Bemærk: kun HTML-filer eksporteret EFTER denne opdatering indeholder den indlejrede sessionsdata, der kan importeres igen.)'); }
+    e.target.value='';
+  };
+  r.readAsText(file);
+});
+function buildStandaloneHTML(s, includeDM){
+  const body = `<div class="page-wrap">${renderPageBlocks(s,includeDM)}</div>`;
+  const navButtons = `<div class="export-nav">
+    <button class="fs-btn" id="prevBtn">◀ Forrige</button>
+    <button class="fs-btn" id="nextBtn">Næste ▶</button>
+    <button class="fs-btn" id="fsBtn">⛶ Fuldskærm</button>
+  </div>`;
+  const deckScript = `<script>
+    window.__effects=${state.effects?'true':'false'}; window.__cur=0;
+    function __kids(){ var r=document.querySelector('.page-wrap'); return r?Array.prototype.slice.call(r.children):[]; }
+    function __maxPage(){
+      var ch=__kids(), m=0;
+      for(var i=0;i<ch.length;i++){ var p=parseInt(ch[i].getAttribute('data-page')||'0',10); if(p>m) m=p; }
+      return m;
+    }
+    window.__showPage=function(idx, animate){
+      var ch=__kids(); if(!ch.length) return;
+      var max=__maxPage();
+      idx = Math.max(0, Math.min(max, idx));
+      // Flow: hver bane viser den seneste blok, der er nået; en "ryd"-markør tømmer banen.
+      var flowMode = false;
+      for(var i=0;i<ch.length;i++){ if(ch[i].getAttribute('data-lane')){ flowMode = true; break; } }
+      var laneNow = {};
+      var latestPinnedByType = {};
+      var latestPinnedOrder = {};
+      if(flowMode){
+        var ordered = ch.slice().sort(function(a,b){
+          return (parseInt(a.getAttribute('data-order')||'0',10)) - (parseInt(b.getAttribute('data-order')||'0',10));
+        });
+        for(var i=0;i<ordered.length;i++){
+          var el=ordered[i];
+          if(parseInt(el.getAttribute('data-page')||'0',10) > idx) continue;
+          var lane = el.getAttribute('data-lane');
+          if(lane === 'clear'){
+            var sc = el.getAttribute('data-clear')||'both';
+            if(sc==='image'||sc==='both') delete laneNow.image;
+            if(sc==='text'||sc==='both') delete laneNow.text;
+          } else if(lane){ laneNow[lane] = el; }
+        }
+      } else {
+        for(var i=0;i<ch.length;i++){
+          var el=ch[i];
+          if(parseInt(el.getAttribute('data-page')||'0',10) > idx) continue;
+          if(el.getAttribute('data-pinned')==='1'){
+            var pt = el.getAttribute('data-btype')||'';
+            var pord = parseInt(el.getAttribute('data-order')||'0',10);
+            if(!(pt in latestPinnedOrder) || pord > latestPinnedOrder[pt]){
+              latestPinnedOrder[pt] = pord;
+              latestPinnedByType[pt] = el;
+            }
+          }
+        }
+      }
+      for(var i=0;i<ch.length;i++){
+        var el=ch[i];
+        var p=parseInt(el.getAttribute('data-page')||'0',10);
+        var pinned = el.getAttribute('data-pinned')==='1';
+        var ln = el.getAttribute('data-lane');
+        var show = flowMode
+          ? (!!ln && ln !== 'clear' && laneNow[ln] === el)
+          : (pinned ? (latestPinnedByType[el.getAttribute('data-btype')||'']===el) : (p===idx));
+        el.classList.remove('enter-fade','enter-slide');
+        if(show){
+          el.style.display='';
+          if(animate && window.__effects && p===idx){
+            var trans = el.getAttribute('data-transition')||'fade';
+            if(trans!=='instant'){ void el.offsetWidth; el.classList.add('enter-'+trans); }
+          }
+        } else { el.style.display='none'; }
+      }
+      var wrap = document.querySelector('.page-wrap');
+      var twoColActive = flowMode ? !!laneNow.image : !!latestPinnedByType['image'];
+      if(wrap) wrap.classList.toggle('two-col', twoColActive);
+      if(wrap){
+        var rightCol = document.getElementById('two-col-right');
+        if(twoColActive){
+          if(!rightCol){ rightCol=document.createElement('div'); rightCol.id='two-col-right'; wrap.appendChild(rightCol); }
+          var candidates=[];
+          for(var j=0;j<ch.length;j++){
+            var el2=ch[j], t2=el2.getAttribute('data-btype');
+            if(el2.style.display!=='none' && t2!=='header' && t2!=='image'){ candidates.push(el2); }
+          }
+          candidates.sort(function(a,b){ return (parseInt(a.getAttribute('data-order')||'0',10)) - (parseInt(b.getAttribute('data-order')||'0',10)); });
+          candidates.forEach(function(el2){ rightCol.appendChild(el2); });
+        } else if(rightCol){
+          while(rightCol.firstChild){ wrap.insertBefore(rightCol.firstChild, rightCol); }
+          rightCol.remove();
+        }
+      }
+      window.__cur=idx;
+      try{ window.scrollTo(0,0); }catch(e){}
+      window.__fitToScreen && window.__fitToScreen();
+    };
+    window.__fitToScreen=function(){
+      var wrap=document.querySelector('.page-wrap');
+      if(!wrap) return;
+      var availH=(document.documentElement.clientHeight || window.innerHeight)-24;
+      if(wrap.classList.contains('two-col')){
+        wrap.style.transform='none';
+        var rightCol=document.getElementById('two-col-right');
+        if(rightCol){
+          rightCol.style.transform='none';
+          var h=rightCol.scrollHeight;
+          var scale=Math.min(1, availH/Math.max(1,h));
+          rightCol.style.transformOrigin='top left';
+          rightCol.style.transform=(scale<0.999) ? ('scale('+scale+')') : 'none';
+        }
+        return;
+      }
+      wrap.style.transform='none';
+      var contentH=wrap.scrollHeight;
+      var scale2=Math.min(1, availH/Math.max(1,contentH));
+      wrap.style.transformOrigin='top center';
+      wrap.style.transform = (scale2<0.999) ? ('scale('+scale2+')') : 'none';
+    };
+    window.addEventListener('resize', function(){ window.__fitToScreen && window.__fitToScreen(); });
+    try{
+      if(document.fonts && document.fonts.ready){
+        document.fonts.ready.then(function(){ window.__fitToScreen && window.__fitToScreen(); });
+      }
+    }catch(e){}
+    try{
+      if(window.ResizeObserver){
+        var roCb = function(){ window.__fitToScreen && window.__fitToScreen(); };
+        var ro = new ResizeObserver(roCb);
+        ro.observe(document.documentElement);
+        var pw = document.querySelector('.page-wrap');
+        if(pw) ro.observe(pw);
+      }
+    }catch(e){}
+    [100,400,1000,2000,3500].forEach(function(ms){
+      setTimeout(function(){ window.__fitToScreen && window.__fitToScreen(); }, ms);
+    });
+    try{ document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden'; }catch(e){}
+    window.__step=function(dir){ window.__showPage(window.__cur+dir, true); };
+    window.__showPage(0, false);
+    document.getElementById('nextBtn').addEventListener('click', function(){ window.__step(1); });
+    document.getElementById('prevBtn').addEventListener('click', function(){ window.__step(-1); });
+    document.addEventListener('keydown', function(e){
+      if(e.key==='ArrowRight' || e.key===' '){ e.preventDefault(); window.__step(1); }
+      else if(e.key==='ArrowLeft'){ e.preventDefault(); window.__step(-1); }
+    });
+    document.getElementById('fsBtn').addEventListener('click', function(){ try{ document.documentElement.requestFullscreen(); }catch(e){} });
+    (function(){
+      var fsBtn = document.getElementById('fsBtn');
+      var syncFsBtn = function(){ fsBtn.style.display = document.fullscreenElement ? 'none' : ''; };
+      document.addEventListener('fullscreenchange', syncFsBtn);
+      syncFsBtn();
+    })();
+  <\/script>`;
+  const hpScript = `<script>
+    window.__hpSafeEval=function(expr){
+      if(!/^[\\d+\\-*/(). ]+$/.test(expr)) return NaN;
+      try{
+        var val = Function('"use strict"; return (' + expr + ')')();
+        return (typeof val === 'number' && isFinite(val)) ? val : NaN;
+      }catch(e){ return NaN; }
+    };
+    window.__hpUpdateBar=function(rid, max, val){
+      var input=document.getElementById('hp-'+rid), bar=document.getElementById('bar-'+rid);
+      if(!input||!bar) return;
+      val=Math.max(0, Math.round(val));
+      input.value=val;
+      input.dataset.baseline=val;
+      var pct=(val/max)*100;
+      bar.style.width=Math.min(100,pct)+'%';
+      bar.className='hp-bar '+(pct>50?'healthy':(pct>25?'bloodied':'critical'));
+    };
+    window.__hpChange=function(rid, max, delta){
+      var input=document.getElementById('hp-'+rid); if(!input) return;
+      var baseline=parseFloat(input.dataset.baseline)||0;
+      window.__hpUpdateBar(rid, max, baseline+delta);
+    };
+    window.__hpSet=function(rid, max){
+      var input=document.getElementById('hp-'+rid); if(!input) return;
+      var raw=(input.value||'').trim();
+      var baseline=parseFloat(input.dataset.baseline)||0;
+      var result;
+      if(/^[+\\-]/.test(raw)){ result=window.__hpSafeEval(baseline+raw); }
+      else if(/[+\\-*/]/.test(raw)){ result=window.__hpSafeEval(raw); }
+      else { result=parseFloat(raw); }
+      if(isNaN(result)) result=baseline;
+      window.__hpUpdateBar(rid, max, result);
+    };
+  <\/script>`;
+  const navCSS = `<style>.export-nav{ position:fixed; bottom:14px; right:14px; z-index:99; display:flex; gap:.5rem; } .export-nav .fs-btn{ position:static; }</style>`;
+  const embeddedData = `<script type="application/json" id="__session-data">${JSON.stringify(s).replace(/<\/script/gi, '<\\/script')}<\/script>`;
+  return `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${esc(s.name||'Session')}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>${SHARED_CSS}</style>
+<style>${themeVarsCSS(themeOf())}</style>
+${navCSS}</head>
+<body class="present-body">${embeddedData}${body}${navButtons}${hpScript}${deckScript}</body></html>`;
+}
+document.getElementById('btnExportHtml').onclick = ()=>{
+  const s = current();
+  const full = buildStandaloneHTML(s, true);
+  download((s.name||'session').replace(/[^a-z0-9æøå_-]+/gi,'_').toLowerCase()+'.html', full, 'text/html');
+};
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+(async function boot(){
+  document.getElementById('themeSelect').innerHTML = Object.keys(THEMES).map(k=>`<option value="${k}">${THEMES[k].label}</option>`).join('');
+  await loadState();
+  document.getElementById('chkEffects').checked = !!state.effects;
+  renderLibrary();
+  renderCanvas();
+  updateMeter();
+})();
+</script>
+</body>
+</html>
