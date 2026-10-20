@@ -161,6 +161,14 @@
       }
     },
     {
+      "id": "annqdew",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
+    },
+    {
       "id": "b11",
       "type": "hptracker",
       "data": {
@@ -383,6 +391,14 @@
       }
     },
     {
+      "id": "7wa3jq6",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
+    },
+    {
       "id": "b29",
       "type": "hptracker",
       "data": {
@@ -391,13 +407,31 @@
             "name": "Aelrindel",
             "max": "350",
             "cur": "350"
-          },
-          {
-            "name": "Nharessyth ",
-            "max": "250",
-            "cur": "250"
           }
         ]
+      },
+      "pinned": true
+    },
+    {
+      "id": "0l0o5dx",
+      "type": "divider",
+      "data": {
+        "icon": "⚔",
+        "transition": "fade"
+      }
+    },
+    {
+      "id": "3r2eu68",
+      "type": "hptracker",
+      "data": {
+        "combatants": [
+          {
+            "name": "Nharessyth",
+            "max": "280",
+            "cur": "280"
+          }
+        ],
+        "groups": []
       }
     },
     {
